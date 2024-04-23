@@ -1,0 +1,32 @@
+{
+  "compatibilityLevel": "JAVA_17",
+  "package": "net.wenscHuix.mitemod.mixin",
+  "required": true,
+  "target": "DEFAULT",
+  "minVersion": "0.8.3",
+  "client": [
+    "MinecraftMixin",
+    "block.BlockAccessor",
+    "block.BlockMixin",
+    "gui.GuiOptionsMixin",
+    "particle.EffectRendererMixin",
+    "render.texture.AbstractTextureMixin",
+    "render.texture.DynamicTextureMixin",
+    "render.texture.LayeredTextureMixin",
+    "render.texture.ResourceLocationMixin",
+    "render.texture.TextureAtlasSpriteMixin",
+    "render.texture.TextureClockMixin",
+    "render.texture.TextureCompassMixin",
+    "render.texture.TextureManagerMixin",
+    "render.texture.TextureMapMixin",
+    "render.texture.TextureObject",
+    "render.EntityRendererAccessor",
+    "render.EntityRendererMixin",
+    "render.ItemRendererMixin",
+    "render.OpenGlHelperMixin",
+    "render.RenderBlocksMixin",
+    "render.RenderEndermanMixin",
+    "render.RendererLivingEntityMixin",
+    "render.RenderGlobalMixin"
+  ]
+}

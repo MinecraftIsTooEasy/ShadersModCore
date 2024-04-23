@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "rpg_like",
+  "version": "${version}",
+  "depends": {
+    "fishmodloader": ">=3.2.1"
+  },
+  "environment": "*",
+  "name": "",
+  "description": "",
+  "authors": ["limingzxc"],
+  "entrypoints": {
+    "preLaunch": ["mite.rpg.rpg.MITE_RPGLikeMod"],
+    "main": ["mite.rpg.rpg.MITE_RPGLikeMod"]
+  },
+  "mixins": [
+    "rpg_like.mixin.json"
+  ],
+  "accessWidener": "rpg_like.accesswidener",
+  "custom": {
+    "loom:injected_interfaces": {
+    }
+  }
+}
+
