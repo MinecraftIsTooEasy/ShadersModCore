@@ -20,7 +20,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mixin({TextureAtlasSprite.class})
+@Mixin(TextureAtlasSprite.class)
 public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAccessor {
 
    @Shadow protected abstract void allocateFrameTextureData(int par1);
@@ -87,7 +87,7 @@ public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAcces
       BufferedImage var4 = ImageIO.read(var2);
       this.height = var4.getHeight();
       this.width = var4.getWidth();
-      int[] var5 = new int[this.height * this.width];
+      int[] var5 = new int[this.height * this.width * 3];
       ShadersTex.loadAtlasSprite(var4, 0, 0, this.width, this.height, var5, 0, this.width);
       var4.getRGB(0, 0, this.width, this.height, var5, 0, this.width);
       if (var3 == null) {

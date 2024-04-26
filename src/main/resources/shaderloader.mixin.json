@@ -19,7 +19,7 @@
     "render.texture.TextureCompassMixin",
     "render.texture.TextureManagerMixin",
     "render.texture.TextureMapMixin",
-    "render.texture.TextureObject",
+    "render.texture.TextureObjectMixin",
     "render.EntityRendererAccessor",
     "render.EntityRendererMixin",
     "render.ItemRendererMixin",
@@ -27,6 +27,17 @@
     "render.RenderBlocksMixin",
     "render.RenderEndermanMixin",
     "render.RendererLivingEntityMixin",
-    "render.RenderGlobalMixin"
+    "render.RenderGlobalMixin",
+    "render.RenderingSchemeMixin",
+    "render.RenderManagerMixin",
+    "render.RenderMixin",
+    "render.RenderSpiderMixin",
+    "render.SimpleTextureMixin",
+    "render.TessellatorAccessor",
+    "render.TessellatorMixin",
+    "render.ThreadDownloadImageDataMixin",
+    "world.ChunkCacheMixin",
+    "world.WorldMixin",
+    "MinecraftMixin"
   ]
 }

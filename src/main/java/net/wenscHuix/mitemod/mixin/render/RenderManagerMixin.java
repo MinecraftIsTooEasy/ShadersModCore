@@ -1,23 +1,24 @@
 package net.wenscHuix.mitemod.mixin.render;
 
 import java.util.Map;
-import net.minecraft.avi;
-import net.minecraft.bgl;
+
+import net.minecraft.FontRenderer;
+import net.minecraft.RenderManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin({bgl.class})
+@Mixin({RenderManager.class})
 public class RenderManagerMixin {
-   @Shadow
-   private avi r;
-   @Shadow
-   private Map q;
 
-   public avi getFontRenderer() {
-      return this.r;
+   @Shadow private FontRenderer fontRenderer;
+
+   @Shadow private Map entityRenderMap;
+
+   public FontRenderer getFontRenderer() {
+      return this.fontRenderer;
    }
 
    public Map getEntityRenderMap() {
-      return this.q;
+      return this.entityRenderMap;
    }
 }

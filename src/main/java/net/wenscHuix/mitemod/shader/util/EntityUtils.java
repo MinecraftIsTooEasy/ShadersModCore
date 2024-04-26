@@ -2,7 +2,8 @@ package net.wenscHuix.mitemod.shader.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import net.minecraft.EntityTypes;
+
+import net.minecraft.EntityList;
 import net.wenscHuix.mitemod.shader.client.dynamicLight.config.ShaderConfig;
 
 public class EntityUtils {
@@ -15,9 +16,9 @@ public class EntityUtils {
 
    static {
       for(int i = 0; i < 1000; ++i) {
-         Class oclass = EntityTypes.getClassFromID(i);
+         Class oclass = EntityList.getClassFromID(i);
          if (oclass != null) {
-            String s = EntityTypes.getStringFromID(i);
+            String s = EntityList.getStringFromID(i);
             if (s != null) {
                if (mapClassByName.containsKey(s)) {
                   ShaderConfig.warn("Duplicate entity name: " + s + ", class1: " + mapClassByName.get(s) + ", class2: " + oclass);

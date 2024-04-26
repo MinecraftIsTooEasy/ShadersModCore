@@ -1,31 +1,22 @@
 package net.wenscHuix.mitemod.mixin.render;
 
-import net.minecraft.bia;
-import net.minecraft.bic;
-import net.minecraft.bjp;
+import net.minecraft.AbstractTexture;
+import net.minecraft.ThreadDownloadImageData;
+import net.wenscHuix.mitemod.imixin.AbstractTextureAccessor;
 import net.wenscHuix.mitemod.shader.client.MultiTexID;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin({bic.class})
-public class ThreadDownloadImageDataMixin extends bia {
-   @Shadow
-   private boolean g;
+@Mixin({ThreadDownloadImageData.class})
+public abstract class ThreadDownloadImageDataMixin extends AbstractTexture {
+
+   @Shadow private boolean textureUploaded;
 
    public MultiTexID getMultiTexID() {
-      if (!this.g) {
-         this.b();
+      if (!this.textureUploaded) {
+         this.getGlTextureId();
       }
 
-      return super.getMultiTexID();
-   }
-
-   @Shadow
-   public void a(bjp bjp) {
-   }
-
-   @Shadow
-   public int b() {
-      return 0;
+      return ((AbstractTextureAccessor)this).mITE_Shader_Loader$getMultiTexID();
    }
 }

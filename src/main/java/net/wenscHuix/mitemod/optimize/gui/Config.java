@@ -40,7 +40,7 @@ public class Config {
 
       try {
          FileWriter writer = new FileWriter(configFile);
-         optimizeConfig.store(writer, (String)null);
+         optimizeConfig.store(writer, null);
          writer.close();
       } catch (IOException var1) {
          var1.printStackTrace();
@@ -49,7 +49,7 @@ public class Config {
    }
 
    static {
-      configFile = new File(Minecraft.w().x, optionsFileName);
+      configFile = new File(Minecraft.getMinecraft().mcDataDir, optionsFileName);
       optimizeConfig = new Properties();
    }
 }

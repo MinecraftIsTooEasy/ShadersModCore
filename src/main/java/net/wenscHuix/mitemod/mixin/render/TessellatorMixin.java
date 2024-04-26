@@ -1,90 +1,99 @@
 package net.wenscHuix.mitemod.mixin.render;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-import net.minecraft.bfq;
+import net.minecraft.Tessellator;
+import net.wenscHuix.mitemod.imixin.TessellatorAccessor0;
 import net.wenscHuix.mitemod.shader.client.ShadersTess;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin({bfq.class})
-public class TessellatorMixin {
-   public ShadersTess shadersTess;
-   public boolean defaultTexture;
-   public int rawBufferSize;
-   public int textureID;
+@Mixin(Tessellator.class)
+public class TessellatorMixin implements TessellatorAccessor0 {
+
+   @Shadow private boolean useVBO;
+
+   @Shadow private int vboCount;
+
+   @Shadow private static boolean tryVBO;
+
+   @Shadow public boolean hasNormals;
+
+   @Shadow public double textureU;
+
+   @Shadow public int normal;
    public float normalX;
    public float normalY;
    public float normalZ;
    public float midTextureU;
    public float midTextureV;
    public float[] vertexPos;
-   @Shadow
-   public IntBuffer B;
-   @Shadow
-   public ByteBuffer d;
-   @Shadow
-   public IntBuffer e;
-   @Shadow
-   public FloatBuffer f;
-   @Shadow
-   public ShortBuffer g;
-   @Shadow
-   public int[] h;
-   @Shadow
-   public int i;
-   @Shadow
-   public double j;
-   @Shadow
-   public double k;
-   @Shadow
-   public int l;
-   @Shadow
-   public int m;
-   @Shadow
-   public boolean q;
-   @Shadow
-   public int y;
-   @Shadow
-   private boolean A;
-   @Shadow
-   private int D;
-   @Shadow
-   private static boolean c;
+
+   public float mITE_Shader_Loader$getNormalX() { return this.normalX; }
+
+   public float mITE_Shader_Loader$getNormalY() { return this.normalY; }
+
+   public float mITE_Shader_Loader$getNormalZ() { return this.normalZ; }
+
+   public float mITE_Shader_Loader$setNormalX(float normalX) { return this.normalX = normalX; }
+
+   public float mITE_Shader_Loader$setNormalY(float normalY) { return this.normalY = normalY; }
+
+   public float mITE_Shader_Loader$setNormalZ(float normalZ) { return this.normalZ = normalZ; }
+
+   public float[] mITE_Shader_Loader$getVertexPos() { return this.vertexPos; }
+
+   public void mITE_Shader_Loader$setVertexPos(float[] vertexPos) { this.vertexPos = vertexPos; }
+
+   public float mITE_Shader_Loader$getMidTextureU() { return this.midTextureU; }
+
+   public float mITE_Shader_Loader$getMidTextureV() { return this.midTextureV; }
+
+   public void mITE_Shader_Loader$setMidTextureU(float midTextureU) { this.midTextureU = midTextureU; }
+
+   public void mITE_Shader_Loader$setMidTextureV(float midTextureV) { this.midTextureV = midTextureV; }
 
    public boolean isUseVBO() {
-      return this.A;
+      return this.useVBO;
    }
 
    public boolean setUseVBO(boolean is) {
-      return this.A = is;
+      return this.useVBO = is;
    }
 
    public int getVboCount() {
-      return this.D;
+      return this.vboCount;
    }
 
    public boolean tryVBO() {
-      return c;
+      return tryVBO;
    }
 
+   /**
+    * @author
+    * @reason
+    */
    @Overwrite
-   public void a(double par1, double par3, double par5) {
-      ShadersTess.addVertex((bfq)ReflectHelper.dyCast(this), par1, par3, par5);
+   public void addVertex(double par1, double par3, double par5) {
+      ShadersTess.addVertex(ReflectHelper.dyCast(this), par1, par3, par5);
    }
 
+   /**
+    * @author
+    * @reason
+    */
    @Overwrite
-   public int a() {
-      return ShadersTess.draw((bfq)ReflectHelper.dyCast(bfq.class, this));
+   public int draw() {
+      return ShadersTess.draw(ReflectHelper.dyCast(Tessellator.class, this));
    }
 
+   /**
+    * @author
+    * @reason
+    */
    @Overwrite
-   public final void b(float par1, float par2, float par3) {
-      this.q = true;
+   public final void setNormal(float par1, float par2, float par3) {
+      this.hasNormals = true;
       this.normalX = par1;
       this.normalY = par2;
       this.normalZ = par3;

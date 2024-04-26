@@ -1,19 +1,7 @@
 package net.wenscHuix.mitemod.mixin.render;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import javax.imageio.ImageIO;
-import net.minecraft.Minecraft;
-import net.minecraft.bia;
-import net.minecraft.bif;
-import net.minecraft.bjn;
-import net.minecraft.bjo;
-import net.minecraft.bjp;
-import net.minecraft.bkw;
+import net.minecraft.*;
+import net.wenscHuix.mitemod.imixin.AbstractTextureAccessor;
 import net.wenscHuix.mitemod.shader.client.ShadersTex;
 import org.apache.commons.io.IOUtils;
 import org.spongepowered.asm.mixin.Final;
@@ -21,41 +9,56 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin({bif.class})
-public class SimpleTextureMixin extends bia {
-   @Shadow
-   @Final
-   private bjo b;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 
+@Mixin({SimpleTexture.class})
+public abstract class SimpleTextureMixin extends AbstractTexture {
+
+   @Shadow @Final private ResourceLocation textureLocation;
+
+   /**
+    * @author
+    * @reason
+    */
    @Overwrite
-   public void a(bjp par1ResourceManager) throws IOException {
-      Object var2 = null;
+   public void loadTexture(ResourceManager par1ResourceManager) {
+      InputStream var2 = null;
 
       try {
-         bjn var3 = par1ResourceManager.a(this.b);
-         var2 = var3.b();
-         if (this.b.generate_encoded_file && !Minecraft.inDevMode()) {
-            this.b.generate_encoded_file = false;
-            Minecraft.setErrorMessage("SimpleTexture: Error for " + this.b.a());
+         Resource var3 = par1ResourceManager.getResource(this.textureLocation);
+         var2 = var3.getInputStream();
+         if (this.textureLocation.generate_encoded_file && !Minecraft.inDevMode()) {
+            this.textureLocation.generate_encoded_file = false;
+            Minecraft.setErrorMessage("SimpleTexture: Error for " + this.textureLocation.getResourcePath());
          }
 
          byte[] bytes;
-         if (this.b.a().endsWith(".enc")) {
-            bytes = IOUtils.toByteArray((InputStream)var2);
-            this.rB(bytes);
+         if (this.textureLocation.getResourcePath().endsWith(".enc")) {
+             try {
+                 bytes = IOUtils.toByteArray(var2);
+             } catch (IOException e) {
+                 throw new RuntimeException(e);
+             }
+             this.rB(bytes);
             bytes[1] = 80;
             bytes[2] = 78;
             bytes[3] = 71;
             var2 = new ByteArrayInputStream(bytes);
-         } else if (this.b.generate_encoded_file) {
-            bytes = IOUtils.toByteArray((InputStream)var2);
-            byte[] copy_of_bytes = new byte[bytes.length];
+         } else if (this.textureLocation.generate_encoded_file) {
+             try {
+                 bytes = IOUtils.toByteArray(var2);
+             } catch (IOException e) {
+                 throw new RuntimeException(e);
+             }
+             byte[] copy_of_bytes = new byte[bytes.length];
             System.arraycopy(bytes, 0, copy_of_bytes, 0, bytes.length);
             copy_of_bytes[1] = 0;
             copy_of_bytes[2] = 0;
             copy_of_bytes[3] = 0;
             this.rB(copy_of_bytes);
-            String resource_path = this.b.a();
+            String resource_path = this.textureLocation.getResourcePath();
             if (resource_path.endsWith(".png")) {
                resource_path = resource_path.substring(0, resource_path.length() - 4);
             }
@@ -76,27 +79,33 @@ public class SimpleTextureMixin extends bia {
             var2 = new ByteArrayInputStream(bytes);
          }
 
-         BufferedImage var4 = ImageIO.read((InputStream)var2);
+         BufferedImage var4 = ImageIO.read(var2);
          boolean var5 = false;
          boolean var6 = false;
-         if (var3.c()) {
+         if (var3.hasMetadata()) {
             try {
-               bkw var7 = (bkw)var3.a("texture");
+               TextureMetadataSection var7 = (TextureMetadataSection)var3.getMetadata("texture");
                if (var7 != null) {
-                  var5 = var7.a();
-                  var6 = var7.b();
+                  var5 = var7.getTextureBlur();
+                  var6 = var7.getTextureClamp();
                }
             } catch (RuntimeException var13) {
-               Minecraft.w().getLogAgent().logWarningException("Failed reading metadata of: " + this.b, var13);
+               Minecraft.getMinecraft().getLogAgent().logWarningException("Failed reading metadata of: " + this.textureLocation, var13);
             }
          }
 
-         ShadersTex.loadSimpleTexture(this.b(), var4, var5, var6, par1ResourceManager, this.b, this.getMultiTexID());
+         ShadersTex.loadSimpleTexture(this.getGlTextureId(), var4, var5, var6, par1ResourceManager, this.textureLocation,
+                 ((AbstractTextureAccessor)this).mITE_Shader_Loader$getMultiTexID());
+      } catch (IOException e) {
+          throw new RuntimeException(e);
       } finally {
          if (var2 != null) {
-            ((InputStream)var2).close();
+             try {
+                 var2.close();
+             } catch (IOException e) {
+                 throw new RuntimeException(e);
+             }
          }
-
       }
 
    }

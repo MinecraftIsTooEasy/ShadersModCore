@@ -27,8 +27,8 @@ public abstract class DynamicTextureMixin extends AbstractTexture {
 
    @ModifyVariable(method = "<init>(II)V", argsOnly = true, index = 1,
            at = @At(value = "FIELD", shift = Shift.AFTER, ordinal = 1))
-   private int injectInit(int par1) {
-      return par1 * 3;
+   private int injectInit(int i) {
+      return i * 3;
    }
 
    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;allocateTexture(III)V"),

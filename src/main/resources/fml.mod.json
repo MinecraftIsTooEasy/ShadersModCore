@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
-  "id": "rpg_like",
+  "id": "shader-loader",
   "version": "${version}",
   "depends": {
     "fishmodloader": ">=3.2.1"
   },
-  "environment": "*",
-  "name": "",
-  "description": "",
+  "environment": "client",
+  "name": "ShaderLoader",
+  "description": "ShaderLoader",
   "authors": ["limingzxc"],
   "entrypoints": {
-    "preLaunch": ["mite.rpg.rpg.MITE_RPGLikeMod"],
-    "main": ["mite.rpg.rpg.MITE_RPGLikeMod"]
+    "preLaunch": ["net.wenscHuix.mitemod.MITEShaderLoader"],
+    "client": ["net.wenscHuix.mitemod.MITEShaderLoader"]
   },
   "mixins": [
-    "rpg_like.mixin.json"
+    "shaderloader.mixin.json"
   ],
-  "accessWidener": "rpg_like.accesswidener",
+  "accessWidener": "shaderloader.accesswidener",
   "custom": {
     "loom:injected_interfaces": {
     }

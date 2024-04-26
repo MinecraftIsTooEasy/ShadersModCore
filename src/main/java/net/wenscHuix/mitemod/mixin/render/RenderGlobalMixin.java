@@ -3,12 +3,14 @@ package net.wenscHuix.mitemod.mixin.render;
 import java.util.List;
 
 import net.minecraft.*;
+import net.wenscHuix.mitemod.imixin.RenderGlobalAccessor;
 import net.wenscHuix.mitemod.optimize.gui.Config;
 import net.wenscHuix.mitemod.shader.client.Shaders;
 import net.wenscHuix.mitemod.shader.client.dynamicLight.DynamicLights;
 import net.wenscHuix.mitemod.shader.client.dynamicLight.config.ShaderConfig;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.lwjgl.opengl.GL11;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,9 +21,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Mixin({RenderGlobal.class})
-public abstract class RenderGlobalMixin implements IWorldAccess {
+@Mixin(RenderGlobal.class)
+public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAccessor {
 
+   @Shadow private List worldRenderersToUpdate;
+
+   @Shadow public abstract void renderCloudsFancy(float par1);
+
+   @Shadow private int cloudTickCounter;
+   @Shadow @Final private static ResourceLocation locationCloudsPng;
+   @Shadow @Final private TextureManager renderEngine;
+   @Shadow private Minecraft mc;
    @Shadow double prevSortZ;
    @Shadow double prevSortY;
    @Shadow double prevSortX;
@@ -202,194 +212,120 @@ public abstract class RenderGlobalMixin implements IWorldAccess {
       Shaders.preSkyList();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",
-   ordinal = 4,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 4, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky6(CallbackInfo callbackInfo) {
       Shaders.disableFog();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",
-   ordinal = 6,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 6, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky7(CallbackInfo callbackInfo) {
       Shaders.disableTexture2D();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",
-   ordinal = 5,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", ordinal = 5, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky8(CallbackInfo callbackInfo) {
       Shaders.enableTexture2D();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glRotatef(FFFF)V",
-   ordinal = 8,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glRotatef(FFFF)V", ordinal = 8, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky9(CallbackInfo callbackInfo) {
       Shaders.preCelestialRotate();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glRotatef(FFFF)V",
-   ordinal = 9,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glRotatef(FFFF)V", ordinal = 9, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky10(CallbackInfo callbackInfo) {
       Shaders.postCelestialRotate();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",
-   ordinal = 7,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 7, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky11(CallbackInfo callbackInfo) {
       Shaders.disableTexture2D();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",
-   ordinal = 7,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", ordinal = 7, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky12(CallbackInfo callbackInfo) {
       Shaders.enableFog();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",
-   ordinal = 9,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 9, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky13(CallbackInfo callbackInfo) {
       Shaders.disableTexture2D();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",
-   ordinal = 8,
-   shift = Shift.AFTER
-)},
-      method = {"a(F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", ordinal = 8, shift = Shift.AFTER),
+      method = {"renderSky"}
    )
    private void injectRenderSky14(CallbackInfo callbackInfo) {
       Shaders.enableTexture2D();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",
-   ordinal = 0,
-   shift = Shift.AFTER
-)},
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 0, shift = Shift.AFTER),
       method = {"compileCloudsFancy"}
    )
    private void injectCompileCloudsFancy0(CallbackInfo callbackInfo) {
       Shaders.disableFog();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",
-   ordinal = 2,
-   shift = Shift.AFTER
-)},
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 2, shift = Shift.AFTER),
       method = {"compileCloudsFancy"}
    )
    private void injectCompileCloudsFancy1(CallbackInfo callbackInfo) {
       Shaders.disableTexture2D();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",
-   ordinal = 1,
-   shift = Shift.AFTER
-)},
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", ordinal = 1, shift = Shift.AFTER),
       method = {"compileCloudsFancy"}
    )
    private void injectCompileCloudsFancy2(CallbackInfo callbackInfo) {
       Shaders.enableFog();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",
-   ordinal = 3,
-   shift = Shift.AFTER
-)},
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V", ordinal = 3, shift = Shift.AFTER),
       method = {"compileCloudsFancy"}
    )
    private void injectCompileCloudsFancy3(CallbackInfo callbackInfo) {
       Shaders.enableTexture2D();
    }
 
+   /**
+    * @author
+    * @reason
+    */
    @Overwrite
-   public void b(float par1) {
-      if (this.t.f.provider.isSurfaceWorld()) {
+   public void renderClouds(float par1) {
+      if (this.mc.theWorld.provider.isSurfaceWorld()) {
          boolean force_fancy_clouds = true;
-         if (!force_fancy_clouds && !this.t.u.isFancyGraphicsEnabled()) {
+         if (!force_fancy_clouds && !this.mc.gameSettings.isFancyGraphicsEnabled()) {
             GL11.glEnable(2884);
-            float var2 = (float)(this.t.i.lastTickPosY + (this.t.i.posY - this.t.i.lastTickPosY) * (double)par1);
+            float var2 = (float)(this.mc.renderViewEntity.lastTickPosY + (this.mc.renderViewEntity.posY - this.mc.renderViewEntity.lastTickPosY) * (double)par1);
             byte var3 = 32;
             int var4 = 256 / var3;
-            bfq var5 = bfq.a;
-            this.l.a(i);
+            Tessellator var5 = Tessellator.instance;
+            this.renderEngine.bindTexture(locationCloudsPng);
             GL11.glEnable(3042);
             GL11.glBlendFunc(770, 771);
-            Vec3D var6 = this.k.e(par1);
+            Vec3 var6 = this.theWorld.getCloudColour(par1);
             float var7 = (float)var6.xCoord;
             float var8 = (float)var6.yCoord;
             float var9 = (float)var6.zCoord;
             float var10;
-            if (this.t.u.g) {
+            if (this.mc.gameSettings.anaglyph) {
                var10 = (var7 * 30.0F + var8 * 59.0F + var9 * 11.0F) / 100.0F;
                float var11 = (var7 * 30.0F + var8 * 70.0F) / 100.0F;
                float var12 = (var7 * 30.0F + var9 * 70.0F) / 100.0F;
@@ -399,22 +335,22 @@ public abstract class RenderGlobalMixin implements IWorldAccess {
             }
 
             var10 = 4.8828125E-4F;
-            double var24 = (double)((float)this.x + par1);
-            double var13 = this.t.i.prevPosX + (this.t.i.posX - this.t.i.prevPosX) * (double)par1 + var24 * 0.029999999329447746D;
-            double var15 = this.t.i.prevPosZ + (this.t.i.posZ - this.t.i.prevPosZ) * (double)par1;
+            double var24 = (float)this.cloudTickCounter + par1;
+            double var13 = this.mc.renderViewEntity.prevPosX + (this.mc.renderViewEntity.posX - this.mc.renderViewEntity.prevPosX) * (double)par1 + var24 * 0.029999999329447746D;
+            double var15 = this.mc.renderViewEntity.prevPosZ + (this.mc.renderViewEntity.posZ - this.mc.renderViewEntity.prevPosZ) * (double)par1;
             int var17 = MathHelper.floor_double(var13 / 2048.0D);
             int var18 = MathHelper.floor_double(var15 / 2048.0D);
-            var13 -= (double)(var17 * 2048);
-            var15 -= (double)(var18 * 2048);
-            float var19 = this.k.provider.f() - var2 + 0.33F;
+            var13 -= var17 * 2048;
+            var15 -= var18 * 2048;
+            float var19 = this.theWorld.provider.getCloudHeight() - var2 + 0.33F;
             float var20 = (float)(var13 * (double)var10);
             float var21 = (float)(var15 * (double)var10);
             boolean player_can_see_cloud_bottoms = var19 > -0.0F;
             GL11.glCullFace(player_can_see_cloud_bottoms ? 1028 : 1029);
-            var5.b();
+            var5.startDrawingQuads();
             GL11.glColor4f(var7, var8, var9, 0.8F);
-            var5.o = true;
-            int[] rawBuffer = var5.h;
+            var5.hasTexture = true;
+            int[] rawBuffer = var5.rawBuffer;
             int y0 = Float.floatToRawIntBits(var19);
 
             for(int var22 = -var3 * var4; var22 < var3 * var4; var22 += var3) {
@@ -425,97 +361,79 @@ public abstract class RenderGlobalMixin implements IWorldAccess {
 
                for(int var23 = -var3 * var4; var23 < var3 * var4; var23 += var3) {
                   if (RenderingScheme.current == 0) {
-                     var5.a((double)(var22 + 0), (double)var19, (double)(var23 + var3), (double)((float)(var22 + 0) * var10 + var20), (double)((float)(var23 + var3) * var10 + var21));
-                     var5.a((double)(var22 + var3), (double)var19, (double)(var23 + var3), (double)((float)(var22 + var3) * var10 + var20), (double)((float)(var23 + var3) * var10 + var21));
-                     var5.a((double)(var22 + var3), (double)var19, (double)(var23 + 0), (double)((float)(var22 + var3) * var10 + var20), (double)((float)(var23 + 0) * var10 + var21));
-                     var5.a((double)(var22 + 0), (double)var19, (double)(var23 + 0), (double)((float)(var22 + 0) * var10 + var20), (double)((float)(var23 + 0) * var10 + var21));
+                     var5.addVertexWithUV(var22, var19, var23 + var3, (float)(var22) * var10 + var20, (float)(var23 + var3) * var10 + var21);
+                     var5.addVertexWithUV(var22 + var3, var19, var23 + var3, (float)(var22 + var3) * var10 + var20, (float)(var23 + var3) * var10 + var21);
+                     var5.addVertexWithUV(var22 + var3, var19, var23, (float)(var22 + var3) * var10 + var20, (float)(var23) * var10 + var21);
+                     var5.addVertexWithUV(var22, var19, var23, (float)(var22) * var10 + var20, (float)(var23) * var10 + var21);
                   } else {
                      int v0 = Float.floatToRawIntBits((float)(var23 + var3) * var10 + var21);
                      int v2 = Float.floatToRawIntBits((float)var23 * var10 + var21);
                      int z0 = Float.floatToRawIntBits((float)(var23 + var3));
                      int z1 = Float.floatToRawIntBits((float)var23);
-                     rawBuffer[var5.r + 3] = u0;
-                     rawBuffer[var5.r + 11] = u1;
-                     rawBuffer[var5.r + 19] = u1;
-                     rawBuffer[var5.r + 27] = u0;
-                     rawBuffer[var5.r + 4] = v0;
-                     rawBuffer[var5.r + 12] = v0;
-                     rawBuffer[var5.r + 20] = v2;
-                     rawBuffer[var5.r + 28] = v2;
-                     rawBuffer[var5.r + 0] = x0;
-                     rawBuffer[var5.r + 8] = x1;
-                     rawBuffer[var5.r + 16] = x1;
-                     rawBuffer[var5.r + 24] = x0;
-                     rawBuffer[var5.r + 1] = y0;
-                     rawBuffer[var5.r + 9] = y0;
-                     rawBuffer[var5.r + 17] = y0;
-                     rawBuffer[var5.r + 25] = y0;
-                     rawBuffer[var5.r + 2] = z0;
-                     rawBuffer[var5.r + 10] = z0;
-                     rawBuffer[var5.r + 18] = z1;
-                     rawBuffer[var5.r + 26] = z1;
-                     var5.r += 32;
-                     var5.s += 4;
-                     var5.i += 4;
-                     if (var5.r >= 2097120) {
-                        var5.a();
-                        var5.z = true;
+                     rawBuffer[var5.rawBufferIndex + 3] = u0;
+                     rawBuffer[var5.rawBufferIndex + 11] = u1;
+                     rawBuffer[var5.rawBufferIndex + 19] = u1;
+                     rawBuffer[var5.rawBufferIndex + 27] = u0;
+                     rawBuffer[var5.rawBufferIndex + 4] = v0;
+                     rawBuffer[var5.rawBufferIndex + 12] = v0;
+                     rawBuffer[var5.rawBufferIndex + 20] = v2;
+                     rawBuffer[var5.rawBufferIndex + 28] = v2;
+                     rawBuffer[var5.rawBufferIndex] = x0;
+                     rawBuffer[var5.rawBufferIndex + 8] = x1;
+                     rawBuffer[var5.rawBufferIndex + 16] = x1;
+                     rawBuffer[var5.rawBufferIndex + 24] = x0;
+                     rawBuffer[var5.rawBufferIndex + 1] = y0;
+                     rawBuffer[var5.rawBufferIndex + 9] = y0;
+                     rawBuffer[var5.rawBufferIndex + 17] = y0;
+                     rawBuffer[var5.rawBufferIndex + 25] = y0;
+                     rawBuffer[var5.rawBufferIndex + 2] = z0;
+                     rawBuffer[var5.rawBufferIndex + 10] = z0;
+                     rawBuffer[var5.rawBufferIndex + 18] = z1;
+                     rawBuffer[var5.rawBufferIndex + 26] = z1;
+                     var5.rawBufferIndex += 32;
+                     var5.addedVertices += 4;
+                     var5.vertexCount += 4;
+                     if (var5.rawBufferIndex >= 2097120) {
+                        var5.draw();
+                        var5.isDrawing = true;
                      }
                   }
                }
             }
 
-            var5.a();
+            var5.draw();
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glDisable(3042);
             GL11.glCullFace(1029);
-         } else if (this.t.u.g) {
-            this.c(par1);
+         } else if (this.mc.gameSettings.anaglyph) {
+            this.renderCloudsFancy(par1);
          } else {
-            this.c(par1);
+            this.renderCloudsFancy_MITE(par1);
          }
       }
 
    }
 
    public WorldClient getClientWorld() {
-      return this.cli;
+      return this.theWorld;
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glBlendFunc(II)V",
-   shift = Shift.AFTER
-)},
-      method = {"a(Lnet/minecraft/bfq;Lnet/minecraft/EntityPlayer;F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glBlendFunc(II)V", shift = Shift.AFTER),
+      method = {"drawBlockDamageTexture"}
    )
    private void injectDrawBlockDamageTexture0(CallbackInfo callbackInfo) {
       Shaders.beginBlockDestroyProgress();
    }
 
-   @Inject(
-      at = {@At(
-   value = "INVOKE",
-   target = "Lorg/lwjgl/opengl/GL11;glPopMatrix()V",
-   shift = Shift.AFTER
-)},
-      method = {"a(Lnet/minecraft/bfq;Lnet/minecraft/EntityPlayer;F)V"}
+   @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glPopMatrix()V", shift = Shift.AFTER),
+      method = {"drawBlockDamageTexture"}
    )
    private void injectDrawBlockDamageTexture1(CallbackInfo callbackInfo) {
       Shaders.endBlockDestroyProgress();
    }
 
    public List getWorldRenderersToUpdate() {
-      return this.m;
-   }
-
-   @Shadow
-   public void c(float par1) {
-   }
-
-   @Shadow
-   public void a() {
+      return this.worldRenderersToUpdate;
    }
 
    @Shadow
@@ -564,10 +482,6 @@ public abstract class RenderGlobalMixin implements IWorldAccess {
 
    @Shadow
    public void playAuxSFX(EntityPlayer entityPlayer, int i, int i1, int i2, int i3, int i4) {
-   }
-
-   @Shadow
-   private void a(AxisAlignedBB par1AxisAlignedBB) {
    }
 
    @Shadow

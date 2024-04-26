@@ -4,8 +4,11 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.*;
+import net.wenscHuix.mitemod.imixin.RenderGlobalAccessor;
+import net.wenscHuix.mitemod.mixin.render.RenderGlobalMixin;
 import net.wenscHuix.mitemod.shader.client.dynamicLight.config.ShaderConfig;
 import net.wenscHuix.mitemod.shader.util.BlockPos;
+import net.xiaoyu233.fml.util.ReflectHelper;
 
 public class DynamicLight {
    private Entity entity;
@@ -52,7 +55,7 @@ public class DynamicLight {
          this.lastPosZ = d1;
          this.lastLightLevel = j;
          this.underwater = false;
-         WorldClient world = renderGlobal.getClientWorld();
+         WorldClient world = ((RenderGlobalAccessor)ReflectHelper.dyCast(renderGlobal)).getClientWorld();
          this.world = world;
          if (world != null) {
             Block block = world.getBlock(MathHelper.floor_double(d6), MathHelper.floor_double(d0), MathHelper.floor_double(d1));

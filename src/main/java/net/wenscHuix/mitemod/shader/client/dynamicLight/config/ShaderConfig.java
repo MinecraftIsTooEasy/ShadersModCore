@@ -1,14 +1,15 @@
 package net.wenscHuix.mitemod.shader.client.dynamicLight.config;
 
-import java.util.ArrayList;
-import java.util.StringTokenizer;
 import net.minecraft.Minecraft;
 import net.wenscHuix.mitemod.optimize.gui.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
 public class ShaderConfig {
-   private static final Logger LOGGER = LogManager.getLogger();
+   private static final Logger LOGGER = LogManager.getLogger(ShaderConfig.class);
    private static Minecraft minecraft = Minecraft.theMinecraft;
 
    public static Minecraft getMinecraft() {

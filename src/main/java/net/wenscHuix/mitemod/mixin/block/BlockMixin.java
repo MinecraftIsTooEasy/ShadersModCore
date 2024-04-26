@@ -2,6 +2,7 @@ package net.wenscHuix.mitemod.mixin.block;
 
 import net.minecraft.Block;
 import net.minecraft.IBlockAccess;
+import net.wenscHuix.mitemod.imixin.BlockAccessor;
 import net.wenscHuix.mitemod.shader.client.Shaders;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -9,7 +10,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin({Block.class})
-public class BlockMixin {
+public class BlockMixin implements BlockAccessor {
    @Shadow
    @Final
    private boolean is_tree_leaves;
@@ -29,7 +30,7 @@ public class BlockMixin {
       return this.is_tree_leaves;
    }
 
-   public int getLightValue() {
+   public int mITE_Shader_Loader$getLightValue() {
       return lightValue[this.blockID];
    }
 

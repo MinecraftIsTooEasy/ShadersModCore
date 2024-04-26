@@ -1,36 +1,36 @@
 package net.wenscHuix.mitemod.optimize.gui;
 
-import net.minecraft.aul;
-import net.minecraft.aut;
-import net.minecraft.awe;
-import net.minecraft.bkb;
+import net.minecraft.GameSettings;
+import net.minecraft.GuiButton;
+import net.minecraft.GuiScreen;
+import net.minecraft.I18n;
 
-public class GuiParticle extends awe {
-   private awe parentGuiScreen;
-   private aul guiGameSettings;
+public class GuiParticle extends GuiScreen {
+   private GuiScreen parentGuiScreen;
+   private GameSettings guiGameSettings;
 
-   public GuiParticle(awe par1GuiScreen, aul par2GameSettings) {
+   public GuiParticle(GuiScreen par1GuiScreen, GameSettings par2GameSettings) {
       this.parentGuiScreen = par1GuiScreen;
       this.guiGameSettings = par2GameSettings;
    }
 
-   public void A_() {
+   public void initGui() {
       if (Config.optimizeConfig == null) {
          Config.loadConfig();
       }
 
-      this.i.add(new aut(1, this.g / 2 - 155, this.h / 7, 150, 20, "破环方块: " + Config.blockDestroyEffects));
-      this.i.add(new aut(200, this.g / 2 - 100, this.h / 6 + 168, bkb.a("gui.done")));
+      this.buttonList.add(new GuiButton(1, this.width / 2 - 155, this.height / 7, 150, 20, "破环方块: " + Config.blockDestroyEffects));
+      this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.getString("gui.done")));
    }
 
-   public void a(aut par1GuiButton) {
-      if (par1GuiButton.h) {
-         if (par1GuiButton.g == 1) {
+   public void actionPerformed(GuiButton par1GuiButton) {
+      if (par1GuiButton.enabled) {
+         if (par1GuiButton.id == 1) {
             Config.blockDestroyEffects = !Config.blockDestroyEffects;
-            par1GuiButton.f = "破环方块: " + Config.blockDestroyEffects;
-         } else if (par1GuiButton.g == 200) {
-            this.f.u.b();
-            this.f.a(this.parentGuiScreen);
+            par1GuiButton.displayString = "破环方块: " + Config.blockDestroyEffects;
+         } else if (par1GuiButton.id == 200) {
+            this.mc.gameSettings.saveOptions();
+            this.mc.displayGuiScreen(this.parentGuiScreen);
 
             try {
                Config.storeConfig();
@@ -42,9 +42,9 @@ public class GuiParticle extends awe {
 
    }
 
-   public void a(int par1, int par2, float par3) {
-      this.e();
-      this.a(this.o, "粒子效果设置", this.g / 2, 16, 16777215);
-      super.a(par1, par2, par3);
+   public void drawScreen(int par1, int par2, float par3) {
+      this.drawDefaultBackground();
+      this.drawCenteredString(this.fontRenderer, "粒子效果设置", this.width/ 2, 16, 16777215);
+      super.drawScreen(par1, par2, par3);
    }
 }

@@ -1,18 +1,22 @@
 package net.wenscHuix.mitemod.shader.client;
 
-import net.minecraft.bia;
-import net.minecraft.bjp;
 
-public class DefaultTexture extends bia {
+import net.minecraft.AbstractTexture;
+import net.minecraft.ResourceManager;
+import net.wenscHuix.mitemod.imixin.AbstractTextureAccessor;
+import net.xiaoyu233.fml.util.ReflectHelper;
+
+public class DefaultTexture extends AbstractTexture {
    public DefaultTexture() {
-      this.loadTexture((bjp)null);
+      this.loadTexture((ResourceManager)null);
    }
 
-   public void loadTexture(bjp resourceManager) {
+   public void loadTexture(ResourceManager resourceManager) {
       int[] aint = ShadersTex.createAIntImage(1, -1);
-      ShadersTex.setupTexture(this.getMultiTexID(), aint, 1, 1, false, false);
+      ShadersTex.setupTexture(((AbstractTextureAccessor) ReflectHelper.dyCast(this))
+              .mITE_Shader_Loader$getMultiTexID(), aint, 1, 1, false, false);
    }
 
-   public void a(bjp bjp) {
+   public void a(ResourceManager resourceManager) {
    }
 }

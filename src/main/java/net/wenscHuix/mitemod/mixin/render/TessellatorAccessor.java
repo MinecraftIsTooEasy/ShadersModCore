@@ -1,25 +1,25 @@
 package net.wenscHuix.mitemod.mixin.render;
 
-import net.minecraft.bfq;
+import net.minecraft.Tessellator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin({bfq.class})
+@Mixin({Tessellator.class})
 public interface TessellatorAccessor {
-   @Accessor("A")
-   void setuseVBO(boolean var1);
+   @Accessor("useVBO")
+   void setUseVBO(boolean var1);
 
-   @Accessor("A")
-   boolean getuseVBO();
+   @Accessor("useVBO")
+   boolean getUseVBO();
 
-   @Accessor("c")
-   static boolean gettryVBO() {
+   @Accessor("tryVBO")
+   static boolean getTryVBO() {
       throw new AssertionError();
    }
 
-   @Accessor("C")
+   @Accessor("vboIndex")
    int getVboIndex();
 
-   @Accessor("C")
+   @Accessor("vboIndex")
    void setVboIndex(int var1);
 }

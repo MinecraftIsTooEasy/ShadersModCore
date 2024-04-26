@@ -5,21 +5,20 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.lang.constant.DynamicConstantDesc;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.minecraft.*;
+import net.wenscHuix.mitemod.imixin.AbstractTextureAccessor;
 import net.wenscHuix.mitemod.mixin.render.EntityRendererAccessor;
 import net.wenscHuix.mitemod.shader.util.Utils;
+import net.xiaoyu233.fml.util.ReflectHelper;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.ARBVertexShader;
@@ -638,37 +637,32 @@ public class Shaders {
    public static void resetDisplayList() throws NoSuchFieldException, IllegalAccessException {
       System.out.println("Reset model renderers");
       if (useMidTexCoordAttrib || useMultiTexCoord3Attrib) {
-         Iterator it = ((Map)Utils.get((Object)bgl.a, "q", Map.class)).values().iterator();
 
-         while(it.hasNext()) {
-            bgm ren = (bgm)it.next();
-            if (ren instanceof bhb) {
-               bhb rle = (bhb)ren;
-               resetDisplayListModel((bbo)Utils.get((Object)rle, "i", bbo.class));
-               resetDisplayListModel((bbo)Utils.get((Object)rle, "j", bbo.class));
-            }
-         }
+          for (Object o : ((Map) Objects.requireNonNull(Utils.get(RenderManager.instance, "entityRenderMap", Map.class))).values()) {
+              Render ren = (Render) o;
+              if (ren instanceof RendererLivingEntity rle) {
+                  resetDisplayListModel((ModelBase) Utils.get(rle, "mainModel", ModelBase.class));
+                  resetDisplayListModel((ModelBase) Utils.get(rle, "renderPassModel", ModelBase.class));
+              }
+          }
       }
 
       System.out.println("Reset world renderers");
-      mc.g.a();
+      mc.renderGlobal.loadRenderers();
    }
 
-   public static void resetDisplayListModel(bbo mbase) throws NoSuchFieldException, IllegalAccessException {
+   public static void resetDisplayListModel(ModelBase mbase) throws NoSuchFieldException, IllegalAccessException {
       if (mbase != null) {
-         Iterator it = mbase.r.iterator();
 
-         while(it.hasNext()) {
-            Object obj = it.next();
-            if (obj instanceof bcu) {
-               bcu mrr = (bcu)obj;
-               if ((Boolean)Utils.get((Object)mrr, "t", Boolean.TYPE)) {
-                  atu.b((Integer)Utils.get((Object)mrr, "u", Integer.TYPE));
-                  Utils.set((Object)mrr, "u", 0);
-                  Utils.set((Object)mrr, "t", false);
-               }
-            }
-         }
+          for (Object obj : mbase.boxList) {
+              if (obj instanceof ModelRenderer mrr) {
+                  if ((Boolean) Utils.get(mrr, "compiled", Boolean.TYPE)) {
+                      GLAllocation.deleteDisplayLists((Integer) Utils.get(mrr, "displayList", Integer.TYPE));
+                      Utils.set(mrr, "displayList", 0);
+                      Utils.set(mrr, "compiled", false);
+                  }
+              }
+          }
       }
 
    }
@@ -1173,7 +1167,7 @@ public class Shaders {
                normalMapEnabled = false;
             }
 
-            ItemStack stack = mc.h.inventory.getCurrentItemStack();
+            ItemStack stack = mc.thePlayer.inventory.getCurrentItemStack();
             setProgramUniform1i("heldItemId", stack == null ? -1 : stack.itemID);
             setProgramUniform1i("heldBlockLightValue", stack != null && stack.itemID < 1024 ? Block.lightValue[stack.itemID] : 0);
             setProgramUniform1i("fogMode", fogEnabled ? fogMode : 0);
@@ -1188,7 +1182,7 @@ public class Shaders {
             setProgramUniform1f("viewWidth", (float)renderWidth);
             setProgramUniform1f("viewHeight", (float)renderHeight);
             setProgramUniform1f("near", 0.05F);
-            setProgramUniform1f("far", (float)(32 << 3 - (Integer)Utils.get((Object)mc.u, "e", Integer.TYPE)));
+            setProgramUniform1f("far", (float)(32 << 3 - (Integer)Utils.get(mc.gameSettings, "renderDistance", Integer.TYPE)));
             setProgramUniform3f("sunPosition", sunPosition[0], sunPosition[1], sunPosition[2]);
             setProgramUniform3f("moonPosition", moonPosition[0], moonPosition[1], moonPosition[2]);
             setProgramUniform3f("upPosition", upPosition[0], upPosition[1], upPosition[2]);
@@ -1431,8 +1425,8 @@ public class Shaders {
    }
 
    private static void resize() {
-      renderDisplayWidth = mc.d;
-      renderDisplayHeight = mc.e;
+      renderDisplayWidth = mc.displayWidth;
+      renderDisplayHeight = mc.displayHeight;
       renderWidth = Math.round((float)renderDisplayWidth * configRenderResMul);
       renderHeight = Math.round((float)renderDisplayHeight * configRenderResMul);
       setupFrameBuffer();
@@ -1574,12 +1568,12 @@ public class Shaders {
       if (!isShadowPass) {
          checkGLError("pre beginRender");
          mc = minecraft;
-         mc.C.startSection("init");
+         mc.mcProfiler.startSection("init");
          if (!isInitialized) {
             init();
          }
 
-         if (mc.d != renderDisplayWidth || mc.e != renderDisplayHeight) {
+         if (mc.displayWidth != renderDisplayWidth || mc.displayHeight != renderDisplayHeight) {
             resize();
          }
 
@@ -1587,7 +1581,7 @@ public class Shaders {
             resizeShadow();
          }
 
-         worldTime = mc.f.getTotalWorldTime();
+         worldTime = mc.theWorld.getTotalWorldTime();
          diffWorldTime = (worldTime - lastWorldTime) % 24000L;
          if (diffWorldTime < 0L) {
             diffWorldTime += 24000L;
@@ -1603,19 +1597,19 @@ public class Shaders {
          lastSystemTime = systemTime;
          frameTimeCounter += (float)diffSystemTime * 0.001F;
          frameTimeCounter %= 100000.0F;
-         rainStrength = minecraft.f.getRainStrength(f);
+         rainStrength = minecraft.theWorld.getRainStrength(f);
          float fadeScalar = (float)diffSystemTime * 0.01F;
          float temp1 = (float)Math.exp(Math.log(0.5D) * (double)fadeScalar / (double)(wetness < rainStrength ? drynessHalfLife : wetnessHalfLife));
          wetness = wetness * temp1 + rainStrength * (1.0F - temp1);
-         EntityLiving eye = mc.i;
+         EntityLivingBase eye = mc.renderViewEntity;
          eyePosY = (float)eye.posY * f + (float)eye.lastTickPosY * (1.0F - f);
-         eyeBrightness = eye.c(f);
+         eyeBrightness = eye.getBrightnessForRender(f);
          fadeScalar = (float)diffSystemTime * 0.01F;
          float temp2 = (float)Math.exp(Math.log(0.5D) * (double)fadeScalar / (double)eyeBrightnessHalflife);
          eyeBrightnessFadeX = eyeBrightnessFadeX * temp2 + (float)(eyeBrightness & '\uffff') * (1.0F - temp2);
          eyeBrightnessFadeY = eyeBrightnessFadeY * temp2 + (float)(eyeBrightness >> 16) * (1.0F - temp2);
-         isEyeInWater = mc.u.aa == 0 && !mc.i.inBed() && mc.h.isInsideOfMaterial(Material.water) ? 1 : 0;
-         Vec3D skyColorV = mc.f.a(mc.i, f);
+         isEyeInWater = mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.inBed() && mc.thePlayer.isInsideOfMaterial(Material.water) ? 1 : 0;
+         Vec3 skyColorV = mc.theWorld.getSkyColor(mc.renderViewEntity, f);
          skyColorR = (float)skyColorV.xCoord;
          skyColorG = (float)skyColorV.yCoord;
          skyColorB = (float)skyColorV.zCoord;
@@ -1677,20 +1671,20 @@ public class Shaders {
          modelView.position(0);
          EntityRendererAccessor.setAnaglyphField(0);
          if (usedShadowDepthBuffers > 0 && --shadowPassCounter <= 0) {
-            mc.C.endStartSection("shadow pass");
-            preShadowPassThirdPersonView = mc.u.aa;
-            boolean preShadowPassAdvancedOpengl = mc.u.h;
-            mc.u.h = false;
+            mc.mcProfiler.endStartSection("shadow pass");
+            preShadowPassThirdPersonView = mc.gameSettings.thirdPersonView;
+            boolean preShadowPassAdvancedOpengl = mc.gameSettings.advancedOpengl;
+            mc.gameSettings.advancedOpengl = false;
             isShadowPass = true;
             shadowPassCounter = shadowPassInterval;
             EXTFramebufferObject.glBindFramebufferEXT(36160, sfb);
             GL20.glDrawBuffers(programsDrawBuffers[20]);
             useProgram(20);
-            mc.p.a(f, l);
+            mc.entityRenderer.renderWorld(f, l);
             GL11.glFlush();
             isShadowPass = false;
-            mc.u.h = preShadowPassAdvancedOpengl;
-            mc.u.aa = preShadowPassThirdPersonView;
+            mc.gameSettings.advancedOpengl = preShadowPassAdvancedOpengl;
+            mc.gameSettings.thirdPersonView = preShadowPassThirdPersonView;
             if (shadowMipmapEnabled && usedShadowDepthBuffers >= 1) {
                GL13.glActiveTexture(33988);
                GL30.glGenerateMipmap(3553);
@@ -1703,7 +1697,7 @@ public class Shaders {
             }
          }
 
-         mc.C.endSection();
+         mc.mcProfiler.endSection();
          EXTFramebufferObject.glBindFramebufferEXT(36160, dfb);
          GL11.glViewport(0, 0, renderWidth, renderHeight);
          setDrawBuffers(drawBuffersNone);
@@ -1776,19 +1770,19 @@ public class Shaders {
    }
 
    public static void setCamera(float f) {
-      EntityLiving viewEntity = mc.i;
+      EntityLivingBase viewEntity = mc.renderViewEntity;
       double x = viewEntity.lastTickPosX + (viewEntity.posX - viewEntity.lastTickPosX) * (double)f;
       double y = viewEntity.lastTickPosY + (viewEntity.posY - viewEntity.lastTickPosY) * (double)f;
       double z = viewEntity.lastTickPosZ + (viewEntity.posZ - viewEntity.lastTickPosZ) * (double)f;
       cameraPosition[0] = x;
       cameraPosition[1] = y;
       cameraPosition[2] = z;
-      GL11.glGetFloat(2983, (FloatBuffer)projection.position(0));
-      invertMat4x((FloatBuffer)projection.position(0), (FloatBuffer)projectionInverse.position(0));
+      GL11.glGetFloat(2983, projection.position(0));
+      invertMat4x(projection.position(0), projectionInverse.position(0));
       projection.position(0);
       projectionInverse.position(0);
-      GL11.glGetFloat(2982, (FloatBuffer)modelView.position(0));
-      invertMat4x((FloatBuffer)modelView.position(0), (FloatBuffer)modelViewInverse.position(0));
+      GL11.glGetFloat(2982, modelView.position(0));
+      invertMat4x(modelView.position(0), modelViewInverse.position(0));
       modelView.position(0);
       modelViewInverse.position(0);
       if (isShadowPass) {
@@ -1796,7 +1790,7 @@ public class Shaders {
          GL11.glMatrixMode(5889);
          GL11.glLoadIdentity();
          if (shadowMapIsOrtho) {
-            GL11.glOrtho((double)(-shadowMapHalfPlane), (double)shadowMapHalfPlane, (double)(-shadowMapHalfPlane), (double)shadowMapHalfPlane, 0.05000000074505806D, 256.0D);
+            GL11.glOrtho(-shadowMapHalfPlane, shadowMapHalfPlane, -shadowMapHalfPlane, shadowMapHalfPlane, 0.05000000074505806D, 256.0D);
          } else {
             GLU.gluPerspective(shadowMapFOV, (float)shadowMapWidth / (float)shadowMapHeight, 0.05F, 256.0F);
          }
@@ -1805,7 +1799,7 @@ public class Shaders {
          GL11.glLoadIdentity();
          GL11.glTranslatef(0.0F, 0.0F, -100.0F);
          GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
-         float celestialAngle = mc.f.getCelestialAngle(f);
+         float celestialAngle = mc.theWorld.getCelestialAngle(f);
          sunAngle = celestialAngle < 0.75F ? celestialAngle + 0.25F : celestialAngle - 0.75F;
          float angle = celestialAngle * -360.0F;
          float angleInterval = shadowAngleInterval > 0.0F ? angle % shadowAngleInterval - shadowAngleInterval * 0.5F : 0.0F;
@@ -1825,12 +1819,12 @@ public class Shaders {
             GL11.glTranslatef((float)x % trans - trans2, (float)y % trans - trans2, (float)z % trans - trans2);
          }
 
-         GL11.glGetFloat(2983, (FloatBuffer)shadowProjection.position(0));
-         invertMat4x((FloatBuffer)shadowProjection.position(0), (FloatBuffer)shadowProjectionInverse.position(0));
+         GL11.glGetFloat(2983, shadowProjection.position(0));
+         invertMat4x(shadowProjection.position(0), shadowProjectionInverse.position(0));
          shadowProjection.position(0);
          shadowProjectionInverse.position(0);
-         GL11.glGetFloat(2982, (FloatBuffer)shadowModelView.position(0));
-         invertMat4x((FloatBuffer)shadowModelView.position(0), (FloatBuffer)shadowModelViewInverse.position(0));
+         GL11.glGetFloat(2982, shadowModelView.position(0));
+         invertMat4x(shadowModelView.position(0), shadowModelViewInverse.position(0));
          shadowModelView.position(0);
          shadowModelViewInverse.position(0);
          setProgramUniformMatrix4ARB("gbufferProjection", false, projection);
@@ -1843,7 +1837,7 @@ public class Shaders {
          setProgramUniformMatrix4ARB("shadowProjectionInverse", false, shadowProjectionInverse);
          setProgramUniformMatrix4ARB("shadowModelView", false, shadowModelView);
          setProgramUniformMatrix4ARB("shadowModelViewInverse", false, shadowModelViewInverse);
-         mc.u.aa = 1;
+         mc.gameSettings.thirdPersonView = 1;
          checkGLError("setCamera");
       } else {
          checkGLError("setCamera");
@@ -2049,8 +2043,8 @@ public class Shaders {
 
          isRenderingDfb = false;
          EXTFramebufferObject.glBindFramebufferEXT(36160, 0);
-         GL11.glViewport(0, 0, mc.d, mc.e);
-         if (EntityRenderer.a) {
+         GL11.glViewport(0, 0, mc.displayWidth, mc.displayHeight);
+         if (EntityRenderer.anaglyphEnable) {
             boolean maskR = EntityRendererAccessor.getAnaglyphField() != 0;
             GL11.glColorMask(maskR, !maskR, !maskR, true);
          }
@@ -2109,7 +2103,7 @@ public class Shaders {
       pushEntity(-2, 0);
    }
 
-   public static void setSkyColor(Vec3D v3color) {
+   public static void setSkyColor(Vec3 v3color) {
       skyColorR = (float)v3color.xCoord;
       skyColorG = (float)v3color.yCoord;
       skyColorB = (float)v3color.zCoord;
@@ -2117,49 +2111,49 @@ public class Shaders {
    }
 
    public static void drawHorizon() {
-      bfq tess = bfq.a;
+      Tessellator tess = Tessellator.instance;
    }
 
    public static void preSkyList() {
-      bfq tess = bfq.a;
-      tess.b();
-      tess.a(-256.0D, -64.0D, -384.0D);
-      tess.a(-256.0D, 16.0D, -384.0D);
-      tess.a(-384.0D, 16.0D, -256.0D);
-      tess.a(-384.0D, -64.0D, -256.0D);
-      tess.a(-384.0D, -64.0D, -256.0D);
-      tess.a(-384.0D, 16.0D, -256.0D);
-      tess.a(-384.0D, 16.0D, 256.0D);
-      tess.a(-384.0D, -64.0D, 256.0D);
-      tess.a(-384.0D, -64.0D, 256.0D);
-      tess.a(-384.0D, 16.0D, 256.0D);
-      tess.a(-256.0D, 16.0D, 256.0D);
-      tess.a(-256.0D, -64.0D, 256.0D);
-      tess.a(-256.0D, -64.0D, 256.0D);
-      tess.a(-256.0D, 16.0D, 256.0D);
-      tess.a(256.0D, 16.0D, 384.0D);
-      tess.a(256.0D, -64.0D, 384.0D);
-      tess.a(256.0D, -64.0D, 384.0D);
-      tess.a(256.0D, 16.0D, 384.0D);
-      tess.a(384.0D, 16.0D, 256.0D);
-      tess.a(384.0D, -64.0D, 256.0D);
-      tess.a(384.0D, -64.0D, 256.0D);
-      tess.a(384.0D, 16.0D, 256.0D);
-      tess.a(384.0D, 16.0D, -256.0D);
-      tess.a(384.0D, -64.0D, -256.0D);
-      tess.a(384.0D, -64.0D, -256.0D);
-      tess.a(384.0D, 16.0D, -256.0D);
-      tess.a(256.0D, 16.0D, -384.0D);
-      tess.a(256.0D, -64.0D, -384.0D);
-      tess.a(256.0D, -64.0D, -384.0D);
-      tess.a(256.0D, 16.0D, -384.0D);
-      tess.a(-256.0D, 16.0D, -384.0D);
-      tess.a(-256.0D, -64.0D, -384.0D);
-      tess.a(-384.0D, -64.0D, -384.0D);
-      tess.a(-384.0D, -64.0D, 384.0D);
-      tess.a(384.0D, -64.0D, 384.0D);
-      tess.a(384.0D, -64.0D, -384.0D);
-      tess.a();
+      Tessellator tess = Tessellator.instance;
+      tess.startDrawingQuads();
+      tess.addVertex(-256.0D, -64.0D, -384.0D);
+      tess.addVertex(-256.0D, 16.0D, -384.0D);
+      tess.addVertex(-384.0D, 16.0D, -256.0D);
+      tess.addVertex(-384.0D, -64.0D, -256.0D);
+      tess.addVertex(-384.0D, -64.0D, -256.0D);
+      tess.addVertex(-384.0D, 16.0D, -256.0D);
+      tess.addVertex(-384.0D, 16.0D, 256.0D);
+      tess.addVertex(-384.0D, -64.0D, 256.0D);
+      tess.addVertex(-384.0D, -64.0D, 256.0D);
+      tess.addVertex(-384.0D, 16.0D, 256.0D);
+      tess.addVertex(-256.0D, 16.0D, 256.0D);
+      tess.addVertex(-256.0D, -64.0D, 256.0D);
+      tess.addVertex(-256.0D, -64.0D, 256.0D);
+      tess.addVertex(-256.0D, 16.0D, 256.0D);
+      tess.addVertex(256.0D, 16.0D, 384.0D);
+      tess.addVertex(256.0D, -64.0D, 384.0D);
+      tess.addVertex(256.0D, -64.0D, 384.0D);
+      tess.addVertex(256.0D, 16.0D, 384.0D);
+      tess.addVertex(384.0D, 16.0D, 256.0D);
+      tess.addVertex(384.0D, -64.0D, 256.0D);
+      tess.addVertex(384.0D, -64.0D, 256.0D);
+      tess.addVertex(384.0D, 16.0D, 256.0D);
+      tess.addVertex(384.0D, 16.0D, -256.0D);
+      tess.addVertex(384.0D, -64.0D, -256.0D);
+      tess.addVertex(384.0D, -64.0D, -256.0D);
+      tess.addVertex(384.0D, 16.0D, -256.0D);
+      tess.addVertex(256.0D, 16.0D, -384.0D);
+      tess.addVertex(256.0D, -64.0D, -384.0D);
+      tess.addVertex(256.0D, -64.0D, -384.0D);
+      tess.addVertex(256.0D, 16.0D, -384.0D);
+      tess.addVertex(-256.0D, 16.0D, -384.0D);
+      tess.addVertex(-256.0D, -64.0D, -384.0D);
+      tess.addVertex(-384.0D, -64.0D, -384.0D);
+      tess.addVertex(-384.0D, -64.0D, 384.0D);
+      tess.addVertex(384.0D, -64.0D, 384.0D);
+      tess.addVertex(384.0D, -64.0D, -384.0D);
+      tess.draw();
    }
 
    public static void endSky() {
@@ -2218,7 +2212,7 @@ public class Shaders {
    public static void endTerrain() {
       if (isRenderingWorld) {
          useProgram(lightmapEnabled ? 3 : 2);
-         ShadersTex.bindNSTextures(defaultTexture.getMultiTexID());
+         ShadersTex.bindNSTextures(((AbstractTextureAccessor) ReflectHelper.dyCast(defaultTexture)).mITE_Shader_Loader$getMultiTexID());
       }
 
    }
@@ -2235,7 +2229,7 @@ public class Shaders {
       if (isRenderingWorld) {
          checkGLError("endTileEntities");
          useProgram(lightmapEnabled ? 3 : 2);
-         ShadersTex.bindNSTextures(defaultTexture.getMultiTexID());
+         ShadersTex.bindNSTextures(((AbstractTextureAccessor) ReflectHelper.dyCast(defaultTexture)).mITE_Shader_Loader$getMultiTexID());
       }
 
    }
@@ -2331,17 +2325,17 @@ public class Shaders {
    }
 
    public static void beginLitParticles() {
-      bfq.a.b(0.0F, 0.0F, 0.0F);
+      Tessellator.instance.addVertex(0.0F, 0.0F, 0.0F);
       useProgram(3);
    }
 
    public static void beginParticles() {
-      bfq.a.b(0.0F, 0.0F, 0.0F);
+      Tessellator.instance.addVertex(0.0F, 0.0F, 0.0F);
       useProgram(2);
    }
 
    public static void endParticles() {
-      bfq.a.b(0.0F, 0.0F, 0.0F);
+      Tessellator.instance.addVertex(0.0F, 0.0F, 0.0F);
       useProgram(3);
    }
 
@@ -2587,9 +2581,9 @@ public class Shaders {
    }
 
    static {
-      shadersdir = new File(Minecraft.w().x, "shaders");
-      shaderpacksdir = new File(Minecraft.w().x, shaderpacksdirname);
-      configFile = new File(Minecraft.w().x, optionsfilename);
+      shadersdir = new File(Minecraft.getMinecraft().mcDataDir, "shaders");
+      shaderpacksdir = new File(Minecraft.getMinecraft().mcDataDir, shaderpacksdirname);
+      configFile = new File(Minecraft.getMinecraft().mcDataDir, optionsfilename);
       blockLightLevel05 = 0.5F;
       blockLightLevel06 = 0.6F;
       blockLightLevel08 = 0.8F;

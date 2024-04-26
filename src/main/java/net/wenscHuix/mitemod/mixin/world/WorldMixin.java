@@ -11,15 +11,21 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin({World.class})
+@Mixin(World.class)
 public abstract class WorldMixin {
+   @Shadow public abstract int getSkyBlockTypeBrightness(EnumSkyBlock par1EnumSkyBlock, int par2, int par3, int par4);
+
    @Shadow
    public abstract Block getBlock(int[] var1);
 
+   /**
+    * @author
+    * @reason
+    */
    @Overwrite
-   public final int h(int par1, int par2, int par3, int par4) {
-      int var5 = this.a(EnumSkyBlock.Sky, par1, par2, par3);
-      int var6 = this.a(EnumSkyBlock.Block, par1, par2, par3);
+   public final int getLightBrightnessForSkyBlocks(int par1, int par2, int par3, int par4) {
+      int var5 = this.getSkyBlockTypeBrightness(EnumSkyBlock.Sky, par1, par2, par3);
+      int var6 = this.getSkyBlockTypeBrightness(EnumSkyBlock.Block, par1, par2, par3);
       if (var6 < par4) {
          var6 = par4;
       }
@@ -41,10 +47,5 @@ public abstract class WorldMixin {
    @Final
    public Block getBlock(int x, int y, int z) {
       return null;
-   }
-
-   @Shadow
-   public final int a(EnumSkyBlock par1EnumSkyBlock, int par2, int par3, int par4) {
-      return 0;
    }
 }

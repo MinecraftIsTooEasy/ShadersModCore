@@ -2,7 +2,9 @@ package net.wenscHuix.mitemod.mixin.render.texture;
 
 import com.google.common.collect.Maps;
 import net.minecraft.*;
+import net.wenscHuix.mitemod.imixin.AbstractTextureAccessor;
 import net.wenscHuix.mitemod.imixin.TextureAtlasSpriteAccessor;
+import net.wenscHuix.mitemod.imixin.TextureMapAccessor;
 import net.wenscHuix.mitemod.imixin.TextureObjectAccessor;
 import net.wenscHuix.mitemod.shader.client.ShadersTex;
 import net.wenscHuix.mitemod.shader.util.TextureUtilExtra;
@@ -20,7 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 @Mixin({TextureMap.class})
-public abstract class TextureMapMixin extends AbstractTexture {
+public abstract class TextureMapMixin extends AbstractTexture implements TextureMapAccessor {
    public int atlasWidth;
    public int atlasHeight;
    @Shadow
@@ -48,7 +50,13 @@ public abstract class TextureMapMixin extends AbstractTexture {
    @Final
    private TextureAtlasSprite missingImage;
 
-   @Shadow public abstract int getTextureType();
+   public int mITE_Shader_Loader$getAtlasWidth() { return this.atlasWidth; }
+
+   public int mITE_Shader_Loader$getAtlasHeight() { return this.atlasHeight; }
+
+   public void mITE_Shader_Loader$setAtlasWidth(int atlasWidth) { this.atlasWidth = atlasWidth; }
+
+   public void mITE_Shader_Loader$setAtlasHeight(int atlasHeight) { this.atlasHeight = atlasHeight; }
 
    /**
     * @author
@@ -136,7 +144,7 @@ public abstract class TextureMapMixin extends AbstractTexture {
     */
    @Overwrite
    public void updateAnimations() {
-      ShadersTex.updatingTex = ((TextureObjectAccessor) this).mITE_Shader_Loader$getMultiTexID();
+      ShadersTex.updatingTex = ((AbstractTextureAccessor) this).mITE_Shader_Loader$getMultiTexID();
 
       TextureUtilExtra.bindTexture(this.getGlTextureId());
 
