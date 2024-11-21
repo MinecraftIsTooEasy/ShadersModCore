@@ -237,17 +237,17 @@ public class DynamicLights {
             }
 
             ItemStack itemstack;
-            if (entity instanceof EntityLiving entityLiving) {
+            if (entity instanceof EntityLivingBase entityLiving) {
                 itemstack = entityLiving.getHeldItemStack();
-               int i = getLightLevel(itemstack);
-               ItemStack itemstack1 = entityLiving.getCurrentItemOrArmor(4);
-               int j = getLightLevel(itemstack1);
-               return Math.max(i, j);
+                int i = getLightLevel(itemstack);
+                ItemStack itemstack1 = entityLiving.getCurrentItemOrArmor(4);
+                int j = getLightLevel(itemstack1);
+                return Math.max(i, j);
             } else if (entity instanceof EntityItem entityitem) {
                 itemstack = getItemStack(entityitem);
-               return getLightLevel(itemstack);
+                return getLightLevel(itemstack);
             } else {
-               return 0;
+                return 0;
             }
          }
       }

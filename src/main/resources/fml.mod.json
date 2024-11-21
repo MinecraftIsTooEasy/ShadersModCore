@@ -8,7 +8,7 @@
   "environment": "client",
   "name": "ShaderLoader",
   "description": "ShaderLoader",
-  "authors": ["limingzxc"],
+  "authors": ["limingzxc, wenscHuix"],
   "entrypoints": {
     "preLaunch": ["net.wenscHuix.mitemod.MITEShaderLoader"],
     "client": ["net.wenscHuix.mitemod.MITEShaderLoader"]

@@ -2,6 +2,7 @@ package net.wenscHuix.mitemod.mixin.render;
 
 import java.util.List;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
 import net.wenscHuix.mitemod.imixin.RenderGlobalAccessor;
 import net.wenscHuix.mitemod.optimize.gui.Config;
@@ -96,7 +97,7 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
 
    }
 
-   @Inject(method = "onEntityCreate", at = @At("HEAD"))
+   @Inject(method = "onEntityDestroy", at = @At("HEAD"))
    public void onEntityDestroy(Entity par1Entity, CallbackInfo info) {
       if (ShaderConfig.isDynamicLights()) {
          DynamicLights.entityRemoved(par1Entity, ReflectHelper.dyCast(this));
@@ -128,8 +129,8 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
       Shaders.beginTileEntities();
    }
 
-   @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/Profiler;endStartSection(Ljava/lang/String;)V",
-           shift = Shift.AFTER),
+   // ???
+   @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/EntityRenderer;disableLightmap(D)V"),
       method = {"renderEntities"}
    )
    private void injectRenderEntities2(CallbackInfo callbackInfo) {
@@ -189,11 +190,11 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
       Shaders.disableTexture2D();
    }
 
-   @Inject(locals = LocalCapture.CAPTURE_FAILHARD, at = @At(value = "INVOKE_ASSIGN",
-   target = "Lnet/minecraft/WorldClient;getSkyColor(Lnet/minecraft/Entity;F)Lnet/minecraft/Vec3;"),
-      method = {"renderSky"}
+   @Inject(at = @At(value = "FIELD",
+           target = "Lnet/minecraft/Vec3;xCoord:D"),
+           method = {"renderSky"}
    )
-   private void injectRenderSky3(float par1, CallbackInfo ci, Vec3 var2) {
+   private void injectRenderSky3(float par1, CallbackInfo ci, @Local(ordinal = 0) Vec3 var2) {
       Shaders.setSkyColor(var2);
    }
 

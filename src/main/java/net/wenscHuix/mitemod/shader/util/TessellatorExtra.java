@@ -5,7 +5,6 @@ import net.minecraft.Tessellator;
 import net.wenscHuix.mitemod.imixin.TessellatorAccessor0;
 import net.wenscHuix.mitemod.mixin.render.TessellatorAccessor;
 import net.wenscHuix.mitemod.shader.client.ShadersTess;
-import net.xiaoyu233.fml.util.ReflectHelper;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GLContext;
 

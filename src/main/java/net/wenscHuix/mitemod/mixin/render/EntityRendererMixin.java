@@ -10,16 +10,15 @@ import net.wenscHuix.mitemod.shader.client.ShadersRender;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.glu.Project;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Mixin({EntityRenderer.class})
+@Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {
    @Shadow public ItemRenderer itemRenderer;
 
@@ -99,25 +98,24 @@ public abstract class EntityRendererMixin {
    @Shadow
    private float skylight_brightness_used_for_fog;
 
-   @Inject(
-      at = {@At("RETURN")},
-      method = {"disableLightmap"}
+   @Shadow private float[] r;
+
+   @Unique
+   private int var13;
+
+   @Inject(at = {@At("RETURN")}, method = {"disableLightmap"}
    )
    private void injectDisableLightmap(CallbackInfo callbackInfo) {
       Shaders.disableLightmap();
    }
 
-   @Inject(
-      at = {@At("RETURN")},
-      method = {"enableLightmap"}
+   @Inject(at = {@At("RETURN")}, method = {"enableLightmap"}
    )
    private void injectEnableLightmap(CallbackInfo callbackInfo) {
       Shaders.enableLightmap();
    }
 
-   @Inject(
-      at = {@At("HEAD")},
-      method = {"setFogColorBuffer"}
+   @Inject(at = {@At("HEAD")}, method = {"setFogColorBuffer"}
    )
    private void injectSetFogColorBuffer(float par1, float par2, float par3, float par4, CallbackInfoReturnable<FloatBuffer> cir) {
       Shaders.setFogColor(par1, par2, par3);
@@ -305,275 +303,478 @@ public abstract class EntityRendererMixin {
 
    }
 
-   /**
-    * @author
-    * @reason
-    */
-   @Overwrite
-   private void renderCloudsCheck(RenderGlobal par1RenderGlobal, float par2) {
-      if (Shaders.shouldRenderClouds(this.mc.gameSettings)) {
-         this.mc.mcProfiler.endStartSection("clouds");
-         GL11.glPushMatrix();
-         this.setupFog(0, par2);
-         GL11.glEnable(2912);
-         Shaders.beginClouds();
-         par1RenderGlobal.renderClouds(par2);
-         Shaders.endClouds();
-         GL11.glDisable(2912);
-         this.setupFog(1, par2);
-         GL11.glPopMatrix();
-      }
-
+//   @Overwrite
+//   private void renderCloudsCheck(RenderGlobal par1RenderGlobal, float par2) {
+//      // *********<
+//      if (Shaders.shouldRenderClouds(this.mc.gameSettings)) {
+//         // *******>
+//         this.mc.mcProfiler.endStartSection("clouds");
+//         GL11.glPushMatrix();
+//         this.setupFog(0, par2);
+//         GL11.glEnable(2912);
+//         // *****<
+//         Shaders.beginClouds();
+//         // *****>
+//         par1RenderGlobal.renderClouds(par2);
+//         // *****<
+//         Shaders.endClouds();
+//         // *****>
+//         GL11.glDisable(2912);
+//         this.setupFog(1, par2);
+//         GL11.glPopMatrix();
+//      }
+//
+//   }
+   @Redirect(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;shouldRenderClouds()Z"))
+   public boolean shouldRenderClouds(GameSettings instance) {
+      return Shaders.shouldRenderClouds(instance);
    }
 
-   /**
-    * @author
-    * @reason
-    */
-   @Overwrite
-   public void renderWorld(float par1, long par2) throws NoSuchFieldException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+   @Inject(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lnet/minecraft/RenderGlobal;renderClouds(F)V"))
+   public void beginClouds(RenderGlobal par1RenderGlobal, float par2, CallbackInfo ci) {
+      Shaders.beginClouds();
+   }
+
+   @Inject(method = "renderCloudsCheck", at = @At(value = "INVOKE", target = "Lnet/minecraft/RenderGlobal;renderClouds(F)V", shift = At.Shift.AFTER))
+   public void endClouds(RenderGlobal par1RenderGlobal, float par2, CallbackInfo ci) {
+      Shaders.endClouds();
+   }
+
+//   @Overwrite
+//   public void renderWorld(float par1, long par2) throws NoSuchFieldException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+//      Shaders.beginRender(this.mc, par1, par2);
+//      this.mc.mcProfiler.startSection("lightTex");
+//      if (this.lightmapUpdateNeeded) {
+//         this.updateLightmap(par1);
+//      }
+//
+//      GL11.glEnable(2884);
+//      GL11.glEnable(2929);
+//      if (this.mc.renderViewEntity == null) {
+//         this.mc.renderViewEntity = this.mc.thePlayer;
+//      }
+//
+//      this.mc.mcProfiler.endStartSection("pick");
+//      this.getMouseOver(par1);
+//      EntityLivingBase var4 = this.mc.renderViewEntity;
+//      if (var4 instanceof EntityPlayer entity_player) {
+//          if (entity_player.inBed()) {
+//            entity_player.setPositionAndRotationInBed();
+//         }
+//      }
+//
+//      RenderGlobal var5 = this.mc.renderGlobal;
+//      EffectRenderer var6 = this.mc.effectRenderer;
+//      double var7 = var4.lastTickPosX + (var4.posX - var4.lastTickPosX) * (double)par1;
+//      double var9 = var4.lastTickPosY + (var4.posY - var4.lastTickPosY) * (double)par1;
+//      double var11 = var4.lastTickPosZ + (var4.posZ - var4.lastTickPosZ) * (double)par1;
+//      this.mc.mcProfiler.endStartSection("center");
+//
+//      for(int var13 = 0; var13 < 2; ++var13) {
+//         if (this.mc.gameSettings.anaglyph) {
+//            anaglyphField = var13;
+//            if (anaglyphField == 0) {
+//               GL11.glColorMask(false, true, true, false);
+//            } else {
+//               GL11.glColorMask(true, false, false, false);
+//            }
+//         }
+//
+//         this.mc.mcProfiler.endStartSection("clear");
+//         Shaders.setViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
+//         this.updateFogColor(par1);
+//         GL11.glClear(16640);
+//         Shaders.clearRenderBuffer();
+//         GL11.glEnable(2884);
+//         this.mc.mcProfiler.endStartSection("camera");
+//         this.setupCameraTransform(par1, var13, false);
+//         Shaders.setCamera(par1);
+//         if (this.last_vsync_nanotime != -1L) {
+//            long milliseconds_since_last_vsync = (System.nanoTime() - this.last_vsync_nanotime) / 1000000L;
+//            this.mc.downtimeProcessing(16L - milliseconds_since_last_vsync);
+//         }
+//
+//         ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
+//         this.last_vsync_nanotime = System.nanoTime();
+//         if (this.last_vsync_nanotime > this.fps_start_time + 1000000000L) {
+//            this.fps_start_time = this.last_vsync_nanotime;
+//            Minecraft.last_fps = this.fps_counter;
+//            this.fps_counter = 0;
+//         } else {
+//            ++this.fps_counter;
+//         }
+//
+//         if (this.last_vsync_nanotime > this.fp10s_start_time + 10000000000L) {
+//            this.fp10s_start_time = this.last_vsync_nanotime;
+//            Minecraft.last_fp10s = this.fp10s_counter;
+//            this.fp10s_counter = 0;
+//         } else {
+//            ++this.fp10s_counter;
+//         }
+//
+//         this.mc.mcProfiler.endStartSection("frustrum");
+//         ClippingHelperImpl.getInstance();
+//         if (!Shaders.isShadowPass) {
+//            this.setupFog(-1, par1);
+//            Shaders.beginSky();
+//            this.mc.mcProfiler.endStartSection("sky");
+//            var5.renderSky(par1);
+//            Shaders.endSky();
+//         }
+//
+//         GL11.glEnable(2912);
+//         this.setupFog(1, par1);
+//         if (this.mc.gameSettings.ambientOcclusion != 0) {
+//            GL11.glShadeModel(7425);
+//         }
+//
+//         this.mc.mcProfiler.endStartSection("culling");
+//         Frustrum frustrum = new Frustrum();
+//         ShadersRender.setFrustrumPosition(frustrum, var7, var9, var11);
+//         ShadersRender.clipRenderersByFrustrum(this.mc.renderGlobal, frustrum, par1);
+//         if (var13 == 0) {
+//            Shaders.beginUpdateChunks();
+//            this.mc.mcProfiler.endStartSection("updatechunks");
+//
+//            while(!this.mc.renderGlobal.updateRenderers(var4, false) && par2 != 0L) {
+//               long var15 = par2 - System.nanoTime();
+//               if (this.mc.gameSettings.limitFramerate == 3) {
+//                  if (var15 < 1000000L || var15 > 1000000000L) {
+//                     break;
+//                  }
+//               } else if (var15 < 0L || var15 > 1000000000L) {
+//                  break;
+//               }
+//            }
+//
+//            Shaders.endUpdateChunks();
+//         }
+//
+//         if (var4.posY < 128.0D) {
+//            this.renderCloudsCheck(var5, par1);
+//         }
+//
+//         this.mc.mcProfiler.endStartSection("prepareterrain");
+//         this.setupFog(0, par1);
+//         GL11.glEnable(2912);
+//         this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+//         RenderHelper.disableStandardItemLighting();
+//         this.mc.mcProfiler.endStartSection("terrain");
+//         Shaders.beginTerrain();
+//         var5.sortAndRender(var4, 0, (double)par1);
+//         Shaders.endTerrain();
+//         GL11.glShadeModel(7424);
+//         EntityPlayer var17;
+//         if (this.debugViewDirection == 0) {
+//            RenderHelper.enableStandardItemLighting();
+//            this.mc.mcProfiler.endStartSection("entities");
+//            var5.renderEntities(var4.getPosition(par1), frustrum, par1);
+//            this.enableLightmap(par1);
+//            this.mc.mcProfiler.endStartSection("litParticles");
+//            Shaders.beginLitParticles();
+//            var6.renderLitParticles(var4, par1);
+//            RenderHelper.disableStandardItemLighting();
+//            this.setupFog(0, par1);
+//            Shaders.beginParticles();
+//            this.mc.mcProfiler.endStartSection("particles");
+//            var6.renderParticles(var4, par1);
+//            Shaders.endParticles();
+//            this.disableLightmap(par1);
+//            if (this.mc.objectMouseOver != null && var4.isInsideOfMaterial(Material.water) && var4 instanceof EntityPlayer && this.mc.gameSettings.gui_mode == 0) {
+//               var17 = (EntityPlayer)var4;
+//               GL11.glDisable(3008);
+//               this.mc.mcProfiler.endStartSection("outline");
+//               var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
+//               GL11.glEnable(3008);
+//            }
+//         }
+//
+//         GL11.glDisable(3042);
+//         GL11.glEnable(2884);
+//         GL11.glBlendFunc(770, 771);
+//         GL11.glDepthMask(true);
+//         Shaders.beginHand();
+//         this.renderHand(par1, var13);
+//         Shaders.endHand();
+//         Shaders.preWater();
+//         GL11.glEnable(3042);
+//         GL11.glDisable(2884);
+//         this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+//         if (this.mc.gameSettings.isFancyGraphicsEnabled()) {
+//            this.mc.mcProfiler.endStartSection("water");
+//            if (this.mc.gameSettings.ambientOcclusion != 0) {
+//               GL11.glShadeModel(7425);
+//            }
+//
+//            GL11.glColorMask(false, false, false, false);
+//            Shaders.beginWaterFancy();
+//            int var18 = var5.sortAndRender(var4, 1, par1);
+//            if (this.mc.gameSettings.anaglyph) {
+//               if (anaglyphField == 0) {
+//                  GL11.glColorMask(false, true, true, true);
+//               } else {
+//                  GL11.glColorMask(true, false, false, true);
+//               }
+//            } else {
+//               GL11.glColorMask(true, true, true, true);
+//            }
+//
+//            if (var18 > 0) {
+//               Shaders.midWaterFancy();
+//               var5.renderAllRenderLists(1, par1);
+//            }
+//
+//            Shaders.endWater();
+//            GL11.glShadeModel(7424);
+//         } else {
+//            this.mc.mcProfiler.endStartSection("water");
+//            Shaders.beginWater();
+//            var5.sortAndRender(var4, 1, par1);
+//            Shaders.endWater();
+//         }
+//
+//         GL11.glDepthMask(true);
+//         GL11.glEnable(2884);
+//         GL11.glDisable(3042);
+//         if (Shaders.isShadowPass) {
+//            return;
+//         }
+//
+//         Shaders.readCenterDepth();
+//         if (this.cameraZoom == 1.0 && var4 instanceof EntityPlayer && this.mc.gameSettings.gui_mode == 0 && this.mc.objectMouseOver != null && !var4.isInsideOfMaterial(Material.water)) {
+//            var17 = (EntityPlayer)var4;
+//            GL11.glDisable(3008);
+//            this.mc.mcProfiler.endStartSection("outline");
+//            var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
+//            GL11.glEnable(3008);
+//         }
+//
+//         this.mc.mcProfiler.endStartSection("destroyProgress");
+//         GL11.glEnable(3042);
+//         GL11.glBlendFunc(770, 1);
+//          if (var4 instanceof EntityPlayer) {
+//             var5.drawBlockDamageTexture(Tessellator.instance, (EntityPlayer)var4, par1);
+//          }
+//          GL11.glDisable(3042);
+//         this.mc.mcProfiler.endStartSection("weather");
+//         Shaders.beginWeather();
+//         this.renderRainSnow(par1);
+//         Shaders.endWeather();
+//         GL11.glDisable(2912);
+//         Shaders.disableFog();
+//         if (var4.posY >= 128.0D) {
+//            this.renderCloudsCheck(var5, par1);
+//         }
+//
+//         this.mc.mcProfiler.endStartSection("hand");
+//         Shaders.renderCompositeFinal();
+//         if (this.cameraZoom == 1.0D) {
+//            GL11.glClear(256);
+//            Shaders.beginFPOverlay();
+//            this.renderHand(par1, var13);
+//            Shaders.endFPOverlay();
+//         }
+//
+//         Shaders.endRender();
+//         if (!this.mc.gameSettings.anaglyph) {
+//            this.mc.mcProfiler.endSection();
+//            return;
+//         }
+//      }
+//
+//      GL11.glColorMask(true, true, true, false);
+//      this.mc.mcProfiler.endSection();
+//   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At("HEAD"))
+   public void renderWorldBeginRender(float par1, long par2, CallbackInfo info) throws NoSuchFieldException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
       Shaders.beginRender(this.mc, par1, par2);
-      this.mc.mcProfiler.startSection("lightTex");
-      if (this.lightmapUpdateNeeded) {
-         this.updateLightmap(par1);
+   }
+
+   // A
+   @Redirect(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lorg/lwjgl/opengl/GL11;glViewport(IIII)V"))
+   public void renderWorldSetViewport(int x, int y, int width, int height) {
+      Shaders.setViewport(x, y, width, height);
+      var13 = 1;
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lorg/lwjgl/opengl/GL11;glClear(I)V", shift = At.Shift.AFTER, ordinal = 0))
+   public void renderWorldClearRenderBuffer(float par1, long par2, CallbackInfo info) {
+      Shaders.clearRenderBuffer();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;setupCameraTransform(FIZ)V", shift = At.Shift.AFTER))
+   public void renderWorldSetCamera(float par1, long par2, CallbackInfo info) {
+      Shaders.setCamera(par1);
+   }
+
+   // A
+   @Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;getRenderDistance()I"))
+   public int isShadowPass(GameSettings instance) {
+      return !Shaders.isShadowPass? 1: 2;
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;setupFog(IF)V", shift = At.Shift.AFTER, ordinal = 0))
+   public void renderWorldBeginSky(float par1, long par2, CallbackInfo info) {
+      Shaders.beginSky();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;renderSky(F)V", shift = At.Shift.AFTER))
+   public void renderWorldEndSky(float par1, long par2, CallbackInfo info) {
+      Shaders.endSky();
+   }
+
+   // nothing
+//   @Redirect(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/Frustrum;setPosition(DDD)V"))
+//   public void renderWorldSetFrustrumPosition(Frustrum frustrum, double var7, double var9, double var11) {
+//      ShadersRender.setFrustrumPosition(frustrum, var7, var9, var11);
+//   }
+
+   // A
+   @Redirect(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;clipRenderersByFrustum(Lnet/minecraft/ICamera;F)V"))
+   public void renderWorldClipRenderersByFrustrum(RenderGlobal renderGlobal, ICamera iCamera, float par1ICamera) {
+      ShadersRender.clipRenderersByFrustrum(renderGlobal, iCamera, par1ICamera);
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/Profiler;endStartSection(Ljava/lang/String;)V", ordinal = 7))
+   public void renderWorldBeginUpdateChunks(float par1, long par2, CallbackInfo info) {
+      Shaders.beginUpdateChunks();
+      var13 = 0;
+   }
+
+   // B
+   @Inject(method = "renderWorld", at = @At(value = "FIELD" ,target = "Lnet/minecraft/EntityLivingBase;posY:D", ordinal = 1))
+   public void renderWorldEndUpdateChunks(float par1, long par2, CallbackInfo ci) {
+      if (var13 == 0) {
+         Shaders.endUpdateChunks();
+      }
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;sortAndRender(Lnet/minecraft/EntityLivingBase;ID)I", ordinal = 0))
+   public void renderWorldBeginTerrain(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginTerrain();
+   }
+
+   // B
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;sortAndRender(Lnet/minecraft/EntityLivingBase;ID)I", ordinal = 0, shift = At.Shift.AFTER))
+   public void renderWorldEndTerrain(float par1, long par2, CallbackInfo ci) {
+      Shaders.endTerrain();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EffectRenderer;renderLitParticles(Lnet/minecraft/Entity;F)V"))
+   public void renderWorldBeginLitParticles(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginLitParticles();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;setupFog(IF)V", ordinal = 3, shift = At.Shift.AFTER))
+   public void renderWorldBeginParticles(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginParticles();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EffectRenderer;renderParticles(Lnet/minecraft/Entity;F)V", shift = At.Shift.AFTER))
+   public void renderWorldEndParticles(float par1, long par2, CallbackInfo ci) {
+      Shaders.endParticles();
+   }
+
+   // B
+   @Redirect(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;setupFog(IF)V", ordinal = 4))
+   public void renderEndHand(EntityRenderer instance, int var6, float delta) {
+      Shaders.beginHand();
+      this.renderHand(delta, var13);
+      Shaders.endHand();
+      Shaders.preWater();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;sortAndRender(Lnet/minecraft/EntityLivingBase;ID)I", ordinal = 1))
+   public void renderWorldBeginWaterFancy(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginWaterFancy();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;renderAllRenderLists(ID)V"))
+   public void renderWorldMidWaterFancy(float par1, long par2, CallbackInfo ci) {
+      Shaders.midWaterFancy();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lorg/lwjgl/opengl/GL11;glShadeModel(I)V", ordinal = 3))
+   public void renderWorldEndWater0(float par1, long par2, CallbackInfo ci) {
+      Shaders.endWater();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;sortAndRender(Lnet/minecraft/EntityLivingBase;ID)I", ordinal = 2))
+   public void renderWorldBeginWater(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginWater();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;sortAndRender(Lnet/minecraft/EntityLivingBase;ID)I", ordinal = 2, shift = At.Shift.AFTER))
+   public void renderWorldEndWater1(float par1, long par2, CallbackInfo ci) {
+      Shaders.endWater();
+   }
+
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 3, shift = At.Shift.AFTER), cancellable = true)
+   public void renderWorldIsShadowPass(float par1, long par2, CallbackInfo ci) {
+      if (Shaders.isShadowPass) {
+         ci.cancel();
       }
 
-      GL11.glEnable(2884);
-      GL11.glEnable(2929);
-      if (this.mc.renderViewEntity == null) {
-         this.mc.renderViewEntity = this.mc.thePlayer;
-      }
+      Shaders.readCenterDepth();
+   }
 
-      this.mc.mcProfiler.endStartSection("pick");
-      this.getMouseOver(par1);
-      EntityLivingBase var4 = this.mc.renderViewEntity;
-      if (var4 instanceof EntityPlayer entity_player) {
-          if (entity_player.inBed()) {
-            entity_player.setPositionAndRotationInBed();
-         }
-      }
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;renderRainSnow(F)V"))
+   public void renderWorldBeginWeather(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginWeather();
+   }
 
-      RenderGlobal var5 = this.mc.renderGlobal;
-      EffectRenderer var6 = this.mc.effectRenderer;
-      double var7 = var4.lastTickPosX + (var4.posX - var4.lastTickPosX) * (double)par1;
-      double var9 = var4.lastTickPosY + (var4.posY - var4.lastTickPosY) * (double)par1;
-      double var11 = var4.lastTickPosZ + (var4.posZ - var4.lastTickPosZ) * (double)par1;
-      this.mc.mcProfiler.endStartSection("center");
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;renderRainSnow(F)V", shift = At.Shift.AFTER))
+   public void renderWorldEndWeather(float par1, long par2, CallbackInfo ci) {
+      Shaders.endWeather();
+   }
 
-      for(int var13 = 0; var13 < 2; ++var13) {
-         if (this.mc.gameSettings.anaglyph) {
-            anaglyphField = var13;
-            if (anaglyphField == 0) {
-               GL11.glColorMask(false, true, true, false);
-            } else {
-               GL11.glColorMask(true, false, false, false);
-            }
-         }
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V", ordinal = 6, shift = At.Shift.AFTER))
+   public void renderWorldDisableFog(float par1, long par2, CallbackInfo ci) {
+      Shaders.disableFog();
+   }
 
-         this.mc.mcProfiler.endStartSection("clear");
-         Shaders.setViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
-         this.updateFogColor(par1);
-         GL11.glClear(16640);
-         Shaders.clearRenderBuffer();
-         GL11.glEnable(2884);
-         this.mc.mcProfiler.endStartSection("camera");
-         this.setupCameraTransform(par1, var13, false);
-         Shaders.setCamera(par1);
-         if (this.last_vsync_nanotime != -1L) {
-            long milliseconds_since_last_vsync = (System.nanoTime() - this.last_vsync_nanotime) / 1000000L;
-            this.mc.downtimeProcessing(16L - milliseconds_since_last_vsync);
-         }
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/Profiler;endStartSection(Ljava/lang/String;)V", ordinal = 19, shift = At.Shift.AFTER))
+   public void renderWorldRenderCompositeFinal(float par1, long par2, CallbackInfo ci) {
+      Shaders.renderCompositeFinal();
+   }
 
-         ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
-         this.last_vsync_nanotime = System.nanoTime();
-         if (this.last_vsync_nanotime > this.fps_start_time + 1000000000L) {
-            this.fps_start_time = this.last_vsync_nanotime;
-            Minecraft.last_fps = this.fps_counter;
-            this.fps_counter = 0;
-         } else {
-            ++this.fps_counter;
-         }
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;renderHand(FI)V"))
+   public void renderWorldBeginFPOverlay(float par1, long par2, CallbackInfo ci) {
+      Shaders.beginFPOverlay();
+   }
 
-         if (this.last_vsync_nanotime > this.fp10s_start_time + 10000000000L) {
-            this.fp10s_start_time = this.last_vsync_nanotime;
-            Minecraft.last_fp10s = this.fp10s_counter;
-            this.fp10s_counter = 0;
-         } else {
-            ++this.fp10s_counter;
-         }
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/EntityRenderer;renderHand(FI)V", shift = At.Shift.AFTER))
+   public void renderWorldEndFPOverlay(float par1, long par2, CallbackInfo ci) {
+      Shaders.endFPOverlay();
+   }
 
-         this.mc.mcProfiler.endStartSection("frustrum");
-         ClippingHelperImpl.getInstance();
-         if (!Shaders.isShadowPass) {
-            this.setupFog(-1, par1);
-            Shaders.beginSky();
-            this.mc.mcProfiler.endStartSection("sky");
-            var5.renderSky(par1);
-            Shaders.endSky();
-         }
-
-         GL11.glEnable(2912);
-         this.setupFog(1, par1);
-         if (this.mc.gameSettings.ambientOcclusion != 0) {
-            GL11.glShadeModel(7425);
-         }
-
-         this.mc.mcProfiler.endStartSection("culling");
-         Frustrum frustrum = new Frustrum();
-         ShadersRender.setFrustrumPosition(frustrum, var7, var9, var11);
-         ShadersRender.clipRenderersByFrustrum(this.mc.renderGlobal, frustrum, par1);
-         if (var13 == 0) {
-            Shaders.beginUpdateChunks();
-            this.mc.mcProfiler.endStartSection("updatechunks");
-
-            while(!this.mc.renderGlobal.updateRenderers(var4, false) && par2 != 0L) {
-               long var15 = par2 - System.nanoTime();
-               if (this.mc.gameSettings.limitFramerate == 3) {
-                  if (var15 < 1000000L || var15 > 1000000000L) {
-                     break;
-                  }
-               } else if (var15 < 0L || var15 > 1000000000L) {
-                  break;
-               }
-            }
-
-            Shaders.endUpdateChunks();
-         }
-
-         if (var4.posY < 128.0D) {
-            this.renderCloudsCheck(var5, par1);
-         }
-
-         this.mc.mcProfiler.endStartSection("prepareterrain");
-         this.setupFog(0, par1);
-         GL11.glEnable(2912);
-         this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-         RenderHelper.disableStandardItemLighting();
-         this.mc.mcProfiler.endStartSection("terrain");
-         Shaders.beginTerrain();
-         var5.sortAndRender(var4, 0, (double)par1);
-         Shaders.endTerrain();
-         GL11.glShadeModel(7424);
-         EntityPlayer var17;
-         if (this.debugViewDirection == 0) {
-            RenderHelper.enableStandardItemLighting();
-            this.mc.mcProfiler.endStartSection("entities");
-            var5.renderEntities(var4.getPosition(par1), frustrum, par1);
-            this.enableLightmap(par1);
-            this.mc.mcProfiler.endStartSection("litParticles");
-            Shaders.beginLitParticles();
-            var6.renderLitParticles(var4, par1);
-            RenderHelper.disableStandardItemLighting();
-            this.setupFog(0, par1);
-            Shaders.beginParticles();
-            this.mc.mcProfiler.endStartSection("particles");
-            var6.renderParticles(var4, par1);
-            Shaders.endParticles();
-            this.disableLightmap(par1);
-            if (this.mc.objectMouseOver != null && var4.isInsideOfMaterial(Material.water) && var4 instanceof EntityPlayer && this.mc.gameSettings.gui_mode == 0) {
-               var17 = (EntityPlayer)var4;
-               GL11.glDisable(3008);
-               this.mc.mcProfiler.endStartSection("outline");
-               var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
-               GL11.glEnable(3008);
-            }
-         }
-
-         GL11.glDisable(3042);
-         GL11.glEnable(2884);
-         GL11.glBlendFunc(770, 771);
-         GL11.glDepthMask(true);
-         Shaders.beginHand();
-         this.renderHand(par1, var13);
-         Shaders.endHand();
-         Shaders.preWater();
-         GL11.glEnable(3042);
-         GL11.glDisable(2884);
-         this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-         if (this.mc.gameSettings.isFancyGraphicsEnabled()) {
-            this.mc.mcProfiler.endStartSection("water");
-            if (this.mc.gameSettings.ambientOcclusion != 0) {
-               GL11.glShadeModel(7425);
-            }
-
-            GL11.glColorMask(false, false, false, false);
-            Shaders.beginWaterFancy();
-            int var18 = var5.sortAndRender(var4, 1, par1);
-            if (this.mc.gameSettings.anaglyph) {
-               if (anaglyphField == 0) {
-                  GL11.glColorMask(false, true, true, true);
-               } else {
-                  GL11.glColorMask(true, false, false, true);
-               }
-            } else {
-               GL11.glColorMask(true, true, true, true);
-            }
-
-            if (var18 > 0) {
-               Shaders.midWaterFancy();
-               var5.renderAllRenderLists(1, par1);
-            }
-
-            Shaders.endWater();
-            GL11.glShadeModel(7424);
-         } else {
-            this.mc.mcProfiler.endStartSection("water");
-            Shaders.beginWater();
-            var5.sortAndRender(var4, 1, par1);
-            Shaders.endWater();
-         }
-
-         GL11.glDepthMask(true);
-         GL11.glEnable(2884);
-         GL11.glDisable(3042);
-         if (Shaders.isShadowPass) {
-            return;
-         }
-
-         Shaders.readCenterDepth();
-         if (this.cameraZoom == 1.0 && var4 instanceof EntityPlayer && this.mc.gameSettings.gui_mode == 0 && this.mc.objectMouseOver != null && !var4.isInsideOfMaterial(Material.water)) {
-            var17 = (EntityPlayer)var4;
-            GL11.glDisable(3008);
-            this.mc.mcProfiler.endStartSection("outline");
-            var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
-            GL11.glEnable(3008);
-         }
-
-         this.mc.mcProfiler.endStartSection("destroyProgress");
-         GL11.glEnable(3042);
-         GL11.glBlendFunc(770, 1);
-          if (var4 instanceof EntityPlayer) {
-             var5.drawBlockDamageTexture(Tessellator.instance, (EntityPlayer)var4, par1);
-          }
-          GL11.glDisable(3042);
-         this.mc.mcProfiler.endStartSection("weather");
-         Shaders.beginWeather();
-         this.renderRainSnow(par1);
-         Shaders.endWeather();
-         GL11.glDisable(2912);
-         Shaders.disableFog();
-         if (var4.posY >= 128.0D) {
-            this.renderCloudsCheck(var5, par1);
-         }
-
-         this.mc.mcProfiler.endStartSection("hand");
-         Shaders.renderCompositeFinal();
-         if (this.cameraZoom == 1.0D) {
-            GL11.glClear(256);
-            Shaders.beginFPOverlay();
-            this.renderHand(par1, var13);
-            Shaders.endFPOverlay();
-         }
-
-         Shaders.endRender();
-         if (!this.mc.gameSettings.anaglyph) {
-            this.mc.mcProfiler.endSection();
-            return;
-         }
-      }
-
-      GL11.glColorMask(true, true, true, false);
-      this.mc.mcProfiler.endSection();
+   // A
+   @Inject(method = "renderWorld", at = @At(value = "FIELD" ,target = "Lnet/minecraft/GameSettings;anaglyph:Z", ordinal = 2))
+   public void renderWorldEndRender(float par1, long par2, CallbackInfo ci) {
+      Shaders.endRender();
    }
 
    /**
@@ -594,11 +795,12 @@ public abstract class EntityRendererMixin {
             GL11.glTranslatef((float)this.cameraYaw, (float)(-this.cameraPitch), 0.0F);
             GL11.glScaled(this.cameraZoom, this.cameraZoom, 1.0);
          }
-
+         //***********
          float var10000 = this.getFOVModifier(par1, false);
          float var10001 = (float)this.mc.displayWidth / (float)this.mc.displayHeight;
          float var10003 = this.farPlaneDistance * 2.0F;
          Shaders.applyHandDepth();
+         //***********
          Project.gluPerspective(var10000, var10001, 0.05F, var10003);
          if (this.mc.playerController.enableEverythingIsScrewedUpMode()) {
             float var4 = 0.6666667F;
@@ -610,7 +812,7 @@ public abstract class EntityRendererMixin {
          if (this.mc.gameSettings.anaglyph) {
             GL11.glTranslatef((float)(par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
          }
-
+         // ******
          if (!Shaders.isCompositeRendered) {
             this.hurtCameraEffect(par1);
             if (this.mc.gameSettings.viewBobbing) {
@@ -622,9 +824,9 @@ public abstract class EntityRendererMixin {
                this.itemRenderer.renderItemInFirstPerson(par1);
                this.disableLightmap(par1);
             }
-
             return;
          }
+         // ******
 
          if (this.mc.gameSettings.thirdPersonView == 0 && !this.mc.renderViewEntity.inBed()) {
             this.itemRenderer.renderOverlays(par1);

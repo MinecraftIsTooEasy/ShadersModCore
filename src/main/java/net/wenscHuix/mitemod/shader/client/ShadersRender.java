@@ -1,6 +1,7 @@
 package net.wenscHuix.mitemod.shader.client;
 
 import net.minecraft.Frustrum;
+import net.minecraft.ICamera;
 import net.minecraft.ItemRenderer;
 import net.minecraft.RenderGlobal;
 import org.lwjgl.opengl.GL11;
@@ -10,10 +11,10 @@ public class ShadersRender {
       frustrum.setPosition(x, y, z);
    }
 
-   public static void clipRenderersByFrustrum(RenderGlobal renderGlobal, Frustrum frustrum, float par2) {
+   public static void clipRenderersByFrustrum(RenderGlobal renderGlobal, ICamera iCamera, float par2) {
       Shaders.checkGLError("pre clip");
       if (!Shaders.isShadowPass || Shaders.configShadowClipFrustrum) {
-         renderGlobal.clipRenderersByFrustum(frustrum, par2);
+         renderGlobal.clipRenderersByFrustum(iCamera, par2);
          Shaders.checkGLError("clip");
       }
 

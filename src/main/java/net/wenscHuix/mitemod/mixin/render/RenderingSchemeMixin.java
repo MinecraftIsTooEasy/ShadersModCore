@@ -25,13 +25,13 @@ public class RenderingSchemeMixin {
             Minecraft.theMinecraft.getLogAgent().logWarning("Invalid rendering scheme (" + scheme_index + "), reverting to " + getSchemeDescriptor(1) + " (" + 1 + ")");
          }
 
-         boolean scheme_index1 = true;
+         scheme_index = 1;
       } else {
          Minecraft.theMinecraft.getLogAgent().logInfo("Rendering scheme: " + getSchemeDescriptor(scheme_index));
       }
 
       current = 0;
-      Tessellator.instance = (Tessellator)(current == 0 ? new TessellatorExtra(2097152) : new TessellatorMITE());
+      Tessellator.instance = current == 0 ? new TessellatorExtra(2097152) : new TessellatorMITE();
    }
 
    @Shadow

@@ -8,6 +8,7 @@
     "MinecraftMixin",
     "block.BlockAccessor",
     "block.BlockMixin",
+    "gui.GuiButtonMixin",
     "gui.GuiOptionsMixin",
     "particle.EffectRendererMixin",
     "render.texture.AbstractTextureMixin",

@@ -9,27 +9,7 @@ import net.xiaoyu233.fml.config.InjectionConfig.Builder;
 import org.spongepowered.asm.mixin.MixinEnvironment.Phase;
 import org.spongepowered.asm.mixin.MixinEnvironment.Side;
 
-@Mod({Side.CLIENT})
 public class MITEShaderLoader implements ClientModInitializer, PreLaunchEntrypoint {
-   public static final String VERSION = "v0.1.0";
-
-   public int modVerNum() {
-      return 10;
-   }
-
-   public void preInit() {
-   }
-
-   public void postInit() {
-   }
-
-   public String modId() {
-      return "mite-shader-loader";
-   }
-
-   public String modVerStr() {
-      return "v0.1.0";
-   }
 
    @Override
    public void onInitializeClient() {

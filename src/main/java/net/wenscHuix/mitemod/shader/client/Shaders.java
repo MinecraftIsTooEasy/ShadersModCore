@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
-import java.lang.constant.DynamicConstantDesc;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -33,6 +32,7 @@ import org.lwjgl.util.glu.GLU;
 
 public class Shaders {
    public static boolean isInitialized = false;
+   private static boolean isCallLoadRenderers = false;
    private static boolean notFirstInit = false;
    private static int renderDisplayWidth = 0;
    private static int renderDisplayHeight = 0;
@@ -648,7 +648,9 @@ public class Shaders {
       }
 
       System.out.println("Reset world renderers");
+      isCallLoadRenderers = true;
       mc.renderGlobal.loadRenderers();
+      isCallLoadRenderers = false;
    }
 
    public static void resetDisplayListModel(ModelBase mbase) throws NoSuchFieldException, IllegalAccessException {
