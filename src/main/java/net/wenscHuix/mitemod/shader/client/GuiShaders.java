@@ -22,17 +22,28 @@ public class GuiShaders extends GuiScreen {
          Shaders.loadConfig();
       }
 
-      this.buttonList.add(new GuiButton(9, this.width * 3 / 4 - 60, 30, 160, 18, "云的光影效果: " + Shaders.configCloudShadow));
-      this.buttonList.add(new GuiButton(4, this.width * 3 / 4 - 60, 50, 160, 18, "新的方块光影效果: " + Shaders.dtweak));
-      this.buttonList.add(new GuiButton(10, this.width * 3 / 4 - 60, 70, 160, 18, "手臂进入方块的范围: " + String.format("%.4f", Shaders.configHandDepthMul)));
-      this.buttonList.add(new GuiButton(15, this.width * 3 / 4 - 60, 90, 160, 18, "画面渲染: " + String.format("%.4f", Shaders.configRenderResMul)));
-      this.buttonList.add(new GuiButton(16, this.width * 3 / 4 - 60, 110, 160, 18, "光影渲染: " + String.format("%.4f", Shaders.configShadowResMul)));
-      this.buttonList.add(new GuiButton(14, this.width * 3 / 4 - 60, 130, 160, 18, "光影视锥: " + Shaders.configShadowClipFrustrum));
-      this.buttonList.add(new GuiButton(11, this.width * 3 / 4 - 60, 150, 160, 18, "特克斯质量效果: " + Shaders.texMinFilDesc[Shaders.configTexMinFilB]));
-      this.buttonList.add(new GuiButton(12, this.width * 3 / 4 - 60, 170, 160, 18, "特克斯最大质量: " + Shaders.texMagFilDesc[Shaders.configTexMagFilN]));
-      this.buttonList.add(new GuiButton(13, this.width * 3 / 4 - 60, 190, 160, 18, "特克斯最大效果: " + Shaders.texMagFilDesc[Shaders.configTexMagFilS]));
-      this.buttonList.add(new GuiButton(6, this.width * 3 / 4 - 60, this.height - 25, 160, 20, "完成"));
-      this.buttonList.add(new GuiButton(5, this.width / 4 - 80, this.height - 25, 160, 20, "打开光影配置文件夹"));
+      this.buttonList.add(new GuiButton(9, this.width * 3 / 4 - 60, 30, 160, 18,
+              I18n.getString("options.clouds.shadow") + ": " + Shaders.configCloudShadow));
+      this.buttonList.add(new GuiButton(4, this.width * 3 / 4 - 60, 50, 160, 18,
+              I18n.getString("options.block.destroy.shader") + ": " + Shaders.dtweak));
+      this.buttonList.add(new GuiButton(10, this.width * 3 / 4 - 60, 70, 160, 18,
+              I18n.getString("options.arms.shader") + ": " + String.format("%.4f", Shaders.configHandDepthMul)));
+      this.buttonList.add(new GuiButton(15, this.width * 3 / 4 - 60, 90, 160, 18,
+              I18n.getString("options.graphics.rendering") + ": " + String.format("%.4f", Shaders.configRenderResMul)));
+      this.buttonList.add(new GuiButton(16, this.width * 3 / 4 - 60, 110, 160, 18,
+              I18n.getString("options.shadow.rendering") + ": " + String.format("%.4f", Shaders.configShadowResMul)));
+      this.buttonList.add(new GuiButton(14, this.width * 3 / 4 - 60, 130, 160, 18,
+              I18n.getString("options.frustum.shadow") + ": " + Shaders.configShadowClipFrustrum));
+      this.buttonList.add(new GuiButton(11, this.width * 3 / 4 - 60, 150, 160, 18,
+              I18n.getString("options.texture.quality") + ": " + Shaders.texMinFilDesc[Shaders.configTexMinFilB]));
+      this.buttonList.add(new GuiButton(12, this.width * 3 / 4 - 60, 170, 160, 18,
+              I18n.getString("options.texture.maximum.mass") + ": " + Shaders.texMagFilDesc[Shaders.configTexMagFilN]));
+      this.buttonList.add(new GuiButton(13, this.width * 3 / 4 - 60, 190, 160, 18,
+              I18n.getString("options.texture.maximum.effect") + ": " + Shaders.texMagFilDesc[Shaders.configTexMagFilS]));
+      this.buttonList.add(new GuiButton(6, this.width * 3 / 4 - 60, this.height - 25, 160, 20,
+              I18n.getString("options.done")));
+      this.buttonList.add(new GuiButton(5, this.width / 4 - 80, this.height - 25, 160, 20,
+              I18n.getString("options.open.shader.config")));
       this.shaderList = new GuiSlotShaders(this);
       this.shaderList.registerScrollButtons(7, 8);
       this.needReinit = false;
@@ -46,7 +57,7 @@ public class GuiShaders extends GuiScreen {
          switch(par1GuiButton.id) {
          case 4:
             Shaders.dtweak = !Shaders.dtweak;
-            par1GuiButton.displayString = "新的方块光影效果: " + Shaders.dtweak;
+            par1GuiButton.displayString = I18n.getString("options.block.destroy.shader") + ": " + Shaders.dtweak;
             break;
          case 5:
             switch(Util.getOSType()) {
@@ -110,7 +121,7 @@ public class GuiShaders extends GuiScreen {
             break;
          case 9:
             Shaders.configCloudShadow = !Shaders.configCloudShadow;
-            par1GuiButton.displayString = "云的光影效果: " + Shaders.configCloudShadow;
+            par1GuiButton.displayString = I18n.getString("options.clouds.shadow") + ": " + Shaders.configCloudShadow;
             break;
          case 10:
             val = Shaders.configHandDepthMul;
@@ -132,27 +143,27 @@ public class GuiShaders extends GuiScreen {
             }
 
             Shaders.configHandDepthMul = choices[i];
-            par1GuiButton.displayString = "手臂进入方块的范围: " + String.format("%.4f", Shaders.configHandDepthMul);
+            par1GuiButton.displayString = I18n.getString("options.arms.shader") + ": " + String.format("%.4f", Shaders.configHandDepthMul);
             break;
          case 11:
             Shaders.configTexMinFilB = (Shaders.configTexMinFilB + 1) % 3;
             Shaders.configTexMinFilN = Shaders.configTexMinFilS = Shaders.configTexMinFilB;
-            par1GuiButton.displayString = "特克斯质量效果: " + Shaders.texMinFilDesc[Shaders.configTexMinFilB];
+            par1GuiButton.displayString = I18n.getString("options.texture.quality") + ": " + Shaders.texMinFilDesc[Shaders.configTexMinFilB];
             ShadersTex.updateTextureMinMagFilter();
             break;
          case 12:
             Shaders.configTexMagFilN = (Shaders.configTexMagFilN + 1) % 2;
-            par1GuiButton.displayString = "特克斯最大质量: " + Shaders.texMagFilDesc[Shaders.configTexMagFilN];
+            par1GuiButton.displayString = I18n.getString("options.texture.maximum.mass") + ": " + Shaders.texMagFilDesc[Shaders.configTexMagFilN];
             ShadersTex.updateTextureMinMagFilter();
             break;
          case 13:
             Shaders.configTexMagFilS = (Shaders.configTexMagFilS + 1) % 2;
-            par1GuiButton.displayString = "特克斯最大效果: " + Shaders.texMagFilDesc[Shaders.configTexMagFilS];
+            par1GuiButton.displayString = I18n.getString("options.texture.maximum.effect") + ": " + Shaders.texMagFilDesc[Shaders.configTexMagFilS];
             ShadersTex.updateTextureMinMagFilter();
             break;
          case 14:
             Shaders.configShadowClipFrustrum = !Shaders.configShadowClipFrustrum;
-            par1GuiButton.displayString = "光影视锥: " + Shaders.configShadowClipFrustrum;
+            par1GuiButton.displayString = I18n.getString("options.frustum.shadow") + ": " + Shaders.configShadowClipFrustrum;
             ShadersTex.updateTextureMinMagFilter();
             break;
          case 15:
@@ -175,7 +186,8 @@ public class GuiShaders extends GuiScreen {
             }
 
             Shaders.configRenderResMul = choices[i];
-            par1GuiButton.displayString = "画面渲染: " + String.format("%.4f", Shaders.configRenderResMul);
+            par1GuiButton.displayString = I18n.getString("options.graphics.rendering") + ": " +
+                    String.format("%.4f", Shaders.configRenderResMul);
             Shaders.scheduleResize();
             break;
          case 16:
@@ -198,7 +210,8 @@ public class GuiShaders extends GuiScreen {
             }
 
             Shaders.configShadowResMul = choices[i];
-            par1GuiButton.displayString = "光影渲染: " + String.format("%.4f", Shaders.configShadowResMul);
+            par1GuiButton.displayString = I18n.getString("options.shadow.rendering") + ": " +
+                    String.format("%.4f", Shaders.configShadowResMul);
             Shaders.scheduleResizeShadow();
          }
       }
@@ -212,7 +225,8 @@ public class GuiShaders extends GuiScreen {
          this.updateTimer += 20;
       }
 
-      this.drawCenteredString(this.fontRenderer, "光影配置文件列表", this.width / 2, 16, 16777215);
+      this.drawCenteredString(this.fontRenderer, I18n.getString("options.list.shader.profiles"),
+              this.width / 2, 16, 16777215);
       super.drawScreen(par1, par2, par3);
    }
 

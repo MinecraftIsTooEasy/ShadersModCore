@@ -25,8 +25,8 @@ public class GuiOptionsMixin extends GuiScreen {
 
    @Inject(method = "initGui", at = @At("RETURN"))
    public void initGui(CallbackInfo ci) {
-      this.buttonList.add(new GuiButton(191, this.width / 2 - 152 + 77, this.height / 6 + 96 - 6, 73, 20, I18n.getString("option.shader.settings")));
-      this.buttonList.add(new GuiButton(190, this.width / 2 + 2 + 77, this.height / 6 + 96 - 6, 73, 20, I18n.getString("option.advanced.video.settings")));
+      this.buttonList.add(new GuiButton(191, this.width / 2 - 152 + 77, this.height / 6 + 96 - 6, 73, 20, I18n.getString("options.shader.settings")));
+      this.buttonList.add(new GuiButton(190, this.width / 2 + 2 + 77, this.height / 6 + 96 - 6, 73, 20, I18n.getString("options.advanced.video.settings")));
    }
 
 

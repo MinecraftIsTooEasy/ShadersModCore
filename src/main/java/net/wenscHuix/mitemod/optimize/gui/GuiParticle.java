@@ -19,7 +19,8 @@ public class GuiParticle extends GuiScreen {
          Config.loadConfig();
       }
 
-      this.buttonList.add(new GuiButton(1, this.width / 2 - 155, this.height / 7, 150, 20, "破环方块: " + Config.blockDestroyEffects));
+      this.buttonList.add(new GuiButton(1, this.width / 2 - 155, this.height / 7, 150, 20,
+              I18n.getString("options.block.destroy.effect")+ ": " + Config.blockDestroyEffects));
       this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.getString("gui.done")));
    }
 
@@ -27,7 +28,7 @@ public class GuiParticle extends GuiScreen {
       if (par1GuiButton.enabled) {
          if (par1GuiButton.id == 1) {
             Config.blockDestroyEffects = !Config.blockDestroyEffects;
-            par1GuiButton.displayString = "破环方块: " + Config.blockDestroyEffects;
+            par1GuiButton.displayString = I18n.getString("options.block.destroy.effect") + ": " + Config.blockDestroyEffects;
          } else if (par1GuiButton.id == 200) {
             this.mc.gameSettings.saveOptions();
             this.mc.displayGuiScreen(this.parentGuiScreen);
@@ -44,7 +45,7 @@ public class GuiParticle extends GuiScreen {
 
    public void drawScreen(int par1, int par2, float par3) {
       this.drawDefaultBackground();
-      this.drawCenteredString(this.fontRenderer, "粒子效果设置", this.width/ 2, 16, 16777215);
+      this.drawCenteredString(this.fontRenderer, I18n.getString("options.particle.settings"), this.width/ 2, 16, 16777215);
       super.drawScreen(par1, par2, par3);
    }
 }

@@ -151,8 +151,8 @@ public class Shaders {
    public static int configTexMagFilN = 0;
    public static int configTexMagFilS = 0;
    public static boolean configShadowClipFrustrum = true;
-   public static final String[] texMinFilDesc = new String[]{"近的", "中等", "远的"};
-   public static final String[] texMagFilDesc = new String[]{"近的", "线性"};
+   public static final String[] texMinFilDesc = new String[]{"Near", "Medium", "Far"};
+   public static final String[] texMagFilDesc = new String[]{"Near", "Linear"};
    public static final int[] texMinFilValue = new int[]{9728, 9984, 9986};
    public static final int[] texMagFilValue = new int[]{9728, 9729};
    static IShaderPack shaderPack = null;
