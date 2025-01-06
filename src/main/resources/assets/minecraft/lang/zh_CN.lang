@@ -1,4 +1,4 @@
-options.shader.settings=光影
+options.shader.settings=光影...
 options.advanced.video.settings=高级视频设置
 
 options.graphics.rendering=画面渲染
@@ -15,8 +15,9 @@ options.frustum.shadow=光影视锥
 options.particle.settings=粒子效果设置
 options.block.destroy.effect=破坏方块
 options.dynamic.light=动态光源
-options.drawing.selection.block=绘制选择方块
+options.drawing.selection.block=绘制选择框
 
-options.done=完成
-options.open.shader.config=打开光影配置文件夹
-options.list.shader.profiles=光影配置文件列表
+options.open.shader.config=光影文件夹
+options.list.shader.profiles=光影
+
+shaders.load.success=加载光影成功:

@@ -1,4 +1,4 @@
-options.shader.settings=Shader
+options.shader.settings=Shader...
 options.advanced.video.settings=Advanced video settings
 
 options.graphics.rendering=Graphics rendering
@@ -17,6 +17,7 @@ options.block.destroy.effect=Destroying block
 options.dynamic.light=Dynamic light source
 options.drawing.selection.block=Drawing selection block
 
-options.done=Done
 options.open.shader.config=Open the Shader Configuration folder
 options.list.shader.profiles=List of Shader Profiles
+
+shaders.load.success=Successful load shader:

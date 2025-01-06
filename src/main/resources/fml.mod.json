@@ -1,25 +1,26 @@
 {
   "schemaVersion": 1,
-  "id": "shader-loader",
+  "id": "shaders_mod_core",
   "version": "${version}",
   "depends": {
     "fishmodloader": ">=3.2.1"
   },
   "environment": "client",
-  "name": "ShaderLoader",
-  "description": "ShaderLoader",
-  "authors": ["limingzxc, wenscHuix"],
+  "name": "ShadersModCore",
+  "description": "GL Shader Loader",
+  "authors": [
+    "Daxnitro",
+    "karyonix",
+    "Wensc",
+    "Huix",
+    "limingzxc",
+    "Xy_Lose"
+  ],
   "entrypoints": {
-    "preLaunch": ["net.wenscHuix.mitemod.MITEShaderLoader"],
-    "client": ["net.wenscHuix.mitemod.MITEShaderLoader"]
+    "client": ["shadersmodcore.ShadersModCoreInit"]
   },
   "mixins": [
-    "shaderloader.mixin.json"
-  ],
-  "accessWidener": "shaderloader.accesswidener",
-  "custom": {
-    "loom:injected_interfaces": {
-    }
-  }
+    "shadersmodcore.mixin.json"
+  ]
 }
 

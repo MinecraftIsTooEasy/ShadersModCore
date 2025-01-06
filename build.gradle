@@ -24,11 +24,11 @@ repositories {
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/shaderloader.accesswidener")
+//	accessWidenerPath = file("src/main/resources/shaderloader.accesswidener")
 	mergedMinecraftJar()
-	setFML(new File("libs\\FishModLoader-v3.2.1.jar"))
+	setFML(new File("libs\\FishModLoader-v3.3.3.jar"))
 	mods {
-		"MITE-Shader-Loader" {
+		"ShadersModCore" {
 			sourceSet sourceSets.main
 		}
 	}
