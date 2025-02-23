@@ -15,26 +15,6 @@ import java.util.Map;
 
 @Mixin({TextureManager.class})
 public abstract class TextureManagerMixin {
-   @Shadow
-   @Final
-   private Map mapTextureObjects;
-
-   @Shadow public abstract boolean loadTexture(ResourceLocation par1ResourceLocation, TextureObject par2TextureObject);
-
-//   /**
-//    * @author
-//    * @reason
-//    */
-//   @Overwrite
-//   public void bindTexture(ResourceLocation par1ResourceLocation) {
-//      Object var2 = this.mapTextureObjects.get(par1ResourceLocation);
-//      if (var2 == null) {
-//         var2 = new SimpleTexture(par1ResourceLocation);
-//         this.loadTexture(par1ResourceLocation, (TextureObject)var2);
-//      }
-//
-//      ShadersTex.bindTexture((TextureObject) var2);
-//   }
 
    @WrapWithCondition(method = "bindTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;bindTexture(I)V"))
    private boolean bindTexture(int i, @Local Object var2) {

@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(AbstractTexture.class)
 public class AbstractTextureMixin implements AbstractTextureAccessor {
    @Shadow protected int glTextureId;
-   @Unique
-   public MultiTexID multiTex;
+
+   @Unique public MultiTexID multiTex;
 
    @Unique
    public int getGlTextureId() {

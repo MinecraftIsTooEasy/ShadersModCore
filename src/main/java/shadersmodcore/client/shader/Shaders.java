@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 import net.minecraft.*;
 import net.xiaoyu233.fml.FishModLoader;
 import shadersmodcore.api.AbstractTextureAccessor;
-import shadersmodcore.mixin.client.render.EntityRendererAccessor;
+import shadersmodcore.mixin.client.render.entity.EntityRendererAccessor;
 import shadersmodcore.util.Utils;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.lwjgl.BufferUtils;
@@ -157,7 +157,7 @@ public class Shaders {
    public static final int[] texMinFilValue = new int[]{9728, 9984, 9986};
    public static final int[] texMagFilValue = new int[]{9728, 9729};
    static IShaderPack shaderPack = null;
-   static String currentshadername;
+   public static String currentshadername;
    static String packNameNone = "(none)";
    static String packNameDefault = "(internal)";
    static String shaderpacksdirname = "shaderpacks";
@@ -2239,8 +2239,8 @@ public class Shaders {
    }
 
    public static void beginBlockDestroyProgress() {
-      if (isRenderingWorld) {
-         useProgram(6);
+      if (isRenderingWorld && shaderPack != null) {
+         Shaders.useProgram(6);
          if (dtweak) {
             GL11.glBlendFunc(770, 771);
          }
@@ -2249,8 +2249,8 @@ public class Shaders {
    }
 
    public static void endBlockDestroyProgress() {
-      if (isRenderingWorld) {
-         useProgram(3);
+      if (isRenderingWorld && shaderPack != null) {
+         Shaders.useProgram(3);
       }
 
    }
@@ -2582,6 +2582,10 @@ public class Shaders {
    public static void popEntity() {
       --entityDataIndex;
       entityData[entityDataIndex] = 0;
+   }
+
+   public static boolean isShadersLoad() {
+      return Shaders.shaderPack != null && !Objects.equals(Shaders.currentshadername, "(none)");
    }
 
    static {

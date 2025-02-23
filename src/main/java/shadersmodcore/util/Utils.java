@@ -1,5 +1,12 @@
 package shadersmodcore.util;
 
+import net.minecraft.Minecraft;
+import net.minecraft.OpenGlHelper;
+import net.minecraft.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import shadersmodcore.ShadersModCoreInit;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -74,5 +81,46 @@ public class Utils {
       } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException var5) {
          return null;
       }
+   }
+
+   //OP guys
+   public static final ResourceLocation shaders_fix = new ResourceLocation(ShadersModCoreInit.shadersModID, "textures/shaders_workaround.png");
+
+   public static void Fix() {
+      Minecraft.getMinecraft().renderEngine.bindTexture(shaders_fix);
+   }
+
+   public static final ResourceLocation shaders_fix2 = new ResourceLocation(ShadersModCoreInit.shadersModID, "textures/LightingFix.png");
+
+   public static void Fix2() {
+      Minecraft.getMinecraft().renderEngine.bindTexture(shaders_fix2);
+   }
+
+   //numbers
+   public static int INT_2X16 = 65536;
+   public static int INT_MAX = 2147483647;
+
+   //LIGHT
+   public static int MAX_LIGHT_COORD = 15728880;
+
+
+   public static void DisableFullBrightness(float lbx, float lby) {
+      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lbx, lby);
+   }
+
+   public static void EnableFullBrightness() {
+      OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)(MAX_LIGHT_COORD % INT_2X16), (float)(MAX_LIGHT_COORD / INT_2X16));
+   }
+
+   public static int GLGetCurrentProgram() {
+      return GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
+   }
+
+   public static void GLUseDefaultProgram() {
+      GL20.glUseProgram(0);
+   }
+
+   public static void GLUseProgram(int program) {
+      GL20.glUseProgram(program);
    }
 }

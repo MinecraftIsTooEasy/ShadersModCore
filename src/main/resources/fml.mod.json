@@ -3,7 +3,7 @@
   "id": "shaders_mod_core",
   "version": "${version}",
   "depends": {
-    "fishmodloader": ">=3.2.1"
+    "fishmodloader": ">=3.4.1"
   },
   "environment": "client",
   "name": "ShadersModCore",

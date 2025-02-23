@@ -11,24 +11,9 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin({Block.class})
 public class BlockMixin implements BlockAccessor {
-   @Shadow
-   @Final
-   private boolean is_tree_leaves;
-   @Shadow
-   @Final
-   public static int[] lightValue;
-   @Shadow
-   @Final
-   public int blockID;
-
-   @Shadow
-   public static Block getBlock(int block_id) {
-      return null;
-   }
-
-   public boolean isTreeLeaves() {
-      return this.is_tree_leaves;
-   }
+   @Shadow @Final private boolean is_tree_leaves;
+   @Shadow @Final public static int[] lightValue;
+   @Shadow @Final public int blockID;
 
    public int getLightValue() {
       return lightValue[this.blockID];

@@ -1,1 +1,1 @@
-# MITEShaderLoader
+# ShadersModCore / GLSL

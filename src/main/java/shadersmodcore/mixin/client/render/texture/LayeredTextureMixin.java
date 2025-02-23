@@ -15,9 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin({LayeredTexture.class})
 public class LayeredTextureMixin {
-   @Shadow
-   @Final
-   public List layeredTextureNames;
+   @Shadow @Final public List layeredTextureNames;
 
    @Inject(method = "loadTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;uploadTextureImage(ILjava/awt/image/BufferedImage;)I"), cancellable = true)
    public void loadTexture(ResourceManager resourceManager, CallbackInfo info) {

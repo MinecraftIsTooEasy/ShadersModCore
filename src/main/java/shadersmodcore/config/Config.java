@@ -13,6 +13,7 @@ public class Config {
    public static Properties optimizeConfig;
 
    public static boolean blockDestroyEffects;
+   public static boolean explodeEffects;
 
    public static boolean dynamicLights;
    public static boolean drawSelectionBox;
@@ -31,6 +32,7 @@ public class Config {
       }
 
       blockDestroyEffects = Boolean.parseBoolean(optimizeConfig.getProperty("blockDestroyEffects", "true"));
+      explodeEffects = Boolean.parseBoolean(optimizeConfig.getProperty("explodeEffects", "true"));
 
       dynamicLights = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLights", "false"));
       drawSelectionBox = Boolean.parseBoolean(optimizeConfig.getProperty("drawSelectionBox", "true"));
@@ -38,6 +40,7 @@ public class Config {
 
    public static void storeConfig() {
       optimizeConfig.setProperty("blockDestroyEffects", Boolean.toString(blockDestroyEffects));
+      optimizeConfig.setProperty("explodeEffects", Boolean.toString(explodeEffects));
 
       optimizeConfig.setProperty("dynamicLights", Boolean.toString(dynamicLights));
       optimizeConfig.setProperty("drawSelectionBox", Boolean.toString(drawSelectionBox));

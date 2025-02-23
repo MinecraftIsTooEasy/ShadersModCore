@@ -9,9 +9,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin({RenderManager.class})
 public class RenderManagerMixin {
-
    @Shadow private FontRenderer fontRenderer;
-
    @Shadow private Map entityRenderMap;
 
    public FontRenderer getFontRenderer() {

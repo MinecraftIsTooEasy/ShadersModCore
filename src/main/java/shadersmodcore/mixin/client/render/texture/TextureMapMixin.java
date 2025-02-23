@@ -1,9 +1,16 @@
 package shadersmodcore.mixin.client.render.texture;
 
 import com.google.common.collect.Maps;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import shadersmodcore.api.AbstractTextureAccessor;
 import shadersmodcore.api.TextureAtlasSpriteAccessor;
 import shadersmodcore.api.TextureMapAccessor;
@@ -18,49 +25,30 @@ import java.util.Map;
 
 @Mixin({TextureMap.class})
 public abstract class TextureMapMixin extends AbstractTexture implements TextureMapAccessor {
-   public int atlasWidth;
-   public int atlasHeight;
-   @Shadow
-   @Final
-   public static ResourceLocation locationBlocksTexture;
-   @Shadow
-   @Final
-   public static ResourceLocation locationItemsTexture;
-   @Shadow
-   @Final
-   private List listAnimatedSprites;
-   @Shadow
-   @Final
-   private Map mapRegisteredSprites;
-   @Shadow
-   @Final
-   private Map mapUploadedSprites;
-   @Shadow
-   @Final
-   private int textureType;
-   @Shadow
-   @Final
-   private String basePath;
-   @Shadow
-   @Final
-   private TextureAtlasSprite missingImage;
+   @Shadow @Final private List listAnimatedSprites;
+   @Shadow @Final private Map mapRegisteredSprites;
+   @Shadow @Final private Map mapUploadedSprites;
+   @Shadow @Final private String basePath;
+   @Shadow @Final private TextureAtlasSprite missingImage;
 
-//   @Unique
-//   private ResourceManager par1ResourceManager;
+   @Unique public int atlasWidth;
+   @Unique public int atlasHeight;
 
-//   @Shadow
-//   public void loadTextureAtlas(ResourceManager par1ResourceManager) {
-//      this.par1ResourceManager = par1ResourceManager;
-//   }
+   public int getAtlasWidth() {
+      return this.atlasWidth;
+   }
 
+   public int getAtlasHeight() {
+      return this.atlasHeight;
+   }
 
-   public int getAtlasWidth() { return this.atlasWidth; }
+   public void setAtlasWidth(int atlasWidth) {
+      this.atlasWidth = atlasWidth;
+   }
 
-   public int getAtlasHeight() { return this.atlasHeight; }
-
-   public void setAtlasWidth(int atlasWidth) { this.atlasWidth = atlasWidth; }
-
-   public void setAtlasHeight(int atlasHeight) { this.atlasHeight = atlasHeight; }
+   public void setAtlasHeight(int atlasHeight) {
+      this.atlasHeight = atlasHeight;
+   }
 
    /**
     * @author
@@ -72,13 +60,12 @@ public abstract class TextureMapMixin extends AbstractTexture implements Texture
       Stitcher var3 = new Stitcher(var2, var2, true);
       this.mapUploadedSprites.clear();
       this.listAnimatedSprites.clear();
-      Iterator var4 = this.mapRegisteredSprites.entrySet().iterator();
 
       TextureAtlasSprite var17;
-      while(var4.hasNext()) {
-         Map.Entry var5 = (Map.Entry)var4.next();
-         ResourceLocation var6 = new ResourceLocation((String)var5.getKey(), false);
-         var17 = (TextureAtlasSprite)var5.getValue();
+      for(Object var5 : this.mapRegisteredSprites.entrySet()) {
+         Map.Entry map = (Map.Entry) var5;
+         ResourceLocation var6 = new ResourceLocation((String) map.getKey(), false);
+         var17 = (TextureAtlasSprite) map.getValue();
          ResourceLocation var8 = new ResourceLocation(var6.getResourceDomain(), String.format("%s/%s%s", this.basePath, var6.getResourcePath(), ".png"), false);
 
          try {
@@ -110,8 +97,8 @@ public abstract class TextureMapMixin extends AbstractTexture implements Texture
       HashMap var15 = Maps.newHashMap(this.mapRegisteredSprites);
       Iterator var16 = var3.getStichSlots().iterator();
 
-      while(var16.hasNext()) {
-         var17 = (TextureAtlasSprite)var16.next();
+      while (var16.hasNext()) {
+         var17 = (TextureAtlasSprite) var16.next();
          String var18 = var17.getIconName();
          var15.remove(var18);
          this.mapUploadedSprites.put(var18, var17);
@@ -135,56 +122,25 @@ public abstract class TextureMapMixin extends AbstractTexture implements Texture
 
       var16 = var15.values().iterator();
 
-      while(var16.hasNext()) {
-         var17 = (TextureAtlasSprite)var16.next();
+      while (var16.hasNext()) {
+         var17 = (TextureAtlasSprite) var16.next();
          var17.copyFrom(this.missingImage);
       }
 
    }
 
-//   @WrapOperation(method = "loadTextureAtlas", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureAtlasSprite;loadSprite(Lnet/minecraft/Resource;)V"))
-//   private void load(TextureAtlasSprite instance, Resource var9, Operation<Void> original) throws IOException {
-//      Iterator var4 = this.mapRegisteredSprites.entrySet().iterator();
-//
-//      while(var4.hasNext()) {
-//         Map.Entry var5 = (Map.Entry) var4.next();
-//         ResourceLocation var6 = new ResourceLocation((String) var5.getKey(), false);
-//         ResourceLocation var8 = new ResourceLocation(var6.getResourceDomain(), String.format("%s/%s%s", this.basePath, var6.getResourcePath(), ".png"), false);
-//
-//         if (!((TextureAtlasSpriteAccessor) instance).load((ResourceManager) var9, var8)) {
-//            original.call(instance, var9);
-//         }
-//      }
-//      original.call(instance, var9);
-//   }
-//
-//   @WrapOperation(method = "loadTextureAtlas", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;allocateTexture(III)V"))
-//   private void setupTextureMap(int i, int j, int k, Operation<Void> original) {
-//      int var2 = Minecraft.getGLMaximumTextureSize();
-//      Stitcher var3 = new Stitcher(var2, var2, true);
-//      ShadersTex.setupTextureMap(var3.getCurrentWidth(), var3.getCurrentHeight(), var3, ReflectHelper.dyCast(this));
-//   }
-//
-//   @WrapOperation(method = "loadTextureAtlas", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;uploadTextureSub([IIIIIZZ)V"))
-//   private void setupTextureMap(int[] is, int i, int j, int k, int l, boolean bl, boolean bl2, Operation<Void> original) {
-//      ShadersTex.updateTextureMap(is, i, j, k, l, bl, bl2);
-//   }
-
-   /**
-    * @author
-    * @reason
-    */
-   @Overwrite
-   public void updateAnimations() {
+   @Inject(method = "updateAnimations", at = @At("HEAD"))
+   public void updateAnimationsHead(CallbackInfo ci) {
       ShadersTex.updatingTex = ((AbstractTextureAccessor) this).getMultiTexID();
+   }
 
-      TextureUtilExtra.bindTexture(this.getGlTextureId());
-
-       for (Object listAnimatedSprite : this.listAnimatedSprites) {
-           TextureAtlasSprite var2 = (TextureAtlasSprite) listAnimatedSprite;
-           var2.updateAnimation();
-       }
-
+   @Inject(method = "updateAnimations", at = @At("TAIL"))
+   public void updateAnimationsTail(CallbackInfo ci) {
       ShadersTex.updatingTex = null;
+   }
+
+   @Redirect(method = "updateAnimations", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;bindTexture(I)V"))
+   private void bindTexture(int i) {
+      TextureUtilExtra.bindTexture(this.getGlTextureId());
    }
 }

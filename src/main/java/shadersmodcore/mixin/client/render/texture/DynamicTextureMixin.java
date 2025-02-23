@@ -16,13 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(DynamicTexture.class)
 public abstract class DynamicTextureMixin extends AbstractTexture {
-
-   @Shadow public abstract int[] getTextureData();
-
    @Shadow @Final private int[] dynamicTextureData;
-
    @Shadow @Final private int width;
-
    @Shadow @Final private int height;
 
    @ModifyVariable(method = "<init>(II)V", argsOnly = true, index = 1,

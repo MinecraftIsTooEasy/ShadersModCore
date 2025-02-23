@@ -22,6 +22,9 @@ public class GuiParticle extends GuiScreen {
 
       this.buttonList.add(new GuiButton(1, this.width / 2 - 155, this.height / 7, 150, 20,
               I18n.getString("options.block.destroy.effect") + ": " + Config.blockDestroyEffects));
+      this.buttonList.add(new GuiButton(2, this.width / 2 + 5, this.height / 7, 150, 20,
+              I18n.getString("options.block.explode.effect") + ": " + Config.explodeEffects));
+
       this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.getString("gui.done")));
    }
 
@@ -30,7 +33,12 @@ public class GuiParticle extends GuiScreen {
          if (par1GuiButton.id == 1) {
             Config.blockDestroyEffects = !Config.blockDestroyEffects;
             par1GuiButton.displayString = I18n.getString("options.block.destroy.effect") + ": " + Config.blockDestroyEffects;
-         } else if (par1GuiButton.id == 200) {
+         }
+         if (par1GuiButton.id == 2) {
+            Config.explodeEffects = !Config.explodeEffects;
+            par1GuiButton.displayString = I18n.getString("options.block.explode.effect") + ": " + Config.explodeEffects;
+         }
+         if (par1GuiButton.id == 200) {
             this.mc.gameSettings.saveOptions();
             this.mc.displayGuiScreen(this.parentGuiScreen);
 

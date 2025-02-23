@@ -1,73 +1,51 @@
 package shadersmodcore.mixin.client.render;
 
 import net.minecraft.Tessellator;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import shadersmodcore.api.TessellatorAccessor0;
+import shadersmodcore.client.shader.Shaders;
 import shadersmodcore.client.shader.ShadersTess;
 import net.xiaoyu233.fml.util.ReflectHelper;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Tessellator.class)
 public class TessellatorMixin implements TessellatorAccessor0 {
-
-   @Shadow private boolean useVBO;
-
-   @Shadow private int vboCount;
-
-   @Shadow private static boolean tryVBO;
-
    @Shadow public boolean hasNormals;
 
-   @Shadow public double textureU;
+   @Unique public float normalX;
+   @Unique public float normalY;
+   @Unique public float normalZ;
+   @Unique public float midTextureU;
+   @Unique public float midTextureV;
+   @Unique public float[] vertexPos;
 
-   @Shadow public int normal;
-   public float normalX;
-   public float normalY;
-   public float normalZ;
-   public float midTextureU;
-   public float midTextureV;
-   public float[] vertexPos;
-
+   @Override
    public float getNormalX() { return this.normalX; }
-
+   @Override
    public float getNormalY() { return this.normalY; }
-
+   @Override
    public float getNormalZ() { return this.normalZ; }
-
+   @Override
    public float setNormalX(float normalX) { return this.normalX = normalX; }
-
+   @Override
    public float setNormalY(float normalY) { return this.normalY = normalY; }
-
+   @Override
    public float setNormalZ(float normalZ) { return this.normalZ = normalZ; }
-
+   @Override
    public float[] getVertexPos() { return this.vertexPos; }
-
+   @Override
    public void setVertexPos(float[] vertexPos) { this.vertexPos = vertexPos; }
-
+   @Override
    public float getMidTextureU() { return this.midTextureU; }
-
+   @Override
    public float getMidTextureV() { return this.midTextureV; }
-
+   @Override
    public void setMidTextureU(float midTextureU) { this.midTextureU = midTextureU; }
-
+   @Override
    public void setMidTextureV(float midTextureV) { this.midTextureV = midTextureV; }
-
-   public boolean isUseVBO() {
-      return this.useVBO;
-   }
-
-   public boolean setUseVBO(boolean is) {
-      return this.useVBO = is;
-   }
-
-   public int getVboCount() {
-      return this.vboCount;
-   }
-
-   public boolean tryVBO() {
-      return tryVBO;
-   }
 
    /**
     * @author
