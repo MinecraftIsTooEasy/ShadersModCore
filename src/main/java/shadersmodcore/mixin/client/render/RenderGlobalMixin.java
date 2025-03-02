@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
 import shadersmodcore.api.RenderGlobalAccessor;
-import shadersmodcore.config.Config;
+import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.client.shader.Shaders;
 import shadersmodcore.client.dynamicLight.DynamicLights;
 import shadersmodcore.config.ShaderConfig;
@@ -25,7 +25,7 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
 
    @Inject(method = "drawSelectionBox", at = @At("HEAD"), cancellable = true)
    private void enableConfigDrawSelectionBox(EntityPlayer par1EntityPlayer, RaycastCollision rc, int par3, float par4, CallbackInfo ci) {
-      if (!Config.drawSelectionBox) {
+      if (!OptimizeConfig.drawSelectionBox) {
          ci.cancel();
       }
    }
@@ -289,7 +289,7 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
    }
 
    @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glPopMatrix()V", shift = Shift.AFTER),
-      method = {"drawBlockDamageTexture"}
+           method = {"drawBlockDamageTexture"}
    )
    private void injectDrawBlockDamageTexture1(CallbackInfo callbackInfo) {
       if (Shaders.isShadersLoad()) {
@@ -298,10 +298,16 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
    }
 
    //Hitbox (F3+B)
-   @Inject(method = "drawOutlinedBoundingBox",
-           at = @At(value = "HEAD"))
+   @Inject(method = "drawOutlinedBoundingBox", at = @At(value = "HEAD"))
    private void drawOutlinedBoundingBox(AxisAlignedBB par1AxisAlignedBB, CallbackInfo ci) {
       Utils.Fix();
+   }
+
+   @WrapOperation(method = "loadRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
+   private boolean leavesQuality(GameSettings instance, Operation<Boolean> original) {
+      if (OptimizeConfig.leavesQuality != 0)
+         return Utils.convertIntToBoolean(OptimizeConfig.leavesQuality);
+      return original.call(instance);
    }
 
    @Shadow public void markBlockForUpdate(int i, int i1, int i2) {}

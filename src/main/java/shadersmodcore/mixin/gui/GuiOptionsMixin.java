@@ -18,8 +18,7 @@ public class GuiOptionsMixin extends GuiScreen {
 
    @Inject(method = "initGui", at = @At("RETURN"))
    public void addShaderButton(CallbackInfo ci) {
-      this.buttonList.add(new GuiButton(191, this.width / 2 - 152 + 77, this.height / 6 + 120 - 6, 73, 20, I18n.getString("options.shader.settings")));
-      this.buttonList.add(new GuiButton(190, this.width / 2 + 2 + 77, this.height / 6 + 96 - 6, 73, 20, I18n.getString("options.advanced.video.settings")));
+      this.buttonList.add(new GuiButton(190, this.width / 2 + 2, this.height / 6 + 72 - 6, 150, 20, I18n.getString("options.advanced.video.settings")));
    }
 
 
@@ -30,12 +29,6 @@ public class GuiOptionsMixin extends GuiScreen {
             this.mc.gameSettings.saveOptions();
             this.mc.displayGuiScreen(new GuiPlusVideo(ReflectHelper.dyCast(this), this.options));
          }
-
-         if (par1GuiButton.id == 191 && !Main.is_MITE_DS) {
-            this.mc.gameSettings.saveOptions();
-            this.mc.displayGuiScreen(new GuiShaders(ReflectHelper.dyCast(this)));
-         }
       }
-
    }
 }

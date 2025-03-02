@@ -1,5 +1,6 @@
 package shadersmodcore.util;
 
+import net.minecraft.I18n;
 import net.minecraft.Minecraft;
 import net.minecraft.OpenGlHelper;
 import net.minecraft.ResourceLocation;
@@ -81,6 +82,28 @@ public class Utils {
       } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException var5) {
          return null;
       }
+   }
+
+   public static boolean convertIntToBoolean(int value) {
+      if (value == 1) {
+         return true;
+      } else if (value == 2) {
+         return false;
+      } else {
+         throw new IllegalArgumentException();
+      }
+   }
+
+   public static String getTranslationString(String[] par0ArrayOfStr, int par1) {
+      if (par1 < 0 || par1 >= par0ArrayOfStr.length) {
+         par1 = 0;
+      }
+
+      return I18n.getString(par0ArrayOfStr[par1]);
+   }
+
+   public static String getTranslationBoolean(boolean value) {
+      return value ? I18n.getString("options.on") : I18n.getString("options.off");
    }
 
    //OP guys

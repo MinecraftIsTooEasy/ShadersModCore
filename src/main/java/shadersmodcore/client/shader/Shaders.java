@@ -34,6 +34,10 @@ import org.lwjgl.util.glu.GLU;
 public class Shaders {
    public static boolean isInitialized = false;
    private static boolean isCallLoadRenderers = false;
+   public static ContextCapabilities capabilities;
+   public static String glVersionString;
+   public static String glVendorString;
+   public static String glRendererString;
    private static boolean notFirstInit = false;
    private static int renderDisplayWidth = 0;
    private static int renderDisplayHeight = 0;
@@ -152,13 +156,13 @@ public class Shaders {
    public static int configTexMagFilN = 0;
    public static int configTexMagFilS = 0;
    public static boolean configShadowClipFrustrum = true;
-   public static final String[] texMinFilDesc = new String[]{"Near", "Medium", "Far"};
-   public static final String[] texMagFilDesc = new String[]{"Near", "Linear"};
+   public static final String[] texMinFilDesc = new String[] {"Nearest", "Nearest-Nearest", "Nearest-Linear"};
+   public static final String[] texMagFilDesc = new String[] {"Nearest", "Linear"};
    public static final int[] texMinFilValue = new int[]{9728, 9984, 9986};
    public static final int[] texMagFilValue = new int[]{9728, 9729};
    static IShaderPack shaderPack = null;
    public static String currentshadername;
-   static String packNameNone = "(none)";
+   static String packNameNone = "OFF";
    static String packNameDefault = "(internal)";
    static String shaderpacksdirname = "shaderpacks";
    static String optionsfilename = "optionsshaders.txt";
@@ -442,6 +446,10 @@ public class Shaders {
 
    public static void startup(Minecraft mc) {
       Shaders.mc = mc;
+      capabilities = GLContext.getCapabilities();
+      glVersionString = GL11.glGetString(GL11.GL_VERSION);
+      glVendorString = GL11.glGetString(GL11.GL_VENDOR);
+      glRendererString = GL11.glGetString(GL11.GL_RENDERER);
       System.out.println("Shaders Mod Core" + version);
       loadConfig();
    }

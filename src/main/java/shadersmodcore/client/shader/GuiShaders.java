@@ -221,6 +221,7 @@ public class GuiShaders extends GuiScreen {
 
    public void drawScreen(int par1, int par2, float par3) {
       this.shaderList.drawScreen(par1, par2, par3);
+
       if (this.updateTimer <= 0) {
          this.shaderList.updateList();
          this.updateTimer += 20;
@@ -228,8 +229,13 @@ public class GuiShaders extends GuiScreen {
 
       this.drawCenteredString(this.fontRenderer, I18n.getString("options.list.shader.profiles"),
               this.width / 2, 16, 16777215);
-      this.drawCenteredString(this.fontRenderer, Shaders.version,
-              this.width - 40, 10, 8421504);
+      String s = "OpenGL: " + Shaders.glVersionString + ", " + Shaders.glVendorString + ", " + Shaders.glRendererString;
+      int i = this.fontRenderer.getStringWidth(s);
+      if (i < this.width - 5) {
+         this.drawCenteredString(this.fontRenderer, s, this.width / 2, this.height - 40, 8421504);
+      } else {
+         this.drawString(this.fontRenderer, s, 5, this.height - 40, 8421504);
+      }
       super.drawScreen(par1, par2, par3);
    }
 

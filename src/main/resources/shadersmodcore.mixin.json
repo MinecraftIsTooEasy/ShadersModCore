@@ -16,14 +16,19 @@
     "client.render.RenderingSchemeMixin",
     "client.render.RenderManagerMixin",
     "client.render.RenderMixin",
+    "client.render.RenderParticleMixin",
     "client.render.RenderSpiderMixin",
     "client.render.SimpleTextureMixin",
     "client.render.TessellatorAccessor",
     "client.render.TessellatorMixin",
     "client.render.ThreadDownloadImageDataMixin",
     "client.render.entity.EntityRendererAccessor",
+    "client.render.entity.RenderDragonMixin",
     "client.render.entity.RenderEndermanMixin",
     "client.render.entity.RendererLivingEntityMixin",
+    "client.render.entity.RenderFishMixin",
+    "client.render.entity.RenderLightningBoltMixin",
+    "client.render.entity.RenderLivingMixin",
     "client.render.texture.AbstractTextureMixin",
     "client.render.texture.DynamicTextureMixin",
     "client.render.texture.LayeredTextureMixin",
@@ -34,17 +39,13 @@
     "client.render.texture.TextureManagerMixin",
     "client.render.texture.TextureMapMixin",
     "client.render.texture.TextureObjectMixin",
-    "gui.GuiButtonMixin",
     "gui.GuiOptionsMixin",
     "particle.EffectRendererMixin",
     "world.ChunkCacheMixin",
     "world.WorldMixin"
   ],
   "mixins": [
-    "client.render.RenderParticleMixin",
-    "client.render.entity.RenderDragonMixin",
-    "client.render.entity.RenderFishMixin",
-    "client.render.entity.RenderLightningBoltMixin",
-    "client.render.entity.RenderLivingMixin"
+    "client.render.RenderItemMixin",
+    "gui.GuiIngameMixin"
   ]
 }

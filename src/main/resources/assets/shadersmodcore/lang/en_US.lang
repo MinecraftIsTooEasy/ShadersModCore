@@ -1,5 +1,7 @@
+options.advanced.video.settings=Advanced video settings...
 options.shader.settings=Shader...
-options.advanced.video.settings=Advanced video settings
+options.particle.settings=Particle Effect...
+options.quality.settings=Quality...
 
 options.graphics.rendering=Graphics rendering
 options.shadow.rendering=Shadow rendering
@@ -12,12 +14,25 @@ options.texture.maximum.mass=Maximum mass of texture
 options.texture.maximum.effect=Maximum effect of textures
 options.frustum.shadow=Shadow frustum
 
-options.particle.settings=Particle Effect Settings
-options.block.destroy.effect=Destroying block
-options.dynamic.light=Dynamic light source
-options.drawing.selection.block=Drawing selection block
-
 options.open.shader.config=Open the Shader Configuration folder
 options.list.shader.profiles=List of Shader Profiles
 
 shaders.load.success=Successful load shader:
+
+options.dynamic.light=Dynamic light source
+options.drawing.selection.block=Drawing selection block
+options.render.rainsnow=Rain & Snow
+options.render.shadow=Shadow
+
+options.block.destroy.effect=Destroying Blocks
+options.block.explode.effect=Explode
+
+options.quality.grass=Grass
+options.quality.leaves=Leaves
+options.quality.vignette=Vignette
+options.quality.drops=Drops
+options.quality.water=Water
+options.quality.rain=Rain
+options.quality.default=Default
+options.quality.fancy=Fancy
+options.quality.fast=Fast

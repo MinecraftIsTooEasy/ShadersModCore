@@ -3,6 +3,8 @@ package shadersmodcore.mixin.client.render;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.FloatBuffer;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.*;
 import shadersmodcore.client.shader.Shaders;
 import shadersmodcore.client.shader.ShadersRender;
@@ -12,12 +14,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import shadersmodcore.config.OptimizeConfig;
+import shadersmodcore.util.Utils;
 
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {
    @Shadow private Minecraft mc;
    @Shadow protected abstract void renderHand(float par1, int par2);
 
+   @Shadow public ItemRenderer itemRenderer;
    @Unique private int var13;
 
    @Inject(at = {@At("RETURN")}, method = {"disableLightmap"})
@@ -250,5 +255,38 @@ public abstract class EntityRendererMixin {
    @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lorg/lwjgl/util/glu/Project;gluPerspective(FFFF)V"))
    private void applyHandDepth(float par1, int par2, CallbackInfo ci) {
       Shaders.applyHandDepth();
+   }
+
+   @WrapOperation(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/EntityRenderer;renderRainSnow(F)V"))
+   private void renderWeather(EntityRenderer instance, float var6, Operation<Void> original) {
+      if (OptimizeConfig.renderRainSnow)
+         original.call(instance, var6);
+   }
+
+   @WrapOperation(method = "updateRenderer", at = @At(value = "INVOKE", target = "Lnet/minecraft/EntityRenderer;addRainParticles()V"))
+   private void renderWeatherParticles(EntityRenderer instance, Operation<Void> original) {
+      if (OptimizeConfig.renderRainSnow)
+         original.call(instance);
+   }
+
+   @WrapOperation(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
+   private boolean waterQuality(GameSettings instance, Operation<Boolean> original) {
+      if (OptimizeConfig.waterQuality != 0)
+         return Utils.convertIntToBoolean(OptimizeConfig.waterQuality);
+      return original.call(instance);
+   }
+
+   @WrapOperation(method = "addRainParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
+   private boolean rainQuality(GameSettings instance, Operation<Boolean> original) {
+      if (OptimizeConfig.rainQuality != 0)
+         return Utils.convertIntToBoolean(OptimizeConfig.rainQuality);
+      return original.call(instance);
+   }
+
+   @WrapOperation(method = "renderRainSnow", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
+   private boolean rainQuality_1(GameSettings instance, Operation<Boolean> original) {
+      if (OptimizeConfig.rainQuality != 0)
+         return Utils.convertIntToBoolean(OptimizeConfig.rainQuality);
+      return original.call(instance);
    }
 }

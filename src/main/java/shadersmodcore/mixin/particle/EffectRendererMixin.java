@@ -2,7 +2,7 @@ package shadersmodcore.mixin.particle;
 
 import net.minecraft.AxisAlignedBB;
 import net.minecraft.EffectRenderer;
-import shadersmodcore.config.Config;
+import shadersmodcore.config.OptimizeConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,7 +14,7 @@ public class EffectRendererMixin {
 
    @Inject(method = "addBlockDestroyEffects(IIIIII)V", at = @At("HEAD"), cancellable = true)
    public void addBlockDestroyEffects(int x, int y, int z, int block_id, int metadata, int aux_data, CallbackInfo info) {
-      if (Config.blockDestroyEffects) {
+      if (OptimizeConfig.blockDestroyEffects) {
          this.addBlockDestroyEffects(x, y, z, block_id, metadata, aux_data, (AxisAlignedBB)null);
       }
       info.cancel();

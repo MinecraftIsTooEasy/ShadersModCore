@@ -16,7 +16,7 @@ public class ShaderConfig {
    }
 
    public static boolean isDynamicLights() {
-      return Config.dynamicLights;
+      return OptimizeConfig.dynamicLights;
    }
 
    public static boolean isDynamicLightsFast() {
