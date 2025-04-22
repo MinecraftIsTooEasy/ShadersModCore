@@ -4,7 +4,6 @@ import net.minecraft.GameSettings;
 import net.minecraft.GuiButton;
 import net.minecraft.GuiScreen;
 import net.minecraft.I18n;
-import shadersmodcore.client.shader.GuiShaders;
 import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.util.Utils;
 

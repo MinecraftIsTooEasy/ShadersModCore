@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.*;
 import org.spongepowered.asm.mixin.injection.At;
 import shadersmodcore.api.AbstractTextureAccessor;
-import shadersmodcore.client.shader.ShadersTex;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

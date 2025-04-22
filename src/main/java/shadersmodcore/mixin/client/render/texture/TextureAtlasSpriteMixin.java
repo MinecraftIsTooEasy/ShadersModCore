@@ -6,7 +6,6 @@ import net.minecraft.*;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import shadersmodcore.api.TextureAtlasSpriteAccessor;
-import shadersmodcore.client.shader.ShadersTex;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.IntBuffer;
 import java.util.List;
 
 @Mixin(TextureAtlasSprite.class)

@@ -3,7 +3,6 @@ package shadersmodcore.mixin.block;
 import net.minecraft.Block;
 import net.minecraft.IBlockAccess;
 import shadersmodcore.api.BlockAccessor;
-import shadersmodcore.client.shader.Shaders;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;

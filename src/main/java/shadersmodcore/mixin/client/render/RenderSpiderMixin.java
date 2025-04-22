@@ -4,7 +4,6 @@ import net.minecraft.EntityLiving;
 import net.minecraft.ModelArachnid;
 import net.minecraft.RenderArachnid;
 import net.minecraft.RenderSpider;
-import shadersmodcore.client.shader.Shaders;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 

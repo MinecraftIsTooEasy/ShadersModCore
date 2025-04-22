@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import shadersmodcore.client.shader.Shaders;
 import org.spongepowered.asm.mixin.Mixin;
 import shadersmodcore.config.OptimizeConfig;
 

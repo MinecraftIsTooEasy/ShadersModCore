@@ -3,7 +3,6 @@ package shadersmodcore.mixin.gui;
 import net.minecraft.*;
 import net.minecraft.client.main.Main;
 import shadersmodcore.client.optimize.GuiPlusVideo;
-import shadersmodcore.client.shader.GuiShaders;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

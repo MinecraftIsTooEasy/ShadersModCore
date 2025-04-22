@@ -6,7 +6,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
 import shadersmodcore.api.RenderGlobalAccessor;
 import shadersmodcore.config.OptimizeConfig;
-import shadersmodcore.client.shader.Shaders;
 import shadersmodcore.client.dynamicLight.DynamicLights;
 import shadersmodcore.config.ShaderConfig;
 import net.xiaoyu233.fml.util.ReflectHelper;

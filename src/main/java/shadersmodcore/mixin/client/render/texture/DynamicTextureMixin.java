@@ -2,7 +2,6 @@ package shadersmodcore.mixin.client.render.texture;
 
 import net.minecraft.AbstractTexture;
 import net.minecraft.DynamicTexture;
-import shadersmodcore.client.shader.ShadersTex;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

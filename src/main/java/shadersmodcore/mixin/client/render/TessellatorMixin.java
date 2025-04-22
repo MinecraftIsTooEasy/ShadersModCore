@@ -2,13 +2,7 @@ package shadersmodcore.mixin.client.render;
 
 import net.minecraft.Tessellator;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import shadersmodcore.api.TessellatorAccessor0;
-import shadersmodcore.client.shader.Shaders;
-import shadersmodcore.client.shader.ShadersTess;
 import net.xiaoyu233.fml.util.ReflectHelper;
 
 @Mixin(Tessellator.class)

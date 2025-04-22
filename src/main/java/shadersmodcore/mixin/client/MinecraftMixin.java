@@ -7,7 +7,6 @@ import net.minecraft.GuiChat;
 import net.minecraft.Minecraft;
 import org.spongepowered.asm.mixin.Shadow;
 import shadersmodcore.config.OptimizeConfig;
-import shadersmodcore.client.shader.Shaders;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

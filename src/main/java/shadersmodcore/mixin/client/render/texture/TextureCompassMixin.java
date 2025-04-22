@@ -2,7 +2,6 @@ package shadersmodcore.mixin.client.render.texture;
 
 import net.minecraft.TextureAtlasSprite;
 import net.minecraft.TextureCompass;
-import shadersmodcore.client.shader.ShadersTex;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;

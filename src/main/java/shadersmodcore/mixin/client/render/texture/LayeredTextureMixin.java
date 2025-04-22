@@ -4,7 +4,6 @@ import java.util.List;
 
 import net.minecraft.LayeredTexture;
 import net.minecraft.ResourceManager;
-import shadersmodcore.client.shader.ShadersTex;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

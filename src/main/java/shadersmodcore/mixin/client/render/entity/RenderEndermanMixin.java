@@ -4,7 +4,6 @@ import net.minecraft.EntityEnderman;
 import net.minecraft.ModelBase;
 import net.minecraft.RenderEnderman;
 import net.minecraft.RenderLiving;
-import shadersmodcore.client.shader.Shaders;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

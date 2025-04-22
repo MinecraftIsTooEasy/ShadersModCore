@@ -1,9 +1,6 @@
 package shadersmodcore.mixin.client.render.texture;
 
 import com.google.common.collect.Maps;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.*;
@@ -14,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import shadersmodcore.api.AbstractTextureAccessor;
 import shadersmodcore.api.TextureAtlasSpriteAccessor;
 import shadersmodcore.api.TextureMapAccessor;
-import shadersmodcore.client.shader.ShadersTex;
 import shadersmodcore.util.TextureUtilExtra;
 
 import java.io.IOException;

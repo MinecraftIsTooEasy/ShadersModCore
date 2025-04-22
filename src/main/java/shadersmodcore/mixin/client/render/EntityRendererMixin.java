@@ -6,8 +6,6 @@ import java.nio.FloatBuffer;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.*;
-import shadersmodcore.client.shader.Shaders;
-import shadersmodcore.client.shader.ShadersRender;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

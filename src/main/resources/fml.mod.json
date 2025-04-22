@@ -8,6 +8,7 @@
   "environment": "client",
   "name": "ShadersModCore",
   "description": "GL Shader Loader",
+  "accessWidener": "shadersmodcore.accesswidener",
   "authors": [
     "Daxnitro",
     "karyonix",

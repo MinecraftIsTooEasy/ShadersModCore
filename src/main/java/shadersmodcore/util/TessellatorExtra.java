@@ -4,7 +4,6 @@ import net.minecraft.GLAllocation;
 import net.minecraft.Tessellator;
 import shadersmodcore.api.TessellatorAccessor0;
 import shadersmodcore.mixin.client.render.TessellatorAccessor;
-import shadersmodcore.client.shader.ShadersTess;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GLContext;
 

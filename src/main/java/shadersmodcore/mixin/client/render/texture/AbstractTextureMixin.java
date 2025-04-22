@@ -2,8 +2,6 @@ package shadersmodcore.mixin.client.render.texture;
 
 import net.minecraft.AbstractTexture;
 import shadersmodcore.api.AbstractTextureAccessor;
-import shadersmodcore.client.shader.MultiTexID;
-import shadersmodcore.client.shader.ShadersTex;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
