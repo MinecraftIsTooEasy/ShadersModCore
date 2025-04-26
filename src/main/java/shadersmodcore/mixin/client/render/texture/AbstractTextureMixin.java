@@ -1,15 +1,17 @@
 package shadersmodcore.mixin.client.render.texture;
 
 import net.minecraft.AbstractTexture;
-import shadersmodcore.api.AbstractTextureAccessor;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import shadersmodcore.api.AbstractTextureAccessor;
+import shadersmodcore.client.shader.MultiTexID;
+import shadersmodcore.client.shader.ShadersTex;
 
 @Mixin(AbstractTexture.class)
 public class AbstractTextureMixin implements AbstractTextureAccessor {
-   @Shadow protected int glTextureId;
+   @Shadow public int glTextureId;
 
    @Unique public MultiTexID multiTex;
 

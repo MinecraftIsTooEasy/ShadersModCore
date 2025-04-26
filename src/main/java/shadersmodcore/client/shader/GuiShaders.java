@@ -12,7 +12,7 @@ public class GuiShaders extends GuiScreen {
     protected GuiScreen parentGui;
     private int updateTimer = -1;
     public boolean needReinit;
-    private shader.GuiSlotShaders shaderList;
+    private GuiSlotShaders shaderList;
 
     public GuiShaders(GuiScreen par1GuiScreen, GameSettings par2GameSettings) {
         this.parentGui = par1GuiScreen;
@@ -41,7 +41,7 @@ public class GuiShaders extends GuiScreen {
         buttonList.add(new GuiButton(19, width * 3 / 4 - 60, 190, 160, 18, "OldLighting: " + toStringOnOff(Shaders.configOldLighting)));
         buttonList.add(new GuiButton(6, width * 3 / 4 - 60, height - 25, 160, 20, "Done"));
         buttonList.add(new GuiButton(5, width / 4 - 80, height - 25, 160, 20, "Open shaderpacks folder"));
-        this.shaderList = new shader.GuiSlotShaders(this);
+        this.shaderList = new GuiSlotShaders(this);
         this.shaderList.registerScrollButtons(7, 8);
         this.needReinit = false;
     }
@@ -56,7 +56,7 @@ public class GuiShaders extends GuiScreen {
                     break;
                 case 5:
                     switch (Util.getOSType()) {
-                        case OSX:
+                        case MACOS:
                             try {
                                 Runtime.getRuntime().exec(new String[]{"/usr/bin/open", Shaders.shaderpacksdir.getAbsolutePath()});
                                 return;
@@ -232,12 +232,12 @@ public class GuiShaders extends GuiScreen {
                 case 17:
                     Shaders.configNormalMap = !Shaders.configNormalMap;
                     par1GuiButton.displayString = "NormapMap: " + toStringOnOff(Shaders.configNormalMap);
-                    this.mc.scheduleResourcesRefresh();
+                    this.mc.refreshResources();
                     break;
                 case 18:
                     Shaders.configSpecularMap = !Shaders.configSpecularMap;
                     par1GuiButton.displayString = "SpecularMap: " + toStringOnOff(Shaders.configSpecularMap);
-                    this.mc.scheduleResourcesRefresh();
+                    this.mc.refreshResources();
                     break;
                 case 19:
                     Shaders.configOldLighting = !Shaders.configOldLighting;
@@ -258,8 +258,8 @@ public class GuiShaders extends GuiScreen {
             this.updateTimer += 20;
         }
 
-        this.drawCenteredString(this.fontRendererObj, "Shaders ", this.width / 2, 16, 16777215);
-        this.drawCenteredString(this.fontRendererObj, " v2.3.31", this.width - 40, 10, 8421504);
+        this.drawCenteredString(this.fontRenderer, "Shaders ", this.width / 2, 16, 16777215);
+        this.drawCenteredString(this.fontRenderer, " v2.3.31", this.width - 40, 10, 8421504);
         super.drawScreen(par1, par2, par3);
     }
 
@@ -274,6 +274,6 @@ public class GuiShaders extends GuiScreen {
     }
 
     public void drawCenteredString(String par1, int par2, int par3, int par4) {
-        this.drawCenteredString(this.fontRendererObj, par1, par2, par3, par4);
+        this.drawCenteredString(this.fontRenderer, par1, par2, par3, par4);
     }
 }

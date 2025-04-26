@@ -1,12 +1,14 @@
 package shadersmodcore.mixin.client.render;
 
-import net.minecraft.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.minecraft.Block;
+import net.minecraft.RenderBlocks;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import shadersmodcore.client.shader.Shaders;
 
 @Mixin({RenderBlocks.class})
 public abstract class RenderBlocksMixin {

@@ -1,7 +1,6 @@
 //package shadersmodcore.client.shader;
 //
 //import net.minecraft.*;
-//import shadersmodcore.client.ShadersTess;
 //
 //import java.lang.reflect.Field;
 //import java.lang.reflect.InvocationTargetException;

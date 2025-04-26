@@ -12,6 +12,7 @@ import shadersmodcore.api.AbstractTextureAccessor;
 import shadersmodcore.api.TextureAtlasSpriteAccessor;
 import shadersmodcore.api.TextureMapAccessor;
 import shadersmodcore.util.TextureUtilExtra;
+import shadersmodcore.client.shader.ShadersTex;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@Mixin({TextureMap.class})
+@Mixin(TextureMap.class)
 public abstract class TextureMapMixin extends AbstractTexture implements TextureMapAccessor {
    @Shadow @Final private List listAnimatedSprites;
    @Shadow @Final private Map mapRegisteredSprites;

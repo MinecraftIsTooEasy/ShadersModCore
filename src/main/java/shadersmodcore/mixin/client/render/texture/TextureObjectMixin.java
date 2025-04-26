@@ -2,9 +2,10 @@ package shadersmodcore.mixin.client.render.texture;
 
 import net.minecraft.ResourceManager;
 import net.minecraft.TextureObject;
-import shadersmodcore.api.TextureObjectAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+import shadersmodcore.api.TextureObjectAccessor;
+import shadersmodcore.client.shader.MultiTexID;
 
 import java.io.IOException;
 

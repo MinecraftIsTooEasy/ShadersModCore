@@ -4,3 +4,4 @@ accessible field net/minecraft/AbstractTexture glTextureId I
 accessible field net/minecraft/RenderManager entityRenderMap Ljava/util/Map;
 accessible field net/minecraft/RendererLivingEntity mainModel Lnet/minecraft/ModelBase;
 accessible field net/minecraft/RendererLivingEntity renderPassModel Lnet/minecraft/ModelBase;
+accessible field net/minecraft/GuiSlot width I

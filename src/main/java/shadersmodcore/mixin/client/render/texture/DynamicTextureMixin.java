@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import shadersmodcore.client.shader.ShadersTex;
 
 @Mixin(DynamicTexture.class)
 public abstract class DynamicTextureMixin extends AbstractTexture {

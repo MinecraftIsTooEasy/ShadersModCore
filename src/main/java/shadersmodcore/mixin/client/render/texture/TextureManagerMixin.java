@@ -6,6 +6,7 @@ import net.minecraft.TextureManager;
 import net.minecraft.TextureObject;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.Mixin;
+import shadersmodcore.client.shader.ShadersTex;
 
 @Mixin({TextureManager.class})
 public abstract class TextureManagerMixin {

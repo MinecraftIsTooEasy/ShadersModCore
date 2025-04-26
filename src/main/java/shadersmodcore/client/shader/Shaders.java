@@ -4,6 +4,8 @@ import net.minecraft.*;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
+import shadersmodcore.api.WorldAccessor;
+import shadersmodcore.api.TextureObjectAccessor;
 import shadersmodcore.transform.SMCLog;
 
 import java.io.*;
@@ -1362,16 +1364,19 @@ public class Shaders {
                 Item item = stack != null ? stack.getItem() : null;
                 int itemID;
                 Block block;
+                int blockID;
                 if (item != null) {
                     itemID = item.itemID;
                     block = Block.getBlock(stack.itemID);
+                    blockID = ((item instanceof ItemBlock) ? ((ItemBlock)item).getBlockID() : -1);
                 } else {
                     itemID = -1;
                     block = null;
+                    blockID = -1;
                 }
 
                 setProgramUniform1i("heldItemId", itemID);
-                setProgramUniform1i("heldBlockLightValue", block != null ? block.getLightValue() : 0);
+                setProgramUniform1i("heldBlockLightValue", (blockID != -1) ? Block.lightValue[blockID] : 0);
                 setProgramUniform1i("fogMode", fogEnabled ? fogMode : 0);
                 setProgramUniform3f("fogColor", fogColorR, fogColorG, fogColorB);
                 setProgramUniform3f("skyColor", skyColorR, skyColorG, skyColorB);
@@ -1385,7 +1390,7 @@ public class Shaders {
                 setProgramUniform1f("viewWidth", (float) renderWidth);
                 setProgramUniform1f("viewHeight", (float) renderHeight);
                 setProgramUniform1f("near", 0.05F);
-                setProgramUniform1f("far", (float) (mc.gameSettings.renderDistanceChunks * 16));
+                setProgramUniform1f("far", (float) (256 >> Shaders.mc.gameSettings.getRenderDistance()));
                 setProgramUniform3f("sunPosition", sunPosition[0], sunPosition[1], sunPosition[2]);
                 setProgramUniform3f("moonPosition", moonPosition[0], moonPosition[1], moonPosition[2]);
                 setProgramUniform3f("upPosition", upPosition[0], upPosition[1], upPosition[2]);
@@ -1413,7 +1418,7 @@ public class Shaders {
                 setProgramUniform2i("terrainTextureSize", terrainTextureSize[0], terrainTextureSize[1]);
                 setProgramUniform1i("terrainIconSize", terrainIconSize);
                 setProgramUniform1i("isEyeInWater", isEyeInWater);
-                setProgramUniform1i("hideGUI", mc.gameSettings.hideGUI ? 1 : 0);
+                setProgramUniform1i("hideGUI", mc.gameSettings.gui_mode != 1 ? 1 : 0);
                 setProgramUniform1f("centerDepthSmooth", centerDepthSmooth);
                 setProgramUniform2i("atlasSize", atlasSizeX, atlasSizeY);
                 checkGLError("useProgram ", programNames[program]);
@@ -1785,7 +1790,7 @@ public class Shaders {
                 resizeShadow();
             }
 
-            worldTime = mc.theWorld.getWorldTime();
+            worldTime = ((WorldAccessor) mc.theWorld).getWorldTime();
             diffWorldTime = (worldTime - lastWorldTime) % 24000L;
             if (diffWorldTime < 0L) {
                 diffWorldTime += 24000L;
@@ -1813,7 +1818,7 @@ public class Shaders {
             float temp2 = (float) Math.exp(Math.log(0.5) * (double) temp1 / (double) eyeBrightnessHalflife);
             eyeBrightnessFadeX = eyeBrightnessFadeX * temp2 + (float) (eyeBrightness & 65535) * (1.0F - temp2);
             eyeBrightnessFadeY = eyeBrightnessFadeY * temp2 + (float) (eyeBrightness >> 16) * (1.0F - temp2);
-            isEyeInWater = mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping() && mc.thePlayer.isInsideOfMaterial(Material.water)
+            isEyeInWater = mc.gameSettings.thirdPersonView == 0 && !((EntityPlayer) mc.renderViewEntity).isSleeping() && mc.thePlayer.isInsideOfMaterial(Material.water)
                     ? 1
                     : 0;
             Vec3 skyColorV = mc.theWorld.getSkyColor(mc.renderViewEntity, f);
@@ -1930,7 +1935,7 @@ public class Shaders {
             EXTFramebufferObject.glBindFramebufferEXT(36160, dfb);
             GL11.glViewport(0, 0, renderWidth, renderHeight);
             activeDrawBuffers = null;
-            ShadersTex.bindNSTextures(ReflectionHandler.getMultiTexIDByMethod(defaultTexture));//CHECKED
+            ShadersTex.bindNSTextures(((TextureObjectAccessor) defaultTexture).getMultiTexID());
             useProgram(2);
             checkGLError("end beginRender");
         }
@@ -2277,12 +2282,12 @@ public class Shaders {
             }
 
             isRenderingDfb = false;
-            if (OpenGlHelper.isFramebufferEnabled()) {
-                mc.getFramebuffer().bindFramebuffer(true);
-            } else {
+//            if (OpenGlHelper.isFramebufferEnabled()) {
+//                mc.getFramebuffer().bindFramebuffer(true);
+//            } else {
                 EXTFramebufferObject.glBindFramebufferEXT(36160, 0);
                 GL11.glViewport(0, 0, mc.displayWidth, mc.displayHeight);
-            }
+//            }
 
             if (EntityRenderer.anaglyphEnable) {
                 boolean maskR = EntityRenderer.anaglyphField != 0;
@@ -2356,7 +2361,7 @@ public class Shaders {
 
     public static void drawHorizon() {
         Tessellator tess = Tessellator.instance;
-        float farDistance = (float) (mc.gameSettings.renderDistanceChunks * 16);
+        float farDistance = (float) (mc.gameSettings.getRenderDistance() * 16);
         double xzq = (double) farDistance * 0.9238;
         double xzp = (double) farDistance * 0.3826;
         double xzn = -xzp;
@@ -2485,7 +2490,7 @@ public class Shaders {
         if (isRenderingWorld) {
             checkGLError("endBlockEntities");
             useProgram(lightmapEnabled ? 3 : 2);
-            ShadersTex.bindNSTextures(ReflectionHandler.getMultiTexIDByMethod(defaultTexture));//CHECKED
+            ShadersTex.bindNSTextures(((TextureObjectAccessor) defaultTexture).getMultiTexID());//CHECKED
         }
 
     }
@@ -2663,7 +2668,7 @@ public class Shaders {
                 GL13.glActiveTexture(33984);
             }
 
-            ShadersTex.bindNSTextures(ReflectionHandler.getMultiTexIDByMethod(defaultTexture));//CHECKED
+            ShadersTex.bindNSTextures(((TextureObjectAccessor) defaultTexture).getMultiTexID());//CHECKED
         }
 
     }

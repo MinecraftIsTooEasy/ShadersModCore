@@ -2,6 +2,7 @@ package shadersmodcore.client.shader;
 
 import net.minecraft.AbstractTexture;
 import net.minecraft.ResourceManager;
+import shadersmodcore.api.AbstractTextureAccessor;
 
 public class DefaultTexture extends AbstractTexture {
     public DefaultTexture() {
@@ -11,6 +12,6 @@ public class DefaultTexture extends AbstractTexture {
     @Override
     public void loadTexture(ResourceManager resourcemanager) {
         int[] aint = ShadersTex.createAIntImage(1, -1);
-        ShadersTex.setupTexture(ReflectionHandler.getMultiTexIDByField(this), aint, 1, 1, false, false);
+        ShadersTex.setupTexture(((AbstractTextureAccessor) this).getMultiTexID(), aint, 1, 1, false, false);
     }
 }

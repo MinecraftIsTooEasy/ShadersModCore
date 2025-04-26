@@ -1,16 +1,20 @@
 package shadersmodcore.mixin.client.render;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import net.minecraft.*;
-import org.spongepowered.asm.mixin.injection.At;
-import shadersmodcore.api.AbstractTextureAccessor;
+import net.minecraft.AbstractTexture;
+import net.minecraft.Minecraft;
+import net.minecraft.ResourceLocation;
+import net.minecraft.SimpleTexture;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import shadersmodcore.api.AbstractTextureAccessor;
+import shadersmodcore.client.shader.ShadersTex;
 
 import java.awt.image.BufferedImage;
 
-@Mixin({SimpleTexture.class})
+@Mixin(SimpleTexture.class)
 public abstract class SimpleTextureMixin extends AbstractTexture {
    @Shadow @Final private ResourceLocation textureLocation;
 

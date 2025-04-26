@@ -4,6 +4,7 @@ import net.minecraft.GameSettings;
 import net.minecraft.GuiButton;
 import net.minecraft.GuiScreen;
 import net.minecraft.I18n;
+import shadersmodcore.client.shader.GuiShaders;
 import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.util.Utils;
 
@@ -44,7 +45,7 @@ public class GuiPlusVideo extends GuiScreen {
       if (par1GuiButton.enabled) {
          if (par1GuiButton.id == 100) {
             this.mc.gameSettings.saveOptions();
-            this.mc.displayGuiScreen(new GuiShaders(this));
+            this.mc.displayGuiScreen(new GuiShaders(this, this.guiGameSettings));
          } else if (par1GuiButton.id == 101) {
             this.mc.gameSettings.saveOptions();
             this.mc.displayGuiScreen(new GuiParticle(this, this.guiGameSettings));

@@ -5,13 +5,14 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.GameSettings;
 import net.minecraft.GuiChat;
 import net.minecraft.Minecraft;
-import org.spongepowered.asm.mixin.Shadow;
-import shadersmodcore.config.OptimizeConfig;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import shadersmodcore.client.shader.Shaders;
+import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.util.Utils;
 
 @Mixin({Minecraft.class})

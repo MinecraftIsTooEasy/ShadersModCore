@@ -2,10 +2,11 @@ package shadersmodcore.util;
 
 import net.minecraft.GLAllocation;
 import net.minecraft.Tessellator;
-import shadersmodcore.api.TessellatorAccessor0;
-import shadersmodcore.mixin.client.render.TessellatorAccessor;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GLContext;
+import shadersmodcore.api.TessellatorAccessor0;
+import shadersmodcore.client.shader.ShadersTess;
+import shadersmodcore.mixin.client.render.TessellatorAccessor;
 
 public class TessellatorExtra extends Tessellator {
    public static int bufferSize = 2097152;

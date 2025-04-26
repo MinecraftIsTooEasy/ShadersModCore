@@ -5,6 +5,7 @@ import net.minecraft.TextureCompass;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import shadersmodcore.client.shader.ShadersTex;
 
 @Mixin({TextureCompass.class})
 public class TextureCompassMixin extends TextureAtlasSprite {

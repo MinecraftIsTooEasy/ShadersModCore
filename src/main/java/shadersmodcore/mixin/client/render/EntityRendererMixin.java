@@ -1,19 +1,23 @@
 package shadersmodcore.mixin.client.render;
 
-import java.lang.reflect.InvocationTargetException;
-import java.nio.FloatBuffer;
-
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.*;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import shadersmodcore.client.shader.Shaders;
+import shadersmodcore.client.shader.ShadersRender;
 import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.util.Utils;
+
+import java.lang.reflect.InvocationTargetException;
+import java.nio.FloatBuffer;
 
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {

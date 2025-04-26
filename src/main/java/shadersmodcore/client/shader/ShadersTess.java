@@ -5,7 +5,9 @@ import net.minecraft.Tessellator;
 import org.lwjgl.opengl.ARBVertexShader;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
+import shadersmodcore.api.TessellatorAccessor0;
 import shadersmodcore.transform.SMCLog;
+import shadersmodcore.util.TessellatorExtra;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
@@ -52,46 +54,46 @@ public class ShadersTess {
             int realDrawMode = tess.drawMode;
 
             while (voffset < tess.vertexCount) {
-                int vcount = Math.min(tess.vertexCount - voffset, ReflectionHandler.getTessellatorByteBuffer().capacity() / 72);
+                int vcount = Math.min(tess.vertexCount - voffset, tess.byteBuffer.capacity() / 72);
                 if (realDrawMode == 7) {
                     vcount = vcount / 4 * 4;
                 }
 
-                ReflectionHandler.getTessellatorFloatBuffer().clear();
-                ReflectionHandler.getTessellatorShortBuffer().clear();
-                ReflectionHandler.getTessellatorIntBuffer().clear();
-                ReflectionHandler.getTessellatorIntBuffer().put(tess.rawBuffer, voffset * 18, vcount * 18);
-                ReflectionHandler.getTessellatorByteBuffer().position(0);
-                ReflectionHandler.getTessellatorByteBuffer().limit(vcount * 72);
+                tess.floatBuffer.clear();
+                tess.shortBuffer.clear();
+                tess.intBuffer.clear();
+                tess.intBuffer.put(tess.rawBuffer, voffset * 18, vcount * 18);
+                tess.byteBuffer.position(0);
+                tess.byteBuffer.limit(vcount * 72);
                 voffset += vcount;
                 if (tess.hasTexture) {
-                    ReflectionHandler.getTessellatorFloatBuffer().position(3);
-                    GL11.glTexCoordPointer(2, 72, ReflectionHandler.getTessellatorFloatBuffer());
+                    tess.floatBuffer.position(3);
+                    GL11.glTexCoordPointer(2, 72,  tess.floatBuffer);
                     GL11.glEnableClientState(32888);
                 }
 
                 if (tess.hasBrightness) {
                     OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
-                    ReflectionHandler.getTessellatorShortBuffer().position(12);
-                    GL11.glTexCoordPointer(2, 72, ReflectionHandler.getTessellatorShortBuffer());
+                    tess.shortBuffer.position(12);
+                    GL11.glTexCoordPointer(2, 72, tess.shortBuffer);
                     GL11.glEnableClientState(32888);
                     OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
                 }
 
                 if (tess.hasColor) {
-                    ReflectionHandler.getTessellatorByteBuffer().position(20);
-                    GL11.glColorPointer(4, true, 72, ReflectionHandler.getTessellatorByteBuffer());
+                    tess.shortBuffer.position(20);
+                    GL11.glColorPointer(4, true, 72, tess.byteBuffer);
                     GL11.glEnableClientState(32886);
                 }
 
                 if (tess.hasNormals) {
-                    ReflectionHandler.getTessellatorFloatBuffer().position(9);
-                    GL11.glNormalPointer(72, ReflectionHandler.getTessellatorFloatBuffer());
+                    tess.shortBuffer.position(9);
+                    GL11.glNormalPointer(72, tess.floatBuffer);
                     GL11.glEnableClientState(32885);
                 }
 
-                ReflectionHandler.getTessellatorFloatBuffer().position(0);
-                GL11.glVertexPointer(3, 72, ReflectionHandler.getTessellatorFloatBuffer());
+                tess.shortBuffer.position(0);
+                GL11.glVertexPointer(3, 72, tess.floatBuffer);
                 preDrawArray(tess);
                 GL11.glEnableClientState(32884);
                 GL11.glDrawArrays(realDrawMode, 0, vcount);
@@ -118,7 +120,7 @@ public class ShadersTess {
             }
 
             int n = tess.rawBufferIndex * 4;
-            ReflectionHandler.reset(tess);
+            tess.reset();
             return n;
         }
     }
@@ -126,23 +128,23 @@ public class ShadersTess {
     public static void preDrawArray(Tessellator tess) {
         if (Shaders.useMultiTexCoord3Attrib && tess.hasTexture) {
             GL13.glClientActiveTexture(33987);
-            GL11.glTexCoordPointer(2, 72, (FloatBuffer) ReflectionHandler.getTessellatorFloatBuffer().position(16));
+            GL11.glTexCoordPointer(2, 72, (FloatBuffer) tess.floatBuffer.position(16));
             GL11.glEnableClientState(32888);
             GL13.glClientActiveTexture(33984);
         }
 
         if (Shaders.useMidTexCoordAttrib && tess.hasTexture) {
-            ARBVertexShader.glVertexAttribPointerARB(Shaders.midTexCoordAttrib, 2, false, 72, (FloatBuffer) ReflectionHandler.getTessellatorFloatBuffer().position(16));
+            ARBVertexShader.glVertexAttribPointerARB(Shaders.midTexCoordAttrib, 2, false, 72, (FloatBuffer) tess.floatBuffer.position(16));
             ARBVertexShader.glEnableVertexAttribArrayARB(Shaders.midTexCoordAttrib);
         }
 
         if (Shaders.useTangentAttrib && tess.hasTexture) {
-            ARBVertexShader.glVertexAttribPointerARB(Shaders.tangentAttrib, 4, false, 72, (FloatBuffer) ReflectionHandler.getTessellatorFloatBuffer().position(12));
+            ARBVertexShader.glVertexAttribPointerARB(Shaders.tangentAttrib, 4, false, 72, (FloatBuffer) tess.floatBuffer.position(12));
             ARBVertexShader.glEnableVertexAttribArrayARB(Shaders.tangentAttrib);
         }
 
         if (Shaders.useEntityAttrib) {
-            ARBVertexShader.glVertexAttribPointerARB(Shaders.entityAttrib, 3, false, false, 72, (ShortBuffer) ReflectionHandler.getTessellatorShortBuffer().position(14));
+            ARBVertexShader.glVertexAttribPointerARB(Shaders.entityAttrib, 3, false, false, 72, (ShortBuffer) tess.shortBuffer.position(14));
             ARBVertexShader.glEnableVertexAttribArrayARB(Shaders.entityAttrib);
         }
 
@@ -195,25 +197,25 @@ public class ShadersTess {
     }
 
     public static void addVertex(Tessellator tess, double parx, double pary, double parz) {
-        ShadersTess stess = ReflectionHandler.getShadersTess(tess);
+        ShadersTess stess = ((TessellatorAccessor0) tess).getShadersTess();
         int[] rawBuffer = tess.rawBuffer;
         int rbi = tess.rawBufferIndex;
         float fx = (float) (parx + tess.xOffset);
         float fy = (float) (pary + tess.yOffset);
         float fz = (float) (parz + tess.zOffset);
-        if (rbi >= tess.bufferSize - 72) {
-            if (tess.bufferSize >= 16777216) {
+        if (rbi >= TessellatorExtra.bufferSize - 72) {
+            if (TessellatorExtra.bufferSize >= 16777216) {
                 if (tess.addedVertices % 4 == 0) {
                     tess.draw();
                     tess.isDrawing = true;
                 }
-            } else if (tess.bufferSize > 0) {
-                tess.bufferSize *= 2;
-                tess.rawBuffer = rawBuffer = Arrays.copyOf(tess.rawBuffer, tess.bufferSize);
-                SMCLog.info("Expand tesselator buffer %d", tess.bufferSize);
+            } else if (TessellatorExtra.bufferSize > 0) {
+                TessellatorExtra.bufferSize *= 2;
+                tess.rawBuffer = rawBuffer = Arrays.copyOf(tess.rawBuffer, TessellatorExtra.bufferSize);
+                SMCLog.info("Expand tesselator buffer %d", TessellatorExtra.bufferSize);
             } else {
-                tess.bufferSize = 65536;
-                tess.rawBuffer = rawBuffer = new int[tess.bufferSize];
+                TessellatorExtra.bufferSize = 65536;
+                tess.rawBuffer = rawBuffer = new int[TessellatorExtra.bufferSize];
             }
         }
 

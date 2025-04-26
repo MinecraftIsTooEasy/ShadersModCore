@@ -4,18 +4,19 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
-import shadersmodcore.api.RenderGlobalAccessor;
-import shadersmodcore.config.OptimizeConfig;
-import shadersmodcore.client.dynamicLight.DynamicLights;
-import shadersmodcore.config.ShaderConfig;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At.Shift;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import shadersmodcore.api.RenderGlobalAccessor;
+import shadersmodcore.client.dynamicLight.DynamicLights;
+import shadersmodcore.client.shader.Shaders;
+import shadersmodcore.config.OptimizeConfig;
+import shadersmodcore.config.ShaderConfig;
 import shadersmodcore.util.Utils;
 
 @Mixin(RenderGlobal.class)
@@ -282,18 +283,18 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
       method = {"drawBlockDamageTexture"}
    )
    private void injectDrawBlockDamageTexture0(CallbackInfo callbackInfo) {
-      if (Shaders.isShadersLoad()) {
+//      if (Shaders.isShadersLoad()) {
          Shaders.beginBlockDestroyProgress();
-      }
+//      }
    }
 
    @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glPopMatrix()V", shift = Shift.AFTER),
            method = {"drawBlockDamageTexture"}
    )
    private void injectDrawBlockDamageTexture1(CallbackInfo callbackInfo) {
-      if (Shaders.isShadersLoad()) {
+//      if (Shaders.isShadersLoad()) {
          Shaders.endBlockDestroyProgress();
-      }
+//      }
    }
 
    //Hitbox (F3+B)

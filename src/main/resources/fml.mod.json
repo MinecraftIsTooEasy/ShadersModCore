@@ -18,10 +18,19 @@
     "Xy_Lose"
   ],
   "entrypoints": {
-    "client": ["shadersmodcore.ShadersModCoreInit"]
+    "client": [
+      "shadersmodcore.ShadersModCoreInit"
+    ]
   },
   "mixins": [
     "shadersmodcore.mixin.json"
-  ]
+  ],
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/World": [
+        "shadersmodcore/api/WorldAccessor"
+      ]
+    }
+  }
 }
 

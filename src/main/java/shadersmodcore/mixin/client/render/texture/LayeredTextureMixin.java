@@ -1,7 +1,5 @@
 package shadersmodcore.mixin.client.render.texture;
 
-import java.util.List;
-
 import net.minecraft.LayeredTexture;
 import net.minecraft.ResourceManager;
 import net.xiaoyu233.fml.util.ReflectHelper;
@@ -11,6 +9,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import shadersmodcore.client.shader.ShadersTex;
+
+import java.util.List;
 
 @Mixin({LayeredTexture.class})
 public class LayeredTextureMixin {

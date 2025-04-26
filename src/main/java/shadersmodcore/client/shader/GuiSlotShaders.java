@@ -1,4 +1,4 @@
-package shader;
+package shadersmodcore.client.shader;
 
 import net.minecraft.GuiSlot;
 import net.minecraft.Tessellator;

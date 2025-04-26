@@ -4,7 +4,11 @@ import net.minecraft.*;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
+import shadersmodcore.api.AbstractTextureAccessor;
+import shadersmodcore.api.TextureMapAccessor;
+import shadersmodcore.api.TextureObjectAccessor;
 import shadersmodcore.transform.SMCLog;
+import shadersmodcore.util.TextureUtilExtra;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -125,9 +129,9 @@ public class ShadersTex {
             atex.glTextureId = -1;
         }
 
-        MultiTexID multiTex = ReflectionHandler.getMultiTexIDByField(atex);
+        final MultiTexID multiTex = ((AbstractTextureAccessor) atex).getMultiTexID();
         if (multiTex != null) {
-            ReflectionHandler.setMultiTex(atex, null);
+            ((AbstractTextureAccessor) atex).setMultiTexID(null);
             multiTexMap.remove(multiTex.base);
             GL11.glDeleteTextures(multiTex.norm);
             GL11.glDeleteTextures(multiTex.spec);
@@ -141,13 +145,13 @@ public class ShadersTex {
 
     public static void bindTexture(TextureObject tex) {
         if (tex instanceof TextureMap) {
-            Shaders.atlasSizeX = ReflectionHandler.getAtlasWidth(((TextureMap) tex));
-            Shaders.atlasSizeY = ReflectionHandler.getAtlasHeight(((TextureMap) tex));
-            bindTextures(ReflectionHandler.getMultiTexIDByMethod(tex));//CHECKED
+            Shaders.atlasSizeX = ((TextureMapAccessor) tex).getAtlasWidth();
+            Shaders.atlasSizeY = ((TextureMapAccessor) tex).getAtlasHeight();
+            bindTextures(((TextureObjectAccessor) tex).getMultiTexID());//CHECKED
         } else {
             Shaders.atlasSizeX = 0;
             Shaders.atlasSizeY = 0;
-            bindTextures(ReflectionHandler.getMultiTexIDByMethod(tex));//CHECKED
+            bindTextures(((TextureObjectAccessor) tex).getMultiTexID());//CHECKED
         }
 
     }
@@ -210,14 +214,14 @@ public class ShadersTex {
 
     public static void bindTextureMapForUpdateAndRender(TextureManager tm, ResourceLocation resLoc) {
         TextureMap tex = (TextureMap) tm.getTexture(resLoc);
-        Shaders.atlasSizeX = ReflectionHandler.getAtlasWidth(tex);
-        Shaders.atlasSizeY = ReflectionHandler.getAtlasHeight(tex);
-        updatingTex = ReflectionHandler.getMultiTexIDByField(tex);
+        Shaders.atlasSizeX = ((TextureMapAccessor) tex).getAtlasWidth();
+        Shaders.atlasSizeY = ((TextureMapAccessor) tex).getAtlasHeight();
+        updatingTex = ((TextureObjectAccessor) tex).getMultiTexID();
         bindTextures(updatingTex);
     }
 
     public static void initDynamicTexture(int texID, int width, int height, DynamicTexture tex) {
-        MultiTexID multiTex = ReflectionHandler.getMultiTexIDByMethod(tex);//CHECKED
+        MultiTexID multiTex = ((TextureObjectAccessor) tex).getMultiTexID();//CHECKED
         int[] aint = tex.getTextureData();
         int size = width * height;
         Arrays.fill(aint, size, size * 2, -8421377);
@@ -270,7 +274,7 @@ public class ShadersTex {
     }
 
     public static void updateDynamicTexture(int texID, int[] src, int width, int height, DynamicTexture tex) {
-        MultiTexID multiTex = ReflectionHandler.getMultiTexIDByMethod(tex);//CHECKED
+        MultiTexID multiTex = ((TextureObjectAccessor) tex).getMultiTexID();//CHECKED
         GL11.glBindTexture(3553, multiTex.base);
         updateDynTexSubImage1(src, width, height, 0, 0, 0, 0);
         GL11.glBindTexture(3553, multiTex.norm);
@@ -283,17 +287,17 @@ public class ShadersTex {
     public static void allocateTextureMap(int texID, int mipmapLevels, int width, int height, float anisotropy, Stitcher stitcher, TextureMap tex) {
         SMCLog.info("allocateTextureMap " + tex.getTextureType() + " " + mipmapLevels + " " + width + " " + height + " " + anisotropy + " ");
         updatingTextureMap = tex;
-        ReflectionHandler.setAtlasWidth(tex, width);
-        ReflectionHandler.setAtlasHeight(tex, height);
+        ((TextureMapAccessor) tex).setAtlasWidth(width);
+        ((TextureMapAccessor) tex).setAtlasHeight(height);
         MultiTexID multiTex = getMultiTexID(tex);
         updatingTex = multiTex;
-        TextureUtil.allocateTextureImpl(multiTex.base, mipmapLevels, width, height, anisotropy);
+        TextureUtilExtra.allocateTextureImpl(multiTex.base, mipmapLevels, width, height, anisotropy);
         if (Shaders.configNormalMap) {
-            TextureUtil.allocateTextureImpl(multiTex.norm, mipmapLevels, width, height, anisotropy);
+            TextureUtilExtra.allocateTextureImpl(multiTex.norm, mipmapLevels, width, height, anisotropy);
         }
 
         if (Shaders.configSpecularMap) {
-            TextureUtil.allocateTextureImpl(multiTex.spec, mipmapLevels, width, height, anisotropy);
+            TextureUtilExtra.allocateTextureImpl(multiTex.spec, mipmapLevels, width, height, anisotropy);
         }
 
         GL11.glBindTexture(3553, texID);
@@ -331,7 +335,7 @@ public class ShadersTex {
     }
 
     public static MultiTexID getMultiTexID(AbstractTexture tex) {
-        MultiTexID multiTex = ReflectionHandler.getMultiTexIDByField(tex);
+        MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID();
         if (multiTex == null) {
             int baseTex = tex.getGlTextureId();
             multiTex = (MultiTexID) multiTexMap.get(baseTex);
@@ -340,7 +344,7 @@ public class ShadersTex {
                 multiTexMap.put(baseTex, multiTex);
             }
 
-            ReflectionHandler.setMultiTex(tex, multiTex);
+            ((AbstractTextureAccessor) tex).setMultiTexID(multiTex);
         }
 
         return multiTex;
@@ -671,7 +675,7 @@ public class ShadersTex {
     }
 
     public static void updateAnimationTextureMap(TextureMap tex, List tasList) {
-        MultiTexID multiTex = ReflectionHandler.getMultiTexIDByField(tex);
+        MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID();
         GL11.glBindTexture(3553, multiTex.norm);
 
         for (Object tas : tasList) {
@@ -768,7 +772,7 @@ public class ShadersTex {
         return new ResourceLocation(location.getResourceDomain(), basenameNoFileType + "_" + mapName + ".png");
     }
 
-    public static void loadNSMap(IResourceManager manager, ResourceLocation location, int width, int height, int[] aint) {
+    public static void loadNSMap(ResourceManager manager, ResourceLocation location, int width, int height, int[] aint) {
         if (Shaders.configNormalMap) {
             loadNSMap1(manager, getNSMapLocation(location, "n"), width, height, aint, width * height, -8421377);
         }
@@ -779,11 +783,11 @@ public class ShadersTex {
 
     }
 
-    public static void loadNSMap1(IResourceManager manager, ResourceLocation location, int width, int height, int[] aint, int offset, int defaultColor) {
+    public static void loadNSMap1(ResourceManager manager, ResourceLocation location, int width, int height, int[] aint, int offset, int defaultColor) {
         boolean good = false;
 
         try {
-            IResource res = manager.getResource(location);
+            Resource res = manager.getResource(location);
             BufferedImage bufferedimage = ImageIO.read(res.getInputStream());
             if (bufferedimage.getWidth() == width && bufferedimage.getHeight() == height) {
                 bufferedimage.getRGB(0, 0, width, height, aint, offset, width);
@@ -803,7 +807,7 @@ public class ShadersTex {
             BufferedImage bufferedimage,
             boolean linear,
             boolean clamp,
-            IResourceManager resourceManager,
+            ResourceManager resourceManager,
             ResourceLocation location,
             MultiTexID multiTex
     ) {
@@ -828,7 +832,7 @@ public class ShadersTex {
                 | ((color1 >>> 0 & 0xFF) * factor1 + (color2 >>> 0 & 0xFF) * factor2) / 255 << 0;
     }
 
-    public static void loadLayeredTexture(LayeredTexture tex, IResourceManager manager, List list) {
+    public static void loadLayeredTexture(LayeredTexture tex, ResourceManager manager, List list) {
         int width = 0;
         int height = 0;
         int size = 0;
@@ -864,14 +868,14 @@ public class ShadersTex {
             }
         }
 
-        setupTexture(ReflectionHandler.getMultiTexIDByMethod(tex), image, width, height, false, false);
+        setupTexture(((TextureObjectAccessor) tex).getMultiTexID(), image, width, height, false, false);
     }
 
     static void updateTextureMinMagFilter() {
         TextureManager texman = Minecraft.getMinecraft().getTextureManager();
         TextureObject texObj = texman.getTexture(TextureMap.locationBlocksTexture);
         if (texObj != null) {
-            MultiTexID multiTex = ReflectionHandler.getMultiTexIDByMethod(texObj);
+            MultiTexID multiTex = ((TextureObjectAccessor) texObj).getMultiTexID();
             GL11.glBindTexture(3553, multiTex.base);
             GL11.glTexParameteri(3553, 10241, Shaders.texMinFilValue[Shaders.configTexMinFilB]);
             GL11.glTexParameteri(3553, 10240, Shaders.texMagFilValue[Shaders.configTexMagFilB]);
@@ -886,7 +890,7 @@ public class ShadersTex {
 
     }
 
-    public static IResource loadResource(IResourceManager manager, ResourceLocation location) throws IOException {
+    public static Resource loadResource(ResourceManager manager, ResourceLocation location) throws IOException {
         resManager = manager;
         resLocation = location;
         return manager.getResource(location);
