@@ -45,6 +45,7 @@
     "world.WorldMixin"
   ],
   "mixins": [
+    "client.render.ModelRendererMixin",
     "client.render.RenderItemMixin",
     "gui.GuiIngameMixin"
   ]

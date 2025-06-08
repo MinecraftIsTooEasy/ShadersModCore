@@ -335,7 +335,7 @@ public class ShadersTex {
     }
 
     public static MultiTexID getMultiTexID(AbstractTexture tex) {
-        MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID();
+        MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID0();
         if (multiTex == null) {
             int baseTex = tex.getGlTextureId();
             multiTex = (MultiTexID) multiTexMap.get(baseTex);
@@ -360,49 +360,49 @@ public class ShadersTex {
         return name;
     }
 
-    public static void uploadTexSubForLoadAtlas(int[][] data, int width, int height, int xoffset, int yoffset, boolean linear, boolean clamp) {
-        TextureUtil.uploadTextureMipmap(data, width, height, xoffset, yoffset, linear, clamp);
-        boolean border = updatingSprite.useAnisotropicFiltering;
-        if (Shaders.configNormalMap) {
-            int[][] aaint = readImageAndMipmaps(iconName + "_n", width, height, data.length, border, -8421377);
-            GL11.glBindTexture(3553, updatingTex.norm);
-            TextureUtil.uploadTextureMipmap(aaint, width, height, xoffset, yoffset, linear, clamp);
-        }
-
-        if (Shaders.configSpecularMap) {
-            int[][] aaint = readImageAndMipmaps(iconName + "_s", width, height, data.length, border, 0);
-            GL11.glBindTexture(3553, updatingTex.spec);
-            TextureUtil.uploadTextureMipmap(aaint, width, height, xoffset, yoffset, linear, clamp);
-        }
-
-        GL11.glBindTexture(3553, updatingTex.base);
-    }
-
-    public static int[][] readImageAndMipmaps(String name, int width, int height, int numLevels, boolean border, int defColor) {
-        int[][] aaint = new int[numLevels][];
-        int[] aint;
-        aaint[0] = aint = new int[width * height];
-        boolean goodImage = false;
-        BufferedImage image = readImage(ReflectionHandler.completeResourceLocation(updatingTextureMap, new ResourceLocation(name), 0));
-        if (image != null) {
-            int imageWidth = image.getWidth();
-            int imageHeight = image.getHeight();
-            if (imageWidth + (border ? 16 : 0) == width) {
-                goodImage = true;
-                image.getRGB(0, 0, imageWidth, imageWidth, aint, 0, imageWidth);
-                if (border) {
-                    TextureUtil.prepareAnisotropicData(aint, imageWidth, imageWidth, 8);
-                }
-            }
-        }
-
-        if (!goodImage) {
-            Arrays.fill(aint, defColor);
-        }
-
-        GL11.glBindTexture(3553, updatingTex.spec);
-        return genMipmapsSimple(aaint.length - 1, width, aaint);
-    }
+//    public static void uploadTexSubForLoadAtlas(int[][] data, int width, int height, int xoffset, int yoffset, boolean linear, boolean clamp) {
+//        TextureUtil.uploadTextureMipmap(data, width, height, xoffset, yoffset, linear, clamp);
+//        boolean border = updatingSprite.useAnisotropicFiltering;
+//        if (Shaders.configNormalMap) {
+//            int[][] aaint = readImageAndMipmaps(iconName + "_n", width, height, data.length, border, -8421377);
+//            GL11.glBindTexture(3553, updatingTex.norm);
+//            TextureUtil.uploadTextureMipmap(aaint, width, height, xoffset, yoffset, linear, clamp);
+//        }
+//
+//        if (Shaders.configSpecularMap) {
+//            int[][] aaint = readImageAndMipmaps(iconName + "_s", width, height, data.length, border, 0);
+//            GL11.glBindTexture(3553, updatingTex.spec);
+//            TextureUtil.uploadTextureMipmap(aaint, width, height, xoffset, yoffset, linear, clamp);
+//        }
+//
+//        GL11.glBindTexture(3553, updatingTex.base);
+//    }
+//
+//    public static int[][] readImageAndMipmaps(String name, int width, int height, int numLevels, boolean border, int defColor) {
+//        int[][] aaint = new int[numLevels][];
+//        int[] aint;
+//        aaint[0] = aint = new int[width * height];
+//        boolean goodImage = false;
+//        BufferedImage image = readImage(ReflectionHandler.completeResourceLocation(updatingTextureMap, new ResourceLocation(name), 0));
+//        if (image != null) {
+//            int imageWidth = image.getWidth();
+//            int imageHeight = image.getHeight();
+//            if (imageWidth + (border ? 16 : 0) == width) {
+//                goodImage = true;
+//                image.getRGB(0, 0, imageWidth, imageWidth, aint, 0, imageWidth);
+//                if (border) {
+//                    TextureUtil.prepareAnisotropicData(aint, imageWidth, imageWidth, 8);
+//                }
+//            }
+//        }
+//
+//        if (!goodImage) {
+//            Arrays.fill(aint, defColor);
+//        }
+//
+//        GL11.glBindTexture(3553, updatingTex.spec);
+//        return genMipmapsSimple(aaint.length - 1, width, aaint);
+//    }
 
     public static BufferedImage readImage(ResourceLocation resLoc) {
         BufferedImage image = null;
@@ -446,8 +446,8 @@ public class ShadersTex {
         return data;
     }
 
-    public static void uploadTexSub(int[][] data, int width, int height, int xoffset, int yoffset, boolean linear, boolean clamp) {
-        TextureUtil.uploadTextureMipmap(data, width, height, xoffset, yoffset, linear, clamp);
+    public static void uploadTexSub(int[] data, int width, int height, int xoffset, int yoffset, boolean linear, boolean clamp) {
+//        TextureUtil.uploadTextureMipmap(data, width, height, xoffset, yoffset, linear, clamp);
         if (Shaders.configNormalMap || Shaders.configSpecularMap) {
             if (Shaders.configNormalMap) {
                 GL11.glBindTexture(3553, updatingTex.norm);
@@ -464,10 +464,10 @@ public class ShadersTex {
 
     }
 
-    public static void uploadTexSub1(int[][] src, int width, int height, int posX, int posY, int page) {
+    public static void uploadTexSub1(int[] src, int width, int height, int posX, int posY, int page) {
         int size = width * height;
         IntBuffer intBuf = getIntBuffer(size);
-        int numLevel = src.length;
+        int numLevel = calculateNumLevels(width, height);
         int level = 0;
         int lw = width;
         int lh = height;
@@ -475,10 +475,10 @@ public class ShadersTex {
 
         for (int py = posY; lw > 0 && lh > 0 && level < numLevel; ++level) {
             int lsize = lw * lh;
-            int[] aint = src[level];
+            int offset = calculateOffset(level, width, height);
             intBuf.clear();
-            if (aint.length >= lsize * (page + 1)) {
-                intBuf.put(aint, lsize * page, lsize).position(0).limit(lsize);
+            if (src.length >= offset + lsize * (page + 1)) {
+                intBuf.put(src, offset + lsize * page, lsize).position(0).limit(lsize);
                 GL11.glTexSubImage2D(3553, level, px, py, lw, lh, 32993, 33639, intBuf);
             }
 
@@ -489,6 +489,26 @@ public class ShadersTex {
         }
 
         intBuf.clear();
+    }
+
+    private static int calculateNumLevels(int width, int height) {
+        int levels = 0;
+        while (width > 0 && height > 0) {
+            levels++;
+            width >>= 1;
+            height >>= 1;
+        }
+        return levels;
+    }
+
+    private static int calculateOffset(int level, int width, int height) {
+        int offset = 0;
+        for (int i = 0; i < level; i++) {
+            offset += width * height;
+            width >>= 1;
+            height >>= 1;
+        }
+        return offset;
     }
 
     public static int blend4Alpha(int c0, int c1, int c2, int c3) {
@@ -903,79 +923,89 @@ public class ShadersTex {
         return aint;
     }
 
-    public static int[][] getFrameTexData(int[][] src, int width, int height, int frameIndex) {
-        int numLevel = src.length;
-        int[][] dst = new int[numLevel][];
+    public static int[] getFrameTexData(int[] src, int width, int height, int frameIndex) {
+        int numLevel = calculateNumLevels(width, height);
+        int totalSize = 0;
 
         for (int level = 0; level < numLevel; ++level) {
-            int[] sr1 = src[level];
-            if (sr1 != null) {
-                int frameSize = (width >> level) * (height >> level);
-                int[] ds1 = new int[frameSize * 3];
-                dst[level] = ds1;
-                int srcSize = sr1.length / 3;
-                int srcPos = frameSize * frameIndex;
-                int dstPos = 0;
-                System.arraycopy(sr1, srcPos, ds1, dstPos, frameSize);
-                srcPos += srcSize;
+            int frameSize = (width >> level) * (height >> level);
+            totalSize += frameSize * 3;
+        }
+
+        int[] dst = new int[totalSize];
+        int dstPos = 0;
+
+        for (int level = 0; level < numLevel; ++level) {
+            int frameSize = (width >> level) * (height >> level);
+            int offset = calculateOffset(level, width, height);
+            int srcSize = frameSize * 3;
+
+            if (offset + srcSize <= src.length) {
+                int srcPos = offset + frameSize * frameIndex;
+
+                System.arraycopy(src, srcPos, dst, dstPos, frameSize);
+                srcPos += frameSize;
                 dstPos += frameSize;
-                System.arraycopy(sr1, srcPos, ds1, dstPos, frameSize);
-                srcPos += srcSize;
+
+                System.arraycopy(src, srcPos, dst, dstPos, frameSize);
+                srcPos += frameSize;
                 dstPos += frameSize;
-                System.arraycopy(sr1, srcPos, ds1, dstPos, frameSize);
+
+                System.arraycopy(src, srcPos, dst, dstPos, frameSize);
+                dstPos += frameSize;
             }
         }
 
         return dst;
     }
 
-    public static int[][] prepareAF(TextureAtlasSprite tas, int[][] src, int width, int height) {
-        if (!tas.useAnisotropicFiltering) {
-            return src;
-        } else {
-            int numLevel = src.length;
-            int[][] dst = new int[numLevel][];
-
-            for (int level = 0; level < numLevel; ++level) {
-                int[] asrc = src[level];
-                if (asrc != null) {
-                    int lws = width >> level;
-                    int lhs = height >> level;
-                    int border = 8 >> level;
-                    int lwd = lws + border + border;
-                    int lhd = lhs + border + border;
-                    int pageSizeD = lwd * lhd;
-                    int[] adst = new int[pageSizeD * 3];
-                    dst[level] = adst;
-
-                    for (int page = 0; page < 3; ++page) {
-                        int pagePosS = page * lws * lhs;
-                        int pagePosD = page * pageSizeD;
-
-                        for (int iy = 0; iy < lhs; ++iy) {
-                            int posD = (border + iy) * lwd + border + pagePosD;
-                            System.arraycopy(asrc, iy * lws + pagePosS, adst, posD, lws);
-
-                            for (int ix = 0; ix < border; ++ix) {
-                                adst[posD + lws + ix] = adst[posD + ix % lws];
-                            }
-
-                            posD -= border;
-                            System.arraycopy(adst, posD + lws, adst, posD, border);
-                        }
-
-                        for (int var21 = 0; var21 < border; ++var21) {
-                            System.arraycopy(adst, (border + var21 % lhs) * lwd + pagePosD, adst, (border + lhs + var21) * lwd + pagePosD, lwd);
-                        }
-
-                        System.arraycopy(adst, lhs * lwd + pagePosD, adst, pagePosD, border * lwd);
-                    }
-                }
-            }
-
-            return dst;
-        }
-    }
+//    public static int[][] prepareAF(TextureAtlasSprite tas, int[][] src, int width, int height) {
+//        if (!tas.useAnisotropicFiltering) {
+//            return src;
+//        } else {
+//            int numLevel = src.length;
+//            int[][] dst = new int[numLevel][];
+//
+//            for (int level = 0; level < numLevel; ++level) {
+//                int[] asrc = src[level];
+//                if (asrc != null) {
+//                    int lws = width >> level;
+//                    int lhs = height >> level;
+//                    int border = 8 >> level;
+//                    int lwd = lws + border + border;
+//                    int lhd = lhs + border + border;
+//                    int pageSizeD = lwd * lhd;
+//                    int[] adst = new int[pageSizeD * 3];
+//                    dst[level] = adst;
+//
+//                    for (int page = 0; page < 3; ++page) {
+//                        int pagePosS = page * lws * lhs;
+//                        int pagePosD = page * pageSizeD;
+//
+//                        for (int iy = 0; iy < lhs; ++iy) {
+//                            int posD = (border + iy) * lwd + border + pagePosD;
+//                            System.arraycopy(asrc, iy * lws + pagePosS, adst, posD, lws);
+//
+//                            for (int ix = 0; ix < border; ++ix) {
+//                                adst[posD + lws + ix] = adst[posD + ix % lws];
+//                            }
+//
+//                            posD -= border;
+//                            System.arraycopy(adst, posD + lws, adst, posD, border);
+//                        }
+//
+//                        for (int var21 = 0; var21 < border; ++var21) {
+//                            System.arraycopy(adst, (border + var21 % lhs) * lwd + pagePosD, adst, (border + lhs + var21) * lwd + pagePosD, lwd);
+//                        }
+//
+//                        System.arraycopy(adst, lhs * lwd + pagePosD, adst, pagePosD, border * lwd);
+//                    }
+//                }
+//            }
+//
+//            return dst;
+//        }
+//    }
 
     public static void fixTransparentColor(TextureAtlasSprite tas, int[] aint) {
     }

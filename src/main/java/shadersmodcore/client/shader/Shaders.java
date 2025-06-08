@@ -4,8 +4,8 @@ import net.minecraft.*;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
-import shadersmodcore.api.WorldAccessor;
 import shadersmodcore.api.TextureObjectAccessor;
+import shadersmodcore.api.WorldAccessor;
 import shadersmodcore.transform.SMCLog;
 
 import java.io.*;
@@ -804,7 +804,7 @@ public class Shaders {
     }
 
     public static void resetDisplayListModelRenderer(ModelRenderer mrr) {
-        ReflectionHandler.resetDisplayList(mrr);
+//        ((ModelRendererAccessor) mrr).resetDisplayList();
         if (mrr.childModels != null) {
             int i = 0;
 

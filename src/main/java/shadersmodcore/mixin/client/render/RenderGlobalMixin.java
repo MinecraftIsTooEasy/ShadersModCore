@@ -97,7 +97,7 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
    )
    private void injectRenderEntities1(CallbackInfo callbackInfo) {
       Shaders.endEntities();
-      Shaders.beginTileEntities();
+//      Shaders.beginTileEntities();
    }
 
    // ???
@@ -105,7 +105,7 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
       method = {"renderEntities"}
    )
    private void injectRenderEntities2(CallbackInfo callbackInfo) {
-      Shaders.endTileEntities();
+//      Shaders.endTileEntities();
    }
 
    @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glDisable(I)V",

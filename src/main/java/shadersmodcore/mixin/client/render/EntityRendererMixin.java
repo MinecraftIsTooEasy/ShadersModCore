@@ -115,7 +115,7 @@ public abstract class EntityRendererMixin {
    // A
    @Redirect(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;clipRenderersByFrustum(Lnet/minecraft/ICamera;F)V"))
    public void renderWorldClipRenderersByFrustrum(RenderGlobal renderGlobal, ICamera iCamera, float par1ICamera) {
-      ShadersRender.clipRenderersByFrustrum(renderGlobal, iCamera, par1ICamera);
+      ShadersRender.clipRenderersByFrustrum(renderGlobal, (Frustrum) iCamera, par1ICamera);
    }
 
    // A
@@ -175,13 +175,13 @@ public abstract class EntityRendererMixin {
    // A
    @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;sortAndRender(Lnet/minecraft/EntityLivingBase;ID)I", ordinal = 1))
    public void renderWorldBeginWaterFancy(float par1, long par2, CallbackInfo ci) {
-      Shaders.beginWaterFancy();
+      Shaders.beginWater();
    }
 
    // A
    @Inject(method = "renderWorld", at = @At(value = "INVOKE" ,target = "Lnet/minecraft/RenderGlobal;renderAllRenderLists(ID)V"))
    public void renderWorldMidWaterFancy(float par1, long par2, CallbackInfo ci) {
-      Shaders.midWaterFancy();
+      Shaders.endWater();
    }
 
    // A
