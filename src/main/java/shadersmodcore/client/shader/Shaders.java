@@ -1,10 +1,16 @@
 package shadersmodcore.client.shader;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import net.minecraft.*;
+import net.xiaoyu233.fml.FishModLoader;
+import net.xiaoyu233.fml.util.ReflectHelper;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.*;
+import org.lwjgl.util.glu.GLU;
+import shadersmodcore.api.AbstractTextureAccessor;
+import shadersmodcore.mixin.client.render.entity.EntityRendererAccessor;
+import shadersmodcore.util.Utils;
+
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -12,24 +18,6 @@ import java.nio.IntBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.minecraft.*;
-import net.xiaoyu233.fml.FishModLoader;
-import shadersmodcore.api.AbstractTextureAccessor;
-import shadersmodcore.mixin.client.render.entity.EntityRendererAccessor;
-import shadersmodcore.util.Utils;
-import net.xiaoyu233.fml.util.ReflectHelper;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.ARBVertexShader;
-import org.lwjgl.opengl.ContextCapabilities;
-import org.lwjgl.opengl.EXTFramebufferObject;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GLContext;
-import org.lwjgl.util.glu.GLU;
 
 public class Shaders {
    public static boolean isInitialized = false;
@@ -2593,7 +2581,8 @@ public class Shaders {
    }
 
    public static boolean isShadersLoad() {
-      return Shaders.shaderPack != null && !Objects.equals(Shaders.currentshadername, "(none)");
+      String packName = shadersConfig.getProperty("shaderPack", packNameDefault);
+      return !packName.isEmpty() && !packName.equals(packNameNone);
    }
 
    static {

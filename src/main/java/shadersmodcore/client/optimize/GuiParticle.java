@@ -25,6 +25,8 @@ public class GuiParticle extends GuiScreen {
               I18n.getString("options.block.destroy.effect") + ": " + Utils.getTranslationBoolean(OptimizeConfig.blockDestroyEffects)));
       this.buttonList.add(new GuiButton(2, this.width / 2 + 5, this.height / 7, 150, 20,
               I18n.getString("options.block.explode.effect") + ": " + Utils.getTranslationBoolean(OptimizeConfig.explodeEffects)));
+      this.buttonList.add(new GuiButton(3, this.width / 2 - 155, this.height / 7 + 30, 150, 20,
+              I18n.getString("options.potion.particle.effect") + ": " + Utils.getTranslationBoolean(OptimizeConfig.potionEffects)));
 
       this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.getString("gui.done")));
    }
@@ -38,6 +40,10 @@ public class GuiParticle extends GuiScreen {
          if (par1GuiButton.id == 2) {
             OptimizeConfig.explodeEffects = !OptimizeConfig.explodeEffects;
             par1GuiButton.displayString = I18n.getString("options.block.explode.effect") + ": " + Utils.getTranslationBoolean(OptimizeConfig.explodeEffects);
+         }
+         if (par1GuiButton.id == 3) {
+            OptimizeConfig.potionEffects = !OptimizeConfig.potionEffects;
+            par1GuiButton.displayString = I18n.getString("options.potion.particle.effect") + ": " + Utils.getTranslationBoolean(OptimizeConfig.potionEffects);
          }
          if (par1GuiButton.id == 200) {
             this.mc.gameSettings.saveOptions();

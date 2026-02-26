@@ -39,13 +39,12 @@
     "client.render.texture.TextureManagerMixin",
     "client.render.texture.TextureMapMixin",
     "client.render.texture.TextureObjectMixin",
+    "client.render.RenderItemMixin",
+    "entity.EntityLivingBaseMixin",
+    "gui.GuiIngameMixin",
     "gui.GuiOptionsMixin",
     "particle.EffectRendererMixin",
     "world.ChunkCacheMixin",
     "world.WorldMixin"
-  ],
-  "mixins": [
-    "client.render.RenderItemMixin",
-    "gui.GuiIngameMixin"
   ]
 }

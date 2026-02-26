@@ -26,6 +26,7 @@ options.render.shadow=Shadow
 
 options.block.destroy.effect=Destroying Blocks
 options.block.explode.effect=Explode
+options.potion.particle.effect=Potion
 
 options.quality.grass=Grass
 options.quality.leaves=Leaves

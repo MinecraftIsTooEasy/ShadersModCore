@@ -3,6 +3,7 @@ package shadersmodcore.mixin.client.render.texture;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.*;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import shadersmodcore.api.TextureAtlasSpriteAccessor;
@@ -31,6 +32,10 @@ public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAcces
    @Shadow protected int frameCounter;
    @Shadow protected int tickCounter;
    @Shadow public abstract void loadSprite(Resource par1Resource) throws IOException;
+   @Shadow private float minU;
+   @Shadow private float maxU;
+   @Shadow private float minV;
+   @Shadow private float maxV;
 
    @Inject(method = "updateAnimation", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;uploadTextureSub([IIIIIZZ)V"))
    public void updateAnimation(CallbackInfo info) {
@@ -66,6 +71,17 @@ public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAcces
    @WrapOperation(method = "loadSprite", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureAtlasSprite;getFrameTextureData([IIII)[I", ordinal = 1))
    private int[] extractFrame(int[] par0ArrayOfInteger, int par1, int par2, int par3, Operation<int[]> original) {
       return ShadersTex.extractFrame(par0ArrayOfInteger, par1, par2, par3);
+   }
+
+   @Overwrite
+   public void initSprite(int par1, int par2, int par3, int par4, boolean par5) {
+      this.originX = par3;
+      this.originY = par4;
+      this.rotated = par5;
+      this.minU = (float) par3 / (float) ((double) par1);
+      this.maxU = (float) (par3 + this.width) / (float) ((double) par1);
+      this.minV = (float) par4 / (float) par2;
+      this.maxV = (float) (par4 + this.height) / (float) par2;
    }
 
    @Override

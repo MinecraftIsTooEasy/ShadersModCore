@@ -1,11 +1,12 @@
 package shadersmodcore.config;
 
+import net.minecraft.Minecraft;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
-import net.minecraft.Minecraft;
 
 public class OptimizeConfig {
    static String optionsFileName = "optimize.txt";
@@ -14,6 +15,7 @@ public class OptimizeConfig {
 
    public static boolean blockDestroyEffects;
    public static boolean explodeEffects;
+   public static boolean potionEffects;
 
    public static boolean dynamicLights;
    public static boolean drawSelectionBox;
@@ -40,8 +42,9 @@ public class OptimizeConfig {
          var1.printStackTrace();
       }
 
-      blockDestroyEffects = Boolean.parseBoolean(optimizeConfig.getProperty("blockDestroyEffects", "true"));
-      explodeEffects = Boolean.parseBoolean(optimizeConfig.getProperty("explodeEffects", "true"));
+      blockDestroyEffects = Boolean.parseBoolean(optimizeConfig.getProperty("blockDestroyParticles", "true"));
+      explodeEffects = Boolean.parseBoolean(optimizeConfig.getProperty("explodeParticles", "true"));
+      potionEffects = Boolean.parseBoolean(optimizeConfig.getProperty("effectParticles", "true"));
 
       dynamicLights = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLights", "true"));
       drawSelectionBox = Boolean.parseBoolean(optimizeConfig.getProperty("drawSelectionBox", "true"));
@@ -57,8 +60,9 @@ public class OptimizeConfig {
    }
 
    public static void storeConfig() {
-      optimizeConfig.setProperty("blockDestroyEffects", Boolean.toString(blockDestroyEffects));
-      optimizeConfig.setProperty("explodeEffects", Boolean.toString(explodeEffects));
+      optimizeConfig.setProperty("blockDestroyParticles", Boolean.toString(blockDestroyEffects));
+      optimizeConfig.setProperty("explodeParticles", Boolean.toString(explodeEffects));
+      optimizeConfig.setProperty("effectParticles", Boolean.toString(potionEffects));
 
       optimizeConfig.setProperty("dynamicLights", Boolean.toString(dynamicLights));
       optimizeConfig.setProperty("drawSelectionBox", Boolean.toString(drawSelectionBox));

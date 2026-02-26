@@ -1,8 +1,9 @@
 package shadersmodcore.client.shader;
 
-import java.util.ArrayList;
 import net.minecraft.GuiSlot;
 import net.minecraft.Tessellator;
+
+import java.util.ArrayList;
 
 public class GuiSlotShaders extends GuiSlot {
    public ArrayList shaderslist;
@@ -25,7 +26,7 @@ public class GuiSlotShaders extends GuiSlot {
    }
 
    protected int getContentHeight() {
-      return this.getSize() * 18;
+      return this.getSize() * 16;
    }
 
    public void overlayBackground(int par1, int par2, int par3, int par4) {

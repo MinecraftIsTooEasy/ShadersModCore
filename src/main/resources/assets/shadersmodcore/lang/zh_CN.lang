@@ -21,6 +21,7 @@ options.list.shader.profiles=光影
 
 options.block.destroy.effect=破坏方块
 options.block.explode.effect=爆炸
+options.potion.particle.effect=药水效果
 
 options.dynamic.light=动态光源
 options.drawing.selection.block=绘制选择框
