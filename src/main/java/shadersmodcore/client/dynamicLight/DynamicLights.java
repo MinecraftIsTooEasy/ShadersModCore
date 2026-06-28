@@ -7,7 +7,7 @@ import java.util.Map;
 import net.minecraft.*;
 import net.minecraft.RenderGlobal;
 import shadersmodcore.api.BlockAccessor;
-import shadersmodcore.api.RenderGlobalAccessor;
+import shadersmodcore.mixin.accessor.RenderGlobalAccessor;
 import shadersmodcore.config.ShaderConfig;
 import shadersmodcore.util.BlockPos;
 import net.xiaoyu233.fml.util.ReflectHelper;
@@ -136,9 +136,9 @@ public class DynamicLights {
                   double d1 = dynamiclight.getLastPosX();
                   double d2 = dynamiclight.getLastPosY();
                   double d3 = dynamiclight.getLastPosZ();
-                  double d4 = (double) pos.x - d1;
-                  double d5 = (double) pos.y - d2;
-                  double d6 = (double) pos.z - d3;
+                  double d4 = (double) pos.x() - d1;
+                  double d5 = (double) pos.y() - d2;
+                  double d6 = (double) pos.z() - d3;
                   double d7 = d4 * d4 + d5 * d5 + d6 * d6;
                   if (dynamiclight.isUnderwater() && !ShaderConfig.isClearWater()) {
                       k = ShaderConfig.limit(k - 2, 0, 15);

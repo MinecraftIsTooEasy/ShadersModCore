@@ -40,7 +40,6 @@ public abstract class EntityRendererMixin {
       Shaders.setFogColor(par1, par2, par3);
    }
 
-
    @Redirect(method = "setupFog", at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glFogi(II)V"))
    private void sglFogi(int pname, int param) {
       Shaders.sglFogi(pname, param);

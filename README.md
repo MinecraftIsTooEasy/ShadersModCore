@@ -1,1 +1,1 @@
-# ShadersModCore / GLSL
+# ShadersModCore / GLSL Mod

@@ -4,7 +4,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import net.minecraft.*;
-import shadersmodcore.api.RenderGlobalAccessor;
+import shadersmodcore.mixin.accessor.RenderGlobalAccessor;
 import shadersmodcore.config.ShaderConfig;
 import shadersmodcore.util.BlockPos;
 import net.xiaoyu233.fml.util.ReflectHelper;
@@ -62,7 +62,7 @@ public class DynamicLight {
          }
 
          if (j > 0) {
-            this.updateChunkLight(new BlockPos(d6, d0, d1));
+            this.updateChunkLight(new BlockPos((int) d6, (int) d0, (int) d1));
          }
 
          this.updateLitChunks(renderGlobal);
@@ -75,9 +75,9 @@ public class DynamicLight {
    }
 
    private void updateChunkLight(BlockPos pos) {
-      int d6 = pos.x;
-      int d0 = pos.y;
-      int d1 = pos.z;
+      int d6 = pos.x();
+      int d0 = pos.y();
+      int d1 = pos.z();
       if (this.renderGlobal != null) {
          EnumFacing enumfacing2 = (MathHelper.floor_double((double)d6) & 15) >= 8 ? EnumFacing.EAST : EnumFacing.WEST;
          EnumFacing enumfacing = (MathHelper.floor_double((double)d0) & 15) >= 8 ? EnumFacing.UP : EnumFacing.DOWN;
@@ -92,14 +92,14 @@ public class DynamicLight {
             BlockPos blockpos5 = this.getChunkPos(blockpos4, enumfacing2);
             BlockPos blockpos6 = this.getChunkPos(blockpos4, enumfacing1);
             BlockPos blockpos7 = this.getChunkPos(blockpos5, enumfacing1);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos.x, blockpos.y, blockpos.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos1.x, blockpos1.y, blockpos1.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos2.x, blockpos2.y, blockpos2.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos3.x, blockpos3.y, blockpos3.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos4.x, blockpos4.y, blockpos4.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos5.x, blockpos5.y, blockpos5.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos6.x, blockpos6.y, blockpos6.z);
-            this.renderGlobal.markBlockForRenderUpdate(blockpos7.x, blockpos7.y, blockpos7.z);
+            this.renderGlobal.markBlockForRenderUpdate(blockpos.x(), blockpos.y(), blockpos.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos1.x(), blockpos1.y(), blockpos1.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos2.x(), blockpos2.y(), blockpos2.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos3.x(), blockpos3.y(), blockpos3.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos4.x(), blockpos4.y(), blockpos4.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos5.x(), blockpos5.y(), blockpos5.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos6.x(), blockpos6.y(), blockpos6.z());
+            this.renderGlobal.markBlockForRenderUpdate(blockpos7.x(), blockpos7.y(), blockpos7.z());
          }
       }
 

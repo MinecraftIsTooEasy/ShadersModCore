@@ -3,6 +3,8 @@ package shadersmodcore.client.shader;
 import net.minecraft.*;
 import net.xiaoyu233.fml.FishModLoader;
 import net.xiaoyu233.fml.util.ReflectHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
@@ -208,6 +210,11 @@ public class Shaders {
    public static int entityDataIndex;
    public static String version = FishModLoader.getModsMap().get("shaders_mod_core").getMetadata().getVersion().toString();
 
+   public static Logger LOGGER = LogManager.getLogger("Shaders");
+   //TODO config
+   private static final boolean DEBUG_GL = false;
+//           FishModLoader.isDevelopmentEnvironment();
+
    private static ByteBuffer nextByteBuffer(int size) {
       ByteBuffer buffer = bigBuffer;
       int pos = buffer.limit();
@@ -245,7 +252,7 @@ public class Shaders {
             shaderpacksdir.mkdir();
          }
       } catch (Exception var4) {
-         System.err.println("[Shaders] Failed to open the shaders directory");
+         LOGGER.error("Failed to open the shaders directory");
       }
 
       shadersConfig.setProperty("shaderPack", "");
@@ -337,9 +344,9 @@ public class Shaders {
       }
 
       if (shaderPack != null) {
-         System.out.println("[Shaders] Successful to load shaders");
+         LOGGER.info("Successful to load shaders");
       } else {
-//         System.out.println("[Shaders] Failed to load shaders");
+         LOGGER.error("Failed to load shaders");
          shaderPack = new ShaderPackNone();
       }
 
@@ -381,22 +388,23 @@ public class Shaders {
    public static int checkFramebufferStatus(String location) {
       int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(36160);
       if (status != 36053) {
-         System.err.format("Framebuffer state 0x%04X at %s\n", status, location);
+         LOGGER.error("Framebuffer state 0x%04X at %s", status, location);
       }
 
       return status;
    }
 
    public static int checkGLError(String location) {
+      if (!DEBUG_GL) return 0;
       int errorCode = GL11.glGetError();
       if (errorCode != 0) {
          boolean skipPrint = false;
          if (!skipPrint) {
             if (errorCode == 1286) {
                int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(36160);
-               System.err.format("GL error 0x%04X: %s (Fb status 0x%04X) at %s\n", errorCode, GLU.gluErrorString(errorCode), status, location);
+               LOGGER.error("GL error 0x%04X: %s (Fb status 0x%04X) at %s", errorCode, GLU.gluErrorString(errorCode), status, location);
             } else {
-               System.err.format("GL error 0x%04X: %s at %s\n", errorCode, GLU.gluErrorString(errorCode), location);
+               LOGGER.error("GL error 0x%04X: %s at %s", errorCode, GLU.gluErrorString(errorCode), location);
             }
          }
       }
@@ -405,9 +413,10 @@ public class Shaders {
    }
 
    public static int checkGLError(String location, String info) {
+      if (!DEBUG_GL) return 0;
       int errorCode = GL11.glGetError();
       if (errorCode != 0) {
-         System.err.format("GL error 0x%04x: %s at %s %s\n", errorCode, GLU.gluErrorString(errorCode), location, info);
+         LOGGER.error("GL error 0x%04x: %s at %s %s", errorCode, GLU.gluErrorString(errorCode), location, info);
       }
 
       return errorCode;
@@ -415,7 +424,7 @@ public class Shaders {
 
    private static String printChatAndLogError(String str) {
       mc.ingameGUI.getChatGUI().printChatMessage(str);
-      System.err.println(str);
+      LOGGER.error(str);
       return str;
    }
 
@@ -429,7 +438,7 @@ public class Shaders {
       }
 
       sb.append("]");
-      System.out.println(sb);
+      LOGGER.info(sb);
    }
 
    public static void startup(Minecraft mc) {
@@ -438,7 +447,7 @@ public class Shaders {
       glVersionString = GL11.glGetString(GL11.GL_VERSION);
       glVendorString = GL11.glGetString(GL11.GL_VENDOR);
       glRendererString = GL11.glGetString(GL11.GL_RENDERER);
-      System.out.println("Shaders Mod Core" + version);
+      LOGGER.info("Shaders Mod Core{}", version);
       loadConfig();
    }
 
@@ -451,21 +460,21 @@ public class Shaders {
          mc = Minecraft.getMinecraft();
          checkGLError("Shaders.init pre");
          ContextCapabilities capabilities = GLContext.getCapabilities();
-         System.out.println("[Shaders] OpenGL 2.0 = " + toStringYN(capabilities.OpenGL20) + "    2.1 = " + toStringYN(capabilities.OpenGL21) + "    3.0 = " + toStringYN(capabilities.OpenGL30) + "    3.2 = " + toStringYN(capabilities.OpenGL32));
+         LOGGER.info("OpenGL 2.0 = {}    2.1 = {}    3.0 = {}    3.2 = {}", toStringYN(capabilities.OpenGL20), toStringYN(capabilities.OpenGL21), toStringYN(capabilities.OpenGL30), toStringYN(capabilities.OpenGL32));
          if (!capabilities.OpenGL20) {
-            printChatAndLogError("[Shaders] No OpenGL 2.0.");
+            printChatAndLogError("No OpenGL 2.0.");
          }
 
          if (!capabilities.OpenGL21) {
-            printChatAndLogError("[Shaders] No OpenGL 2.1.");
+            printChatAndLogError("No OpenGL 2.1.");
          }
 
          if (!capabilities.GL_EXT_framebuffer_object) {
-            printChatAndLogError("[Shaders] No EXT_framebuffer_object.");
+            printChatAndLogError("No EXT_framebuffer_object.");
          }
 
          if (!capabilities.OpenGL20 || !capabilities.GL_EXT_framebuffer_object) {
-            System.out.println("[Shaders] Your GPU is not compatible with bio Shaders mod.");
+            LOGGER.info("Your GPU is not compatible with bio Shaders mod.");
             System.exit(-1);
          }
 
@@ -477,9 +486,9 @@ public class Shaders {
          sfbColorTextures.position(0).limit(8);
          int maxDrawBuffers = GL11.glGetInteger(34852);
          int maxColorAttach = GL11.glGetInteger(36063);
-         System.out.println("[Shaders] GL_MAX_DRAW_BUFFERS = " + maxDrawBuffers);
-         System.out.println("[Shaders] GL_MAX_COLOR_ATTACHMENTS_EXT = " + maxColorAttach);
-         System.out.println("[Shaders] GL_MAX_TEXTURE_IMAGE_UNITS = " + GL11.glGetInteger(34930));
+         LOGGER.info("GL_MAX_DRAW_BUFFERS = {}", maxDrawBuffers);
+         LOGGER.info("GL_MAX_COLOR_ATTACHMENTS_EXT = {}", maxColorAttach);
+         LOGGER.info("GL_MAX_TEXTURE_IMAGE_UNITS = {}", GL11.glGetInteger(34930));
          usedColorBuffers = 4;
          usedDepthBuffers = 1;
          usedShadowColorBuffers = 0;
@@ -591,7 +600,7 @@ public class Shaders {
          }
 
          if (usedDrawBuffers > maxDrawBuffers) {
-            printChatAndLogError("[Shaders] Not enough draw buffers! Requires " + usedDrawBuffers + ".  Has " + maxDrawBuffers + ".");
+            printChatAndLogError("Not enough draw buffers! Requires " + usedDrawBuffers + ".  Has " + maxDrawBuffers + ".");
          }
 
          sfbDrawBuffers.position(0).limit(usedShadowColorBuffers);
@@ -633,19 +642,19 @@ public class Shaders {
    }
 
    public static void resetDisplayList() throws NoSuchFieldException, IllegalAccessException {
-      System.out.println("Reset model renderers");
+      LOGGER.info("Reset model renderers");
       if (useMidTexCoordAttrib || useMultiTexCoord3Attrib) {
 
           for (Object o : ((Map) Objects.requireNonNull(Utils.get(RenderManager.instance, "entityRenderMap", Map.class))).values()) {
               Render ren = (Render) o;
               if (ren instanceof RendererLivingEntity rle) {
-                  resetDisplayListModel((ModelBase) Utils.get(rle, "mainModel", ModelBase.class));
-                  resetDisplayListModel((ModelBase) Utils.get(rle, "renderPassModel", ModelBase.class));
+                 resetDisplayListModel(rle.mainModel);
+                 resetDisplayListModel(rle.renderPassModel);
               }
           }
       }
 
-      System.out.println("Reset world renderers");
+      LOGGER.info("Reset world renderers");
       isCallLoadRenderers = true;
       mc.renderGlobal.loadRenderers();
       isCallLoadRenderers = false;
@@ -719,13 +728,13 @@ public class Shaders {
             printLogInfo(programid, vShaderPath + "," + fShaderPath);
             int valid = GL20.glGetProgrami(programid, 35715);
             if (valid == 1) {
-               System.out.println("Program " + programNames[program] + " loaded");
+               LOGGER.info("Program " + programNames[program] + " loaded");
             } else {
                setShaderPack((String)listofShaders().get(0));
                loadShaderPack();
                uninit();
                System.exit(0);
-               printChatAndLogError("[Shaders] Error : Invalid program " + programNames[program]);
+               printChatAndLogError("Error : Invalid program " + programNames[program]);
                ARBShaderObjects.glDeleteObjectARB(programid);
                programid = 0;
             }
@@ -769,7 +778,7 @@ public class Shaders {
                }
             }
          } catch (Exception var9) {
-            System.out.println("Couldn't read " + filename + "!");
+            LOGGER.info("Couldn't read " + filename + "!");
             ARBShaderObjects.glDeleteObjectARB(vertShader);
             return 0;
          }
@@ -777,7 +786,7 @@ public class Shaders {
          try {
             reader.close();
          } catch (Exception var6) {
-            System.out.println("Couldn't close " + filename + "!");
+            LOGGER.info("Couldn't close " + filename + "!");
          }
 
          ARBShaderObjects.glShaderSourceARB(vertShader, vertexCode);
@@ -878,88 +887,88 @@ public class Shaders {
                      String[] parts;
                      if (line.matches("/\\* SHADOWRES:[0-9]+ \\*/.*")) {
                         parts = line.split("(:| )", 4);
-                        System.out.println("Shadow map resolution: " + parts[2]);
+                        LOGGER.info("Shadow map resolution: " + parts[2]);
                         spShadowMapWidth = spShadowMapHeight = Integer.parseInt(parts[2]);
                         shadowMapWidth = shadowMapHeight = Math.round((float)spShadowMapWidth * configShadowResMul);
                      } else if (line.matches("[ \t]*const[ \t]*int[ \t]*shadowMapResolution[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Shadow map resolution: " + parts[1]);
+                        LOGGER.info("Shadow map resolution: " + parts[1]);
                         spShadowMapWidth = spShadowMapHeight = Integer.parseInt(parts[1]);
                         shadowMapWidth = shadowMapHeight = Math.round((float)spShadowMapWidth * configShadowResMul);
                      } else if (line.matches("/\\* SHADOWFOV:[0-9\\.]+ \\*/.*")) {
                         parts = line.split("(:| )", 4);
-                        System.out.println("Shadow map field of view: " + parts[2]);
+                        LOGGER.info("Shadow map field of view: " + parts[2]);
                         shadowMapFOV = Float.parseFloat(parts[2]);
                         shadowMapIsOrtho = false;
                      } else if (line.matches("/\\* SHADOWHPL:[0-9\\.]+ \\*/.*")) {
                         parts = line.split("(:| )", 4);
-                        System.out.println("Shadow map half-plane: " + parts[2]);
+                        LOGGER.info("Shadow map half-plane: " + parts[2]);
                         shadowMapHalfPlane = Float.parseFloat(parts[2]);
                         shadowMapIsOrtho = true;
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*shadowDistance[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Shadow map distance: " + parts[1]);
+                        LOGGER.info("Shadow map distance: " + parts[1]);
                         shadowMapHalfPlane = Float.parseFloat(parts[1]);
                         shadowMapIsOrtho = true;
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*shadowIntervalSize[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Shadow map interval size: " + parts[1]);
+                        LOGGER.info("Shadow map interval size: " + parts[1]);
                         shadowIntervalSize = Float.parseFloat(parts[1]);
                      } else if (line.matches("[ \t]*const[ \t]*bool[ \t]*generateShadowMipmap[ \t]*=[ \t]*true[ \t]*;.*")) {
-                        System.out.println("Generate shadow mipmap");
+                        LOGGER.info("Generate shadow mipmap");
                         shadowMipmapEnabled = true;
                      } else if (line.matches("[ \t]*const[ \t]*bool[ \t]*shadowHardwareFiltering[ \t]*=[ \t]*true[ \t]*;.*")) {
-                        System.out.println("Hardware shadow filtering enabled.");
+                        LOGGER.info("Hardware shadow filtering enabled.");
                         shadowHardwareFilteringEnabled = true;
                      } else if (line.matches("/\\* WETNESSHL:[0-9\\.]+ \\*/.*")) {
                         parts = line.split("(:| )", 4);
-                        System.out.println("Wetness halflife: " + parts[2]);
+                        LOGGER.info("Wetness halflife: " + parts[2]);
                         wetnessHalfLife = Float.parseFloat(parts[2]);
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*wetnessHalflife[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Wetness halflife: " + parts[1]);
+                        LOGGER.info("Wetness halflife: " + parts[1]);
                         wetnessHalfLife = Float.parseFloat(parts[1]);
                      } else if (line.matches("/\\* DRYNESSHL:[0-9\\.]+ \\*/.*")) {
                         parts = line.split("(:| )", 4);
-                        System.out.println("Dryness halflife: " + parts[2]);
+                        LOGGER.info("Dryness halflife: " + parts[2]);
                         drynessHalfLife = Float.parseFloat(parts[2]);
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*drynessHalflife[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Dryness halflife: " + parts[1]);
+                        LOGGER.info("Dryness halflife: " + parts[1]);
                         drynessHalfLife = Float.parseFloat(parts[1]);
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*eyeBrightnessHalflife[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Eye brightness halflife: " + parts[1]);
+                        LOGGER.info("Eye brightness halflife: " + parts[1]);
                         eyeBrightnessHalflife = Float.parseFloat(parts[1]);
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*centerDepthHalflife[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Center depth halflife: " + parts[1]);
+                        LOGGER.info("Center depth halflife: " + parts[1]);
                         centerDepthSmoothHalflife = Float.parseFloat(parts[1]);
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*sunPathRotation[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Sun path rotation: " + parts[1]);
+                        LOGGER.info("Sun path rotation: " + parts[1]);
                         sunPathRotation = Float.parseFloat(parts[1]);
                      } else if (line.matches("[ \t]*const[ \t]*bool[ \t]*generateShadowMipmap[ \t]*=[ \t]*true[ \t]*;.*")) {
-                        System.out.println("Shadow mipmap enabled");
+                        LOGGER.info("Shadow mipmap enabled");
                         shadowMipmapEnabled = true;
                      } else if (line.matches("[ \t]*const[ \t]*float[ \t]*ambientOcclusionLevel[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("AO Level: " + parts[1]);
+                        LOGGER.info("AO Level: " + parts[1]);
                         aoLevel = Float.parseFloat(parts[1]);
                         blockAoLight = 1.0F - aoLevel;
                      } else if (line.matches("[ \t]*const[ \t]*int[ \t]*superSamplingLevel[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
                         int ssaa = Integer.parseInt(parts[1]);
                         if (ssaa > 1) {
-                           System.out.println("Super sampling level: " + ssaa + "x");
+                           LOGGER.info("Super sampling level: " + ssaa + "x");
                            superSamplingLevel = ssaa;
                         } else {
                            superSamplingLevel = 1;
                         }
                      } else if (line.matches("[ \t]*const[ \t]*int[ \t]*noiseTextureResolution[ \t]*=[ \t]*-?[0-9.]+f?;.*")) {
                         parts = line.split("(=[ \t]*|;)");
-                        System.out.println("Noise texture enabled");
-                        System.out.println("Noise texture resolution: " + parts[1]);
+                        LOGGER.info("Noise texture enabled");
+                        LOGGER.info("Noise texture resolution: " + parts[1]);
                         noiseTextureResolution = Integer.parseInt(parts[1]);
                         noiseTextureEnabled = true;
                      } else {
@@ -977,13 +986,13 @@ public class Shaders {
                               System.out.format("%s format: %s\n", name, value);
                            }
                         } else if (line.matches("/\\* GAUX4FORMAT:RGBA32F \\*/.*")) {
-                           System.out.println("gaux4 format : RGB32AF");
+                           LOGGER.info("gaux4 format : RGB32AF");
                            gbuffersFormat[7] = 34836;
                         } else if (line.matches("/\\* GAUX4FORMAT:RGB32F \\*/.*")) {
-                           System.out.println("gaux4 format : RGB32F");
+                           LOGGER.info("gaux4 format : RGB32F");
                            gbuffersFormat[7] = 34837;
                         } else if (line.matches("/\\* GAUX4FORMAT:RGB16 \\*/.*")) {
-                           System.out.println("gaux4 format : RGB16");
+                           LOGGER.info("gaux4 format : RGB16");
                            gbuffersFormat[7] = 32852;
                         } else if (line.matches("[ \t]*const[ \t]*bool[ \t]*\\w+MipmapEnabled[ \t]*=[ \t]*true[ \t]*;.*")) {
                            if (filename.matches(".*composite[0-9]?.fsh")) {
@@ -1005,7 +1014,7 @@ public class Shaders {
                }
             }
          } catch (Exception var14) {
-            System.out.println("Couldn't read " + filename + "!");
+            LOGGER.info("Couldn't read " + filename + "!");
             ARBShaderObjects.glDeleteObjectARB(fragShader);
             return 0;
          }
@@ -1013,7 +1022,7 @@ public class Shaders {
          try {
             reader.close();
          } catch (Exception var11) {
-            System.out.println("Couldn't close " + filename + "!");
+            LOGGER.info("Couldn't close " + filename + "!");
          }
 
          ARBShaderObjects.glShaderSourceARB(fragShader, fragCode);
@@ -1038,7 +1047,7 @@ public class Shaders {
          }
 
          String out = new String(infoBytes);
-         System.out.println("Info log: " + name + "\n" + out);
+         LOGGER.info("Info log: " + name + "\n" + out);
          return false;
       } else {
          return true;
@@ -1406,7 +1415,7 @@ public class Shaders {
             noiseTexture = null;
          }
 
-         System.out.println("UNINIT");
+         LOGGER.info("UNINIT");
          shadowPassInterval = 0;
          shouldSkipDefaultShadow = false;
          isInitialized = false;
@@ -1503,7 +1512,7 @@ public class Shaders {
       if (status != 36053) {
          printChatAndLogError("Failed creating framebuffer! (Status " + status + ")");
       } else {
-         System.out.println("Framebuffer created.");
+         LOGGER.info("Framebuffer created.");
       }
 
    }
@@ -1558,7 +1567,7 @@ public class Shaders {
          if (status != 36053) {
             printChatAndLogError("Failed creating shadow framebuffer! (Status " + status + ")");
          } else {
-            System.out.println("Shadow framebuffer created.");
+            LOGGER.info("Shadow framebuffer created.");
          }
       }
 

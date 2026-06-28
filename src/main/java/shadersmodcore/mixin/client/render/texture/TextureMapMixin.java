@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@Mixin({TextureMap.class})
+@Mixin(value = TextureMap.class, priority = 999)
 public abstract class TextureMapMixin extends AbstractTexture implements TextureMapAccessor {
    @Shadow @Final private List listAnimatedSprites;
    @Shadow @Final private Map mapRegisteredSprites;

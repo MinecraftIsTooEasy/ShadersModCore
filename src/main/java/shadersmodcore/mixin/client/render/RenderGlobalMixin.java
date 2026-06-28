@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
-import shadersmodcore.api.RenderGlobalAccessor;
+import shadersmodcore.mixin.accessor.RenderGlobalAccessor;
 import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.client.shader.Shaders;
 import shadersmodcore.client.dynamicLight.DynamicLights;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import shadersmodcore.util.Utils;
 
 @Mixin(RenderGlobal.class)
-public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAccessor {
+public abstract class RenderGlobalMixin implements IWorldAccess {
    @Shadow private WorldClient theWorld;
 
    @Inject(method = "drawSelectionBox", at = @At("HEAD"), cancellable = true)
@@ -273,10 +273,6 @@ public abstract class RenderGlobalMixin implements IWorldAccess, RenderGlobalAcc
    )
    private void injectCompileCloudsFancy3(CallbackInfo callbackInfo) {
       Shaders.enableTexture2D();
-   }
-
-   public WorldClient getClientWorld() {
-      return this.theWorld;
    }
 
    @Inject(at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glBlendFunc(II)V", shift = Shift.AFTER),

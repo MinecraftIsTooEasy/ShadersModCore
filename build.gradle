@@ -39,9 +39,9 @@ loom {
 
 }
 
-runClient{
-	args("--username", "Dev", "--session", "a.a.a.a", "--width", 854, "--height", 480)
-}
+//runClient{
+//	args("--username", "Dev", "--session", "a.a.a.a", "--width", 854, "--height", 480)
+//}
 
 dependencies {
 

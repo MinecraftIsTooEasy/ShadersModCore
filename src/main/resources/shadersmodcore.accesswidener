@@ -1,2 +1,4 @@
 accessWidener v2 named
 accessible field net/minecraft/Minecraft renderEngine Lnet/minecraft/TextureManager;
+accessible field net/minecraft/RendererLivingEntity renderPassModel Lnet/minecraft/ModelBase;
+accessible field net/minecraft/RendererLivingEntity mainModel Lnet/minecraft/ModelBase;

@@ -18,7 +18,8 @@ public class Utils {
          Field field = instance.getClass().getDeclaredField(name);
          field.setAccessible(true);
          return field.get(instance);
-      } catch (IllegalAccessException | NoSuchFieldException var4) {
+      } catch (IllegalAccessException | NoSuchFieldException e) {
+         e.printStackTrace();
          return null;
       }
    }
@@ -28,7 +29,8 @@ public class Utils {
          Field field = instance.getClass().getDeclaredField(fileName);
          field.setAccessible(true);
          field.set(instance, value);
-      } catch (IllegalAccessException | NoSuchFieldException var4) {
+      } catch (IllegalAccessException | NoSuchFieldException e) {
+         e.printStackTrace();
       }
 
    }
@@ -53,7 +55,8 @@ public class Utils {
                return field.get(c);
             }
          }
-      } catch (Exception var8) {
+      } catch (Exception e) {
+         e.printStackTrace();
       }
 
       return null;
@@ -79,7 +82,8 @@ public class Utils {
          Method method = c.getMethod(name, parameterTypes);
          method.setAccessible(true);
          return method.invoke((Object)null, params);
-      } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException var5) {
+      } catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException e) {
+         e.printStackTrace();
          return null;
       }
    }
@@ -110,13 +114,13 @@ public class Utils {
    public static final ResourceLocation shaders_fix = new ResourceLocation(ShadersModCoreInit.shadersModID, "textures/shaders_workaround.png");
 
    public static void Fix() {
-      Minecraft.getMinecraft().renderEngine.bindTexture(shaders_fix);
+      Minecraft.getMinecraft().getTextureManager().bindTexture(shaders_fix);
    }
 
    public static final ResourceLocation shaders_fix2 = new ResourceLocation(ShadersModCoreInit.shadersModID, "textures/LightingFix.png");
 
    public static void Fix2() {
-      Minecraft.getMinecraft().renderEngine.bindTexture(shaders_fix2);
+      Minecraft.getMinecraft().getTextureManager().bindTexture(shaders_fix2);
    }
 
    //numbers
