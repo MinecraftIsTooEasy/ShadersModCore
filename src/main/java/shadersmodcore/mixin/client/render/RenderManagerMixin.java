@@ -9,14 +9,14 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin({RenderManager.class})
 public class RenderManagerMixin {
-   @Shadow private FontRenderer fontRenderer;
-   @Shadow private Map entityRenderMap;
+    @Shadow private FontRenderer fontRenderer;
+    @Shadow private Map entityRenderMap;
 
-   public FontRenderer getFontRenderer() {
-      return this.fontRenderer;
-   }
+    public FontRenderer getFontRenderer() {
+        return this.fontRenderer;
+    }
 
-   public Map getEntityRenderMap() {
-      return this.entityRenderMap;
-   }
+    public Map getEntityRenderMap() {
+        return this.entityRenderMap;
+    }
 }

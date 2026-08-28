@@ -11,9 +11,9 @@ import java.io.IOException;
 
 @Mixin({TextureObject.class})
 public interface TextureObjectMixin extends TextureObjectAccessor {
-   @Unique
-   void loadTexture(ResourceManager resourceManager) throws IOException;
+    @Unique
+    void loadTexture(ResourceManager resourceManager) throws IOException;
 
-   @Unique
-   MultiTexID getMultiTexID();
+    @Unique
+    MultiTexID getMultiTexID();
 }

@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import shadersmodcore.client.shader.Shaders;
 import shadersmodcore.util.Utils;
 
 @Mixin(value = RenderLightningBolt.class, priority = 999)
@@ -17,6 +18,7 @@ public abstract class RenderLightningBoltMixin extends Render {
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/Tessellator;startDrawing(I)V"))
     public void doRender(EntityLightningBolt p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_, CallbackInfo ci ) {
+        if (!Shaders.isShadersLoad()) return;
         Utils.Fix();
         Utils.EnableFullBrightness();
     }

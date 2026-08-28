@@ -16,9 +16,9 @@ import java.util.Map;
 @Mixin({TextureManager.class})
 public abstract class TextureManagerMixin {
 
-   @WrapWithCondition(method = "bindTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;bindTexture(I)V"))
-   private boolean bindTexture(int i, @Local Object var2) {
-      ShadersTex.bindTexture((TextureObject) var2);
-      return true;
-   }
+    @WrapWithCondition(method = "bindTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;bindTexture(I)V"))
+    private boolean bindTexture(int i, @Local Object var2) {
+        ShadersTex.bindTexture((TextureObject) var2);
+        return true;
+    }
 }

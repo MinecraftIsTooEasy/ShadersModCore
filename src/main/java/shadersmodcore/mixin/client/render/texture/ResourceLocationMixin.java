@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin({ResourceLocation.class})
 public class ResourceLocationMixin {
-   @Inject(method = "verifyExistence", at = @At("HEAD"), cancellable = true)
-   public void verifyExistence(CallbackInfo info) {
-      info.cancel();
-   }
+    @Inject(method = "verifyExistence", at = @At("HEAD"), cancellable = true)
+    public void verifyExistence(CallbackInfo info) {
+        info.cancel();
+    }
 }

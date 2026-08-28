@@ -12,56 +12,58 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 @Mixin({RenderBlocks.class})
 public abstract class RenderBlocksMixin {
-   @ModifyConstant(constant = @Constant(floatValue = 0.5F, ordinal = 0),
-      method = {"renderBlockBed", "renderBlockFluids", "renderBlockSandFalling", "renderStandardBlockWithColorMultiplier", "renderBlockCactusImpl", "renderBlockDoor"}
-   )
-   private float injectedRenderBlockBed0(float value) {
-      return Shaders.blockLightLevel05;
-   }
+    @ModifyConstant(constant = @Constant(floatValue = 0.5F, ordinal = 0),
+    method = {"renderBlockBed", "renderBlockFluids", "renderBlockSandFalling", "renderStandardBlockWithColorMultiplier", "renderBlockCactusImpl", "renderBlockDoor"}
+    )
+    private float injectedRenderBlockBed0(float value) {
+        return Shaders.isShadersLoad() ? Shaders.blockLightLevel05 : value;
+    }
 
-   @ModifyConstant(constant = @Constant(floatValue = 0.8F, ordinal = 0),
-      method = {"renderBlockBed", "renderBlockFluids", "renderBlockSandFalling", "renderStandardBlockWithColorMultiplier", "renderBlockCactusImpl", "renderBlockDoor"}
-   )
-   private float injectedRenderBlockBed1(float value) {
-      return Shaders.blockLightLevel08;
-   }
+    @ModifyConstant(constant = @Constant(floatValue = 0.8F, ordinal = 0),
+    method = {"renderBlockBed", "renderBlockFluids", "renderBlockSandFalling", "renderStandardBlockWithColorMultiplier", "renderBlockCactusImpl", "renderBlockDoor"}
+    )
+    private float injectedRenderBlockBed1(float value) {
+        return Shaders.isShadersLoad() ? Shaders.blockLightLevel08 : value;
+    }
 
-   @ModifyConstant(constant = @Constant(floatValue = 0.6F, ordinal = 0),
-      method = {"renderBlockBed", "renderBlockFluids", "renderBlockSandFalling", "renderStandardBlockWithColorMultiplier", "renderBlockCactusImpl", "renderBlockDoor"}
-   )
-   private float injectedRenderBlockBed2(float value) {
-      return Shaders.blockLightLevel06;
-   }
+    @ModifyConstant(constant = @Constant(floatValue = 0.6F, ordinal = 0),
+    method = {"renderBlockBed", "renderBlockFluids", "renderBlockSandFalling", "renderStandardBlockWithColorMultiplier", "renderBlockCactusImpl", "renderBlockDoor"}
+    )
+    private float injectedRenderBlockBed2(float value) {
+        return Shaders.isShadersLoad() ? Shaders.blockLightLevel06 : value;
+    }
 
-   @ModifyConstant(constant = @Constant(floatValue = 0.5F),
-      method = {"renderPistonExtension", "renderStandardBlockWithAmbientOcclusion", "renderStandardBlockWithAmbientOcclusionPartial"}
-   )
-   private float injectedRenderPistonExtension0(float value) {
-      return Shaders.blockLightLevel05;
-   }
+    @ModifyConstant(constant = @Constant(floatValue = 0.5F),
+    method = {"renderPistonExtension", "renderStandardBlockWithAmbientOcclusion", "renderStandardBlockWithAmbientOcclusionPartial"}
+    )
+    private float injectedRenderPistonExtension0(float value) {
+        return Shaders.isShadersLoad() ? Shaders.blockLightLevel05 : value;
+    }
 
-   @ModifyConstant(constant = @Constant(floatValue = 0.8F),
-      method = {"renderPistonExtension", "renderStandardBlockWithAmbientOcclusion", "renderStandardBlockWithAmbientOcclusionPartial"}
-   )
-   private float injectedRenderPistonExtension1(float value) {
-      return Shaders.blockLightLevel08;
-   }
+    @ModifyConstant(constant = @Constant(floatValue = 0.8F),
+    method = {"renderPistonExtension", "renderStandardBlockWithAmbientOcclusion", "renderStandardBlockWithAmbientOcclusionPartial"}
+    )
+    private float injectedRenderPistonExtension1(float value) {
+        return Shaders.isShadersLoad() ? Shaders.blockLightLevel08 : value;
+    }
 
-   @ModifyConstant(constant = @Constant(floatValue = 0.6F),
-      method = {"renderPistonExtension", "renderStandardBlockWithAmbientOcclusion", "renderStandardBlockWithAmbientOcclusionPartial"}
-   )
-   private float injectedRenderPistonExtension2(float value) {
-      return Shaders.blockLightLevel06;
-   }
+    @ModifyConstant(constant = @Constant(floatValue = 0.6F),
+    method = {"renderPistonExtension", "renderStandardBlockWithAmbientOcclusion", "renderStandardBlockWithAmbientOcclusionPartial"}
+    )
+    private float injectedRenderPistonExtension2(float value) {
+        return Shaders.isShadersLoad() ? Shaders.blockLightLevel06 : value;
+    }
 
-   @Inject(method = "renderBlockByRenderType", at = @At(value = "INVOKE", target = "Lnet/minecraft/Block;getRenderType()I"))
-   private void pushEntity(Block par1Block, int par2, int par3, int par4, CallbackInfoReturnable<Boolean> cir) {
-      Shaders.pushEntity(par1Block);
-   }
+    @Inject(method = "renderBlockByRenderType", at = @At(value = "INVOKE", target = "Lnet/minecraft/Block;getRenderType()I"))
+    private void pushEntity(Block par1Block, int par2, int par3, int par4, CallbackInfoReturnable<Boolean> cir) {
+        if (!Shaders.isShadersLoad()) return;
+        Shaders.pushEntity(par1Block);
+    }
 
-   @Inject(method = "renderBlockByRenderType", at = @At("RETURN"))
-   private void popEntity(Block par1Block, int par2, int par3, int par4, CallbackInfoReturnable<Boolean> cir) {
-      Shaders.popEntity();
-   }
+    @Inject(method = "renderBlockByRenderType", at = @At("RETURN"))
+    private void popEntity(Block par1Block, int par2, int par3, int par4, CallbackInfoReturnable<Boolean> cir) {
+        if (!Shaders.isShadersLoad()) return;
+        Shaders.popEntity();
+    }
 
 }

@@ -17,19 +17,19 @@ import shadersmodcore.util.Utils;
 
 @Mixin({Minecraft.class})
 public class MinecraftMixin {
-   @Shadow public GuiChat imposed_gui_chat;
+    @Shadow public GuiChat imposed_gui_chat;
 
-   @Inject(at = {@At("TAIL")}, method = {"startGame"})
-   private void injectEnableLightmap(CallbackInfo callbackInfo) {
-      Shaders.startup(ReflectHelper.dyCast(this));
-      OptimizeConfig.loadConfig();
-   }
+    @Inject(at = {@At("TAIL")}, method = {"startGame"})
+    private void injectEnableLightmap(CallbackInfo callbackInfo) {
+        Shaders.startup(ReflectHelper.dyCast(this));
+        OptimizeConfig.loadConfig();
+    }
 
-   @WrapOperation(method = "runGameLoop", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
-   private boolean grassQuality(GameSettings instance, Operation<Boolean> original) {
-      if (OptimizeConfig.grassQuality != 0)
-         return Utils.convertIntToBoolean(OptimizeConfig.grassQuality);
-       return original.call(instance);
-   }
+    @WrapOperation(method = "runGameLoop", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
+    private boolean grassQuality(GameSettings instance, Operation<Boolean> original) {
+        if (OptimizeConfig.grassQuality != 0)
+        return Utils.convertIntToBoolean(OptimizeConfig.grassQuality);
+        return original.call(instance);
+    }
 
 }

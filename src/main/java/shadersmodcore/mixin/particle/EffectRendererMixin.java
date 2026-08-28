@@ -12,14 +12,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin({EffectRenderer.class})
 public class EffectRendererMixin {
 
-   @Inject(method = "addBlockDestroyEffects(IIIIII)V", at = @At("HEAD"), cancellable = true)
-   public void addBlockDestroyEffects(int x, int y, int z, int block_id, int metadata, int aux_data, CallbackInfo info) {
-      if (OptimizeConfig.blockDestroyEffects) {
-         this.addBlockDestroyEffects(x, y, z, block_id, metadata, aux_data, (AxisAlignedBB)null);
-      }
-      info.cancel();
-   }
+    @Inject(method = "addBlockDestroyEffects(IIIIII)V", at = @At("HEAD"), cancellable = true)
+    public void addBlockDestroyEffects(int x, int y, int z, int block_id, int metadata, int aux_data, CallbackInfo info) {
+        if (OptimizeConfig.blockDestroyEffects) {
+            this.addBlockDestroyEffects(x, y, z, block_id, metadata, aux_data, (AxisAlignedBB)null);
+        }
+        info.cancel();
+    }
 
-   @Shadow
-   public void addBlockDestroyEffects(int x, int y, int z, int block_id, int metadata, int aux_data, AxisAlignedBB bounds_of_exclusion) {}
+    @Shadow
+    public void addBlockDestroyEffects(int x, int y, int z, int block_id, int metadata, int aux_data, AxisAlignedBB bounds_of_exclusion) {}
 }

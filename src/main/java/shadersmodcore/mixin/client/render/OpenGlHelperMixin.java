@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(OpenGlHelper.class)
 public class OpenGlHelperMixin {
 
-   @Inject(method = "setActiveTexture", at = @At("HEAD"))
-   private static void setActiveTexture(int par0, CallbackInfo info) {
-      OpenGlHelperExtra.activeTexUnit = par0;
-   }
+    @Inject(method = "setActiveTexture", at = @At("HEAD"))
+    private static void setActiveTexture(int par0, CallbackInfo info) {
+        OpenGlHelperExtra.activeTexUnit = par0;
+    }
 
 }
