@@ -112,7 +112,7 @@ public abstract class EntityRendererMixin {
         if (!Shaders.isShadersLoad()) {
             return instance.getRenderDistance();
         }
-        return !Shaders.isShadowPass ? 1 : 2;
+        return !Shaders.isShadowPass ? 1 : instance.getRenderDistance();
     }
 
     // A
@@ -306,34 +306,29 @@ public abstract class EntityRendererMixin {
 
     @WrapOperation(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/EntityRenderer;renderRainSnow(F)V"))
     private void renderWeather(EntityRenderer instance, float var6, Operation<Void> original) {
-        if (OptimizeConfig.renderRainSnow)
-        original.call(instance, var6);
+        if (OptimizeConfig.renderRainSnow) original.call(instance, var6);
     }
 
     @WrapOperation(method = "updateRenderer", at = @At(value = "INVOKE", target = "Lnet/minecraft/EntityRenderer;addRainParticles()V"))
     private void renderWeatherParticles(EntityRenderer instance, Operation<Void> original) {
-        if (OptimizeConfig.renderRainSnow)
-        original.call(instance);
+        if (OptimizeConfig.renderRainSnow) original.call(instance);
     }
 
     @WrapOperation(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
     private boolean waterQuality(GameSettings instance, Operation<Boolean> original) {
-        if (OptimizeConfig.waterQuality != 0)
-        return Utils.convertIntToBoolean(OptimizeConfig.waterQuality);
+        if (OptimizeConfig.waterQuality != 0) return Utils.convertIntToBoolean(OptimizeConfig.waterQuality);
         return original.call(instance);
     }
 
     @WrapOperation(method = "addRainParticles", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
     private boolean rainQuality(GameSettings instance, Operation<Boolean> original) {
-        if (OptimizeConfig.rainQuality != 0)
-        return Utils.convertIntToBoolean(OptimizeConfig.rainQuality);
+        if (OptimizeConfig.rainQuality != 0) return Utils.convertIntToBoolean(OptimizeConfig.rainQuality);
         return original.call(instance);
     }
 
     @WrapOperation(method = "renderRainSnow", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
     private boolean rainQuality_1(GameSettings instance, Operation<Boolean> original) {
-        if (OptimizeConfig.rainQuality != 0)
-        return Utils.convertIntToBoolean(OptimizeConfig.rainQuality);
+        if (OptimizeConfig.rainQuality != 0) return Utils.convertIntToBoolean(OptimizeConfig.rainQuality);
         return original.call(instance);
     }
 }

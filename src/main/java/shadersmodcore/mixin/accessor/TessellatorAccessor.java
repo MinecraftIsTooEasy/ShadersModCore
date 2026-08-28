@@ -1,4 +1,4 @@
-package shadersmodcore.mixin.client.render;
+package shadersmodcore.mixin.accessor;
 
 import net.minecraft.Tessellator;
 import org.spongepowered.asm.mixin.Mixin;

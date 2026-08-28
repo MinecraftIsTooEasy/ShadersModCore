@@ -5,7 +5,9 @@
   "target": "DEFAULT",
   "minVersion": "0.8.3",
   "client": [
-    "block.BlockAccessor",
+    "accessor.BlockAccessor",
+    "accessor.EntityRendererAccessor",
+    "accessor.TessellatorAccessor",
     "block.BlockMixin",
     "client.MinecraftMixin",
     "client.render.EntityRendererMixin",
@@ -18,13 +20,9 @@
     "client.render.RenderManagerMixin",
     "client.render.RenderMixin",
     "client.render.RenderParticleMixin",
-    "client.render.RenderSpiderMixin",
     "client.render.SimpleTextureMixin",
-    "client.render.TessellatorAccessor",
     "client.render.TessellatorMixin",
     "client.render.ThreadDownloadImageDataMixin",
-    "client.render.entity.EntityRendererAccessor",
-    "client.render.entity.RenderDragonMixin",
     "client.render.entity.RenderEndermanMixin",
     "client.render.entity.RendererLivingEntityMixin",
     "client.render.entity.RenderFishMixin",
@@ -48,6 +46,7 @@
     "world.WorldMixin"
   ],
   "mixins": [
-    "accessor.RenderGlobalAccessor"
+    "accessor.RenderGlobalAccessor",
+    "client.render.entity.RenderSpiderMixin"
   ]
 }

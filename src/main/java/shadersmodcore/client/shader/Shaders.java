@@ -9,7 +9,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
 import shadersmodcore.api.AbstractTextureAccessor;
-import shadersmodcore.mixin.client.render.entity.EntityRendererAccessor;
+import shadersmodcore.mixin.accessor.EntityRendererAccessor;
 import shadersmodcore.util.Utils;
 
 import java.io.*;

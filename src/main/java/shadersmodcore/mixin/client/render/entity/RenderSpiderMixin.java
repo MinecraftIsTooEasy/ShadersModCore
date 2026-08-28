@@ -1,4 +1,4 @@
-package shadersmodcore.mixin.client.render;
+package shadersmodcore.mixin.client.render.entity;
 
 import net.minecraft.EntityLiving;
 import net.minecraft.ModelArachnid;

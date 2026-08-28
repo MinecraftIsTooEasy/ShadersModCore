@@ -3,7 +3,7 @@ package shadersmodcore.client.shader;
 import net.minecraft.OpenGlHelper;
 import net.minecraft.Tessellator;
 import shadersmodcore.api.TessellatorAccessor0;
-import shadersmodcore.mixin.client.render.TessellatorAccessor;
+import shadersmodcore.mixin.accessor.TessellatorAccessor;
 import shadersmodcore.util.Common;
 import shadersmodcore.util.TessellatorExtra;
 import shadersmodcore.util.Utils;

@@ -1,4 +1,4 @@
-package shadersmodcore.mixin.block;
+package shadersmodcore.mixin.accessor;
 
 import net.minecraft.Block;
 import org.spongepowered.asm.mixin.Mixin;

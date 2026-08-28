@@ -13,7 +13,7 @@ public class DefaultTexture extends AbstractTexture {
 
     public void loadTexture(ResourceManager resourceManager) {
         int[] aint = ShadersTex.createAIntImage(1, -1);
-        ShadersTex.setupTexture(((AbstractTextureAccessor) ReflectHelper.dyCast(this))
+        ShadersTex.setupTexture(((AbstractTextureAccessor) this)
         .getMultiTexID(), aint, 1, 1, false, false);
     }
 }

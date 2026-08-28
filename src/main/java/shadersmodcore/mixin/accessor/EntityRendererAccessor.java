@@ -1,4 +1,4 @@
-package shadersmodcore.mixin.client.render.entity;
+package shadersmodcore.mixin.accessor;
 
 import net.minecraft.EntityRenderer;
 import org.spongepowered.asm.mixin.Mixin;
