@@ -93,9 +93,18 @@ tasks.register("dynamicLightQueryCacheTest", JavaExec) {
 	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightQueryCacheTest"
 }
 
+tasks.register("configParsingTest", JavaExec) {
+	group = "verification"
+	description = "Runs the configuration parsing fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.config.ConfigParsingTest"
+}
+
 tasks.named("test") {
 	dependsOn "smartAnimationsTest"
 	dependsOn "dynamicLightQueryCacheTest"
+	dependsOn "configParsingTest"
 }
 
 java {

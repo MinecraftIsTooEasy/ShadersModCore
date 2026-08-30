@@ -44,16 +44,15 @@ public class ShaderConfig {
     }
 
     public static int parseInt(String p_parseInt_0_, int p_parseInt_1_) {
-        try {
-            if (p_parseInt_0_ == null) {
-                return p_parseInt_1_;
-            } else {
-                p_parseInt_0_ = p_parseInt_0_.trim();
-                return Integer.parseInt(p_parseInt_0_);
-            }
-        } catch (NumberFormatException var3) {
-            return p_parseInt_1_;
-        }
+        return ConfigUtils.parseInt(p_parseInt_0_, p_parseInt_1_);
+    }
+
+    public static float parseFloat(String value, float fallback) {
+        return ConfigUtils.parseFloat(value, fallback);
+    }
+
+    public static boolean parseBoolean(String value, boolean fallback) {
+        return ConfigUtils.parseBoolean(value, fallback);
     }
 
     public static int limit(int p_limit_0_, int p_limit_1_, int p_limit_2_) {

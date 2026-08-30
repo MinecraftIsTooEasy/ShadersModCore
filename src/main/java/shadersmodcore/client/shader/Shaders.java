@@ -9,6 +9,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.glu.GLU;
 import shadersmodcore.api.AbstractTextureAccessor;
+import shadersmodcore.config.ConfigUtils;
 import shadersmodcore.mixin.accessor.EntityRendererAccessor;
 import shadersmodcore.util.Utils;
 
@@ -260,18 +261,18 @@ public class Shaders {
             LOGGER.error("Failed to open the shaders directory");
         }
 
+        shadersConfig.clear();
         shadersConfig.setProperty("shaderPack", "");
-        if (configFile.exists()) {
-            try {
-                FileReader value = new FileReader(configFile);
+        boolean configExists = configFile.exists();
+        if (configExists) {
+            try (FileReader value = new FileReader(configFile)) {
                 shadersConfig.load(value);
-                value.close();
             } catch (Exception var3) {
                 var3.printStackTrace();
             }
         }
 
-        if (!configFile.exists()) {
+        if (!configExists) {
             try {
                 storeConfig();
             } catch (Exception var2) {
@@ -279,19 +280,19 @@ public class Shaders {
             }
         }
 
-        dtweak = Boolean.parseBoolean(shadersConfig.getProperty("dtweak", "false"));
-        configCloudShadow = Boolean.parseBoolean(shadersConfig.getProperty("cloudShadow", "false"));
-        configShadowEntities = Boolean.parseBoolean(shadersConfig.getProperty("shadowEntities", "true"));
-        configHandDepthMul = Float.parseFloat(shadersConfig.getProperty("handDepthMul", "0.125"));
-        configRenderResMul = Float.parseFloat(shadersConfig.getProperty("renderResMul", "1.0"));
-        configShadowResMul = Float.parseFloat(shadersConfig.getProperty("shadowResMul", "1.0"));
-        configShadowClipFrustrum = Boolean.parseBoolean(shadersConfig.getProperty("shadowClipFrustrum", "true"));
-        configTexMinFilB = Integer.parseInt(shadersConfig.getProperty("TexMinFilB", "0")) % 3;
-        configTexMinFilN = Integer.parseInt(shadersConfig.getProperty("TexMinFilN", Integer.toString(configTexMinFilB))) % 3;
-        configTexMinFilS = Integer.parseInt(shadersConfig.getProperty("TexMinFilS", Integer.toString(configTexMinFilB))) % 3;
-        configTexMagFilB = Integer.parseInt(shadersConfig.getProperty("TexMagFilB", "0")) % 2;
-        configTexMagFilN = Integer.parseInt(shadersConfig.getProperty("TexMagFilN", "0")) % 2;
-        configTexMagFilS = Integer.parseInt(shadersConfig.getProperty("TexMagFilS", "0")) % 2;
+        dtweak = ConfigUtils.parseBoolean(shadersConfig.getProperty("dtweak"), false);
+        configCloudShadow = ConfigUtils.parseBoolean(shadersConfig.getProperty("cloudShadow"), false);
+        configShadowEntities = ConfigUtils.parseBoolean(shadersConfig.getProperty("shadowEntities"), true);
+        configHandDepthMul = ConfigUtils.parseFloat(shadersConfig.getProperty("handDepthMul"), 0.125F);
+        configRenderResMul = ConfigUtils.parseFloat(shadersConfig.getProperty("renderResMul"), 1.0F);
+        configShadowResMul = ConfigUtils.parseFloat(shadersConfig.getProperty("shadowResMul"), 1.0F);
+        configShadowClipFrustrum = ConfigUtils.parseBoolean(shadersConfig.getProperty("shadowClipFrustrum"), true);
+        configTexMinFilB = ConfigUtils.parseInt(shadersConfig.getProperty("TexMinFilB"), 0) % 3;
+        configTexMinFilN = ConfigUtils.parseInt(shadersConfig.getProperty("TexMinFilN"), configTexMinFilB) % 3;
+        configTexMinFilS = ConfigUtils.parseInt(shadersConfig.getProperty("TexMinFilS"), configTexMinFilB) % 3;
+        configTexMagFilB = ConfigUtils.parseInt(shadersConfig.getProperty("TexMagFilB"), 0) % 2;
+        configTexMagFilN = ConfigUtils.parseInt(shadersConfig.getProperty("TexMagFilN"), 0) % 2;
+        configTexMagFilS = ConfigUtils.parseInt(shadersConfig.getProperty("TexMagFilS"), 0) % 2;
         currentshadername = shadersConfig.getProperty("shaderPack", packNameDefault);
         loadShaderPack();
     }
@@ -311,10 +312,8 @@ public class Shaders {
         shadersConfig.setProperty("TexMagFilN", Integer.toString(configTexMagFilN));
         shadersConfig.setProperty("TexMagFilS", Integer.toString(configTexMagFilS));
 
-        try {
-            FileWriter writer = new FileWriter(configFile);
+        try (FileWriter writer = new FileWriter(configFile)) {
             shadersConfig.store(writer, (String)null);
-            writer.close();
         } catch (Exception var1) {
             var1.printStackTrace();
         }

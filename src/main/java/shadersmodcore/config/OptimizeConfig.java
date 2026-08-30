@@ -35,36 +35,43 @@ public class OptimizeConfig {
     public static int rainQuality;
 
     public static void loadConfig() {
-        try {
-            if (configFile.exists()) {
-                FileReader reader = new FileReader(configFile);
+        boolean configExists = configFile.exists();
+        optimizeConfig.clear();
+
+        if (configExists) {
+            try (FileReader reader = new FileReader(configFile)) {
                 optimizeConfig.load(reader);
-                reader.close();
-            } else if (!configFile.exists()) {
-                storeConfig();
+            } catch (Exception var1) {
+                var1.printStackTrace();
             }
-        } catch (Exception var1) {
-            var1.printStackTrace();
+        } else {
+            applyConfig();
+            storeConfig();
+            return;
         }
 
-        blockDestroyEffects = Boolean.parseBoolean(optimizeConfig.getProperty("blockDestroyParticles", "true"));
-        explodeEffects = Boolean.parseBoolean(optimizeConfig.getProperty("explodeParticles", "true"));
-        potionEffects = Boolean.parseBoolean(optimizeConfig.getProperty("effectParticles", "true"));
+        applyConfig();
+    }
 
-        dynamicLights = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLights", "true"));
-        dynamicLightsFast = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLightsFast", "false"));
-        smartAnimations = Boolean.parseBoolean(optimizeConfig.getProperty("smartAnimations", "false"));
+    private static void applyConfig() {
+        blockDestroyEffects = ConfigUtils.parseBoolean(optimizeConfig.getProperty("blockDestroyParticles"), true);
+        explodeEffects = ConfigUtils.parseBoolean(optimizeConfig.getProperty("explodeParticles"), true);
+        potionEffects = ConfigUtils.parseBoolean(optimizeConfig.getProperty("effectParticles"), true);
+
+        dynamicLights = ConfigUtils.parseBoolean(optimizeConfig.getProperty("dynamicLights"), true);
+        dynamicLightsFast = ConfigUtils.parseBoolean(optimizeConfig.getProperty("dynamicLightsFast"), false);
+        smartAnimations = ConfigUtils.parseBoolean(optimizeConfig.getProperty("smartAnimations"), false);
         SmartAnimations.setEnabled(smartAnimations);
-        drawSelectionBox = Boolean.parseBoolean(optimizeConfig.getProperty("drawSelectionBox", "true"));
-        renderRainSnow = Boolean.parseBoolean(optimizeConfig.getProperty("renderRainSnow", "true"));
-        renderShadow = Boolean.parseBoolean(optimizeConfig.getProperty("renderShadow", "true"));
+        drawSelectionBox = ConfigUtils.parseBoolean(optimizeConfig.getProperty("drawSelectionBox"), true);
+        renderRainSnow = ConfigUtils.parseBoolean(optimizeConfig.getProperty("renderRainSnow"), true);
+        renderShadow = ConfigUtils.parseBoolean(optimizeConfig.getProperty("renderShadow"), true);
 
-        grassQuality = Integer.parseInt(optimizeConfig.getProperty("grassQuality", "0"));
-        leavesQuality = Integer.parseInt(optimizeConfig.getProperty("leavesQuality", "0"));
-        vignetteQuality = Boolean.parseBoolean(optimizeConfig.getProperty("cloudsQuality", "true"));
-        dropsQuality = Integer.parseInt(optimizeConfig.getProperty("dropsQuality", "0"));
-        waterQuality = Integer.parseInt(optimizeConfig.getProperty("waterQuality", "0"));
-        rainQuality = Integer.parseInt(optimizeConfig.getProperty("rainQuality", "0"));
+        grassQuality = ConfigUtils.parseInt(optimizeConfig.getProperty("grassQuality"), 0);
+        leavesQuality = ConfigUtils.parseInt(optimizeConfig.getProperty("leavesQuality"), 0);
+        vignetteQuality = ConfigUtils.parseBoolean(optimizeConfig.getProperty("cloudsQuality"), true);
+        dropsQuality = ConfigUtils.parseInt(optimizeConfig.getProperty("dropsQuality"), 0);
+        waterQuality = ConfigUtils.parseInt(optimizeConfig.getProperty("waterQuality"), 0);
+        rainQuality = ConfigUtils.parseInt(optimizeConfig.getProperty("rainQuality"), 0);
     }
 
     public static void storeConfig() {
@@ -86,10 +93,8 @@ public class OptimizeConfig {
         optimizeConfig.setProperty("waterQuality", Integer.toString(waterQuality));
         optimizeConfig.setProperty("rainQuality", Integer.toString(rainQuality));
 
-        try {
-            FileWriter writer = new FileWriter(configFile);
+        try (FileWriter writer = new FileWriter(configFile)) {
             optimizeConfig.store(writer, null);
-            writer.close();
         } catch (IOException var1) {
             var1.printStackTrace();
         }
