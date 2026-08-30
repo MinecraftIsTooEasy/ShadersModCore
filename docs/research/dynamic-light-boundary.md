@@ -15,6 +15,7 @@
 ## 接入点
 
 - `DynamicLights.getCombinedLightCached` 在读取线程本地缓存前执行边界早退；共享的 `getCombinedLight(BlockPos, int)` 也执行同一早退，因此未缓存的 `WorldMixin` 入口同样不会扫描动态光源。
+- `getCombinedLight(Entity, int)` 在查询实体持光前执行同一边界判断，覆盖 `ItemRendererMixin` 的每帧实体光照合并；`entity == null` 仍回退原路径。
 - `ChunkCacheMixin` 的动态光照入口继续负责开关和动态光源数量判定；本切片没有改变亮度合并公式、缓存 revision 或实体更新时序。
 - 未尝试移植缺少对应 API 的 RenderChunk、SmartLeaves 或完整 sprite/chunk BitSet。
 

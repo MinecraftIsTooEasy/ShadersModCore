@@ -147,6 +147,10 @@ public class DynamicLights {
     }
 
     public static int getCombinedLight(Entity entity, int combinedLight) {
+        if (entity != null && canSkipDynamicLightQuery(combinedLight)) {
+            return combinedLight;
+        }
+
         double d0 = (double)getLightLevel(entity);
         combinedLight = getCombinedLight(d0, combinedLight);
         return combinedLight;

@@ -15,6 +15,10 @@ public final class DynamicLightBoundaryTest {
             "unknown brightness values must keep the original path");
         check(!DynamicLights.canSkipDynamicLightQuery(0xA000FF),
             "non-standard low-byte encodings must keep the original path");
+        check(DynamicLights.getCombinedLight(15.0D, 240) == 240,
+            "entity light merge must preserve maximum block brightness");
+        check(DynamicLights.getCombinedLight(15.0D, 0xA000F0) == 0xA000F0,
+            "entity light merge must preserve sky-light bits at the boundary");
 
         System.out.println("DynamicLightBoundaryTest passed");
     }
