@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import shadersmodcore.client.dynamicLight.DynamicLights;
 import shadersmodcore.config.ShaderConfig;
-import shadersmodcore.util.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -45,7 +44,7 @@ public abstract class ChunkCacheMixin {
     @ModifyReturnValue(method = "getLightBrightnessForSkyBlocks", at = @At("TAIL"))
     private int modifyCout(int original, @Local(argsOnly = true, ordinal = 0) int par1, @Local(argsOnly = true, ordinal = 1) int par2, @Local(argsOnly = true, ordinal = 2) int par3) {
         if (ShaderConfig.isDynamicLights() && DynamicLights.getCount() > 0) {
-            return DynamicLights.getCombinedLight(new BlockPos(par1, par2, par3), original);
+            return DynamicLights.getCombinedLightCached(par1, par2, par3, original);
         }
         return original;
     }

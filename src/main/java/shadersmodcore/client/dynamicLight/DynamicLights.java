@@ -18,6 +18,9 @@ public class DynamicLights {
     private static Map mapItemLightLevels = new HashMap();
     private static long timeUpdateMs = 0L;
     private static boolean initialized;
+    private static volatile long lightRevision;
+    private static final ThreadLocal<DynamicLightQueryCache> QUERY_CACHE =
+        ThreadLocal.withInitial(() -> new DynamicLightQueryCache(1024));
 
     public static void entityAdded(Entity entityIn, RenderGlobal renderGlobal) {
     }
@@ -28,6 +31,7 @@ public class DynamicLights {
             if (dynamiclight != null) {
                 dynamiclight.setLightLevel(0);
                 dynamiclight.updateLitChunks(renderGlobal);
+                ++lightRevision;
             }
 
         }
@@ -52,6 +56,7 @@ public class DynamicLights {
                     }
                 }
             }
+            ++lightRevision;
         }
 
     }
@@ -104,6 +109,24 @@ public class DynamicLights {
         double d0 = getLightLevel(pos);
         combinedLight = getCombinedLight(d0, combinedLight);
         return combinedLight;
+    }
+
+    /**
+     * Reuses dynamic-light results for repeated coordinates in one render
+     * worker. The revision makes movement, removal, and world changes visible
+     * without sharing mutable cache entries between threads.
+     */
+    public static int getCombinedLightCached(int x, int y, int z, int combinedLight) {
+        long revision = lightRevision;
+        DynamicLightQueryCache cache = QUERY_CACHE.get();
+        int cached = cache.get(x, y, z, combinedLight, revision);
+        if (cached != DynamicLightQueryCache.MISS && revision == lightRevision) {
+            return cached;
+        }
+
+        int result = getCombinedLight(new BlockPos(x, y, z), combinedLight);
+        cache.put(x, y, z, combinedLight, revision, result);
+        return result;
     }
 
     public static int getCombinedLight(Entity entity, int combinedLight) {
@@ -252,6 +275,7 @@ public class DynamicLights {
         synchronized(mapDynamicLights) {
             mapDynamicLights.clear();
         }
+        ++lightRevision;
     }
 
     public static int getCount() {
