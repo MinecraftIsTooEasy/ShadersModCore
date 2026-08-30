@@ -301,8 +301,7 @@ public abstract class RenderGlobalMixin implements IWorldAccess {
 
     @WrapOperation(method = "loadRenderers", at = @At(value = "INVOKE", target = "Lnet/minecraft/GameSettings;isFancyGraphicsEnabled()Z"))
     private boolean leavesQuality(GameSettings instance, Operation<Boolean> original) {
-        if (OptimizeConfig.leavesQuality != 0)
-        return Utils.convertIntToBoolean(OptimizeConfig.leavesQuality);
+        if (OptimizeConfig.leavesQuality != 0) return Utils.convertIntToBoolean(OptimizeConfig.leavesQuality);
         return original.call(instance);
     }
 

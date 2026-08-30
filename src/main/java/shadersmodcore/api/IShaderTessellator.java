@@ -1,6 +1,6 @@
 package shadersmodcore.api;
 
-public interface TessellatorAccessor0 {
+public interface IShaderTessellator {
 
     float getNormalX();
 

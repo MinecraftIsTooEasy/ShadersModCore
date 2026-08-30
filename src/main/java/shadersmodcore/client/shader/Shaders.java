@@ -93,6 +93,8 @@ public class Shaders {
     public static int uniformEntityFlash = -1;
     public static boolean useEntityHurtFlash;
     private static final Map<String, Integer> uniformLocationCache = new HashMap<>();
+    private static final Map<Long, Integer> uniformValueCacheInt = new HashMap<>();
+    private static final Map<Long, Float> uniformValueCacheFloat = new HashMap<>();
     private static double[] previousCameraPosition = new double[3];
     private static double[] cameraPosition = new double[3];
     private static int shadowPassInterval = 0;
@@ -137,7 +139,8 @@ public class Shaders {
     public static boolean shadowMipmapEnabled = false;
     public static boolean shadowHardwareFilteringEnabled = false;
     public static boolean dtweak = true;
-    public static boolean configCloudShadow = true;
+    public static boolean configCloudShadow = false;
+    public static boolean configShadowEntities = true;
     public static float configHandDepthMul = 0.125F;
     public static float configRenderResMul = 1.0F;
     public static float configShadowResMul = 1.0F;
@@ -277,7 +280,8 @@ public class Shaders {
         }
 
         dtweak = Boolean.parseBoolean(shadersConfig.getProperty("dtweak", "false"));
-        configCloudShadow = Boolean.parseBoolean(shadersConfig.getProperty("cloudShadow", "true"));
+        configCloudShadow = Boolean.parseBoolean(shadersConfig.getProperty("cloudShadow", "false"));
+        configShadowEntities = Boolean.parseBoolean(shadersConfig.getProperty("shadowEntities", "true"));
         configHandDepthMul = Float.parseFloat(shadersConfig.getProperty("handDepthMul", "0.125"));
         configRenderResMul = Float.parseFloat(shadersConfig.getProperty("renderResMul", "1.0"));
         configShadowResMul = Float.parseFloat(shadersConfig.getProperty("shadowResMul", "1.0"));
@@ -295,6 +299,7 @@ public class Shaders {
     public static void storeConfig() {
         shadersConfig.setProperty("dtweak", Boolean.toString(dtweak));
         shadersConfig.setProperty("cloudShadow", Boolean.toString(configCloudShadow));
+        shadersConfig.setProperty("shadowEntities", Boolean.toString(configShadowEntities));
         shadersConfig.setProperty("handDepthMul", Float.toString(configHandDepthMul));
         shadersConfig.setProperty("renderResMul", Float.toString(configRenderResMul));
         shadersConfig.setProperty("shadowResMul", Float.toString(configShadowResMul));
@@ -650,7 +655,7 @@ public class Shaders {
         LOGGER.info("Reset model renderers");
         if (useMidTexCoordAttrib || useMultiTexCoord3Attrib) {
 
-            for (Object o : ((Map) Objects.requireNonNull(Utils.get(RenderManager.instance, "entityRenderMap", Map.class))).values()) {
+            for (Object o : RenderManager.instance.entityRenderMap.values()) {
                 Render ren = (Render) o;
                 if (ren instanceof RendererLivingEntity rle) {
                     resetDisplayListModel(rle.mainModel);
@@ -670,8 +675,8 @@ public class Shaders {
 
             for (Object obj : mbase.boxList) {
                 if (obj instanceof ModelRenderer mrr) {
-                    if ((Boolean) Utils.get(mrr, "compiled", Boolean.TYPE)) {
-                        GLAllocation.deleteDisplayLists((Integer) Utils.get(mrr, "displayList", Integer.TYPE));
+                    if (mrr.compiled) {
+                        GLAllocation.deleteDisplayLists(mrr.displayList);
                         Utils.set(mrr, "displayList", 0);
                         Utils.set(mrr, "compiled", false);
                     }
@@ -1196,7 +1201,7 @@ public class Shaders {
                 setProgramUniform1f("viewWidth", (float)renderWidth);
                 setProgramUniform1f("viewHeight", (float)renderHeight);
                 setProgramUniform1f("near", 0.05F);
-                setProgramUniform1f("far", (float)(32 << 3 - (Integer)Utils.get(mc.gameSettings, "renderDistance", Integer.TYPE)));
+                setProgramUniform1f("far", (float)(32 << 3 - mc.gameSettings.getRenderDistance()));
                 setProgramUniform3f("sunPosition", sunPosition[0], sunPosition[1], sunPosition[2]);
                 setProgramUniform3f("moonPosition", moonPosition[0], moonPosition[1], moonPosition[2]);
                 setProgramUniform3f("upPosition", upPosition[0], upPosition[1], upPosition[2]);
@@ -1243,14 +1248,23 @@ public class Shaders {
 
     public static void clearUniformCache() {
         uniformLocationCache.clear();
+        uniformValueCacheInt.clear();
+        uniformValueCacheFloat.clear();
     }
 
     public static void setProgramUniform1i(String name, int x) {
         int gp = programsID[activeProgram];
         if (gp != 0) {
             int uniform = getUniformLocation(gp, name);
-            ARBShaderObjects.glUniform1iARB(uniform, x);
-            checkGLError(programNames[activeProgram], name);
+            if (uniform >= 0) {
+                long key = uniformCacheKey(gp, uniform);
+                Integer last = uniformValueCacheInt.get(key);
+                if (last == null || last != x) {
+                    uniformValueCacheInt.put(key, x);
+                    ARBShaderObjects.glUniform1iARB(uniform, x);
+                    checkGLError(programNames[activeProgram], name);
+                }
+            }
         }
 
     }
@@ -1259,8 +1273,10 @@ public class Shaders {
         int gp = programsID[activeProgram];
         if (gp != 0) {
             int uniform = getUniformLocation(gp, name);
-            ARBShaderObjects.glUniform2iARB(uniform, x, y);
-            checkGLError(programNames[activeProgram], name);
+            if (uniform >= 0) {
+                ARBShaderObjects.glUniform2iARB(uniform, x, y);
+                checkGLError(programNames[activeProgram], name);
+            }
         }
 
     }
@@ -1269,8 +1285,15 @@ public class Shaders {
         int gp = programsID[activeProgram];
         if (gp != 0) {
             int uniform = getUniformLocation(gp, name);
-            ARBShaderObjects.glUniform1fARB(uniform, x);
-            checkGLError(programNames[activeProgram], name);
+            if (uniform >= 0) {
+                long key = uniformCacheKey(gp, uniform);
+                Float last = uniformValueCacheFloat.get(key);
+                if (last == null || last != x) {
+                    uniformValueCacheFloat.put(key, x);
+                    ARBShaderObjects.glUniform1fARB(uniform, x);
+                    checkGLError(programNames[activeProgram], name);
+                }
+            }
         }
 
     }
@@ -1279,8 +1302,10 @@ public class Shaders {
         int gp = programsID[activeProgram];
         if (gp != 0) {
             int uniform = getUniformLocation(gp, name);
-            ARBShaderObjects.glUniform3fARB(uniform, x, y, z);
-            checkGLError(programNames[activeProgram], name);
+            if (uniform >= 0) {
+                ARBShaderObjects.glUniform3fARB(uniform, x, y, z);
+                checkGLError(programNames[activeProgram], name);
+            }
         }
 
     }
@@ -1289,10 +1314,16 @@ public class Shaders {
         int gp = programsID[activeProgram];
         if (gp != 0 && matrix != null) {
             int uniform = getUniformLocation(gp, name);
-            ARBShaderObjects.glUniformMatrix4ARB(uniform, transpose, matrix);
-            checkGLError(programNames[activeProgram], name);
+            if (uniform >= 0) {
+                ARBShaderObjects.glUniformMatrix4ARB(uniform, transpose, matrix);
+                checkGLError(programNames[activeProgram], name);
+            }
         }
 
+    }
+
+    private static long uniformCacheKey(int program, int location) {
+        return ((long) program << 32) | (location & 0xFFFFFFFFL);
     }
 
     private static int getBufferIndexFromString(String name) {
@@ -1388,6 +1419,10 @@ public class Shaders {
                 programsDrawBuffers[i] = null;
                 programsCompositeMipmapSetting[i] = 0;
             }
+
+            // Programs were deleted; their GL IDs (and thus cached uniform locations/values) are stale
+            // and may be reused by the next program, so drop the caches.
+            clearUniformCache();
 
             if (dfb != 0) {
                 EXTFramebufferObject.glDeleteFramebuffersEXT(dfb);

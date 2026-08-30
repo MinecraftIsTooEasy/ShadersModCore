@@ -13,6 +13,7 @@ options.texture.quality=Texture quality results
 options.texture.maximum.mass=Maximum mass of texture
 options.texture.maximum.effect=Maximum effect of textures
 options.frustum.shadow=Shadow frustum
+options.entities.shadow=Shadow entities
 
 options.open.shader.config=Open the Shader Configuration folder
 options.list.shader.profiles=List of Shader Profiles

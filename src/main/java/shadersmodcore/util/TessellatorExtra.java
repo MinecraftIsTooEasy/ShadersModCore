@@ -2,7 +2,7 @@ package shadersmodcore.util;
 
 import net.minecraft.GLAllocation;
 import net.minecraft.Tessellator;
-import shadersmodcore.api.TessellatorAccessor0;
+import shadersmodcore.api.IShaderTessellator;
 import shadersmodcore.mixin.accessor.TessellatorAccessor;
 import shadersmodcore.client.shader.ShadersTess;
 import org.lwjgl.opengl.ARBVertexBufferObject;
@@ -31,7 +31,7 @@ public class TessellatorExtra extends Tessellator {
             ARBVertexBufferObject.glGenBuffersARB(Common.vertexBuffers);
         }
 
-        ((TessellatorAccessor0) this).setVertexPos(new float[par1]);
+        ((IShaderTessellator) this).setVertexPos(new float[par1]);
         this.shadersTess = new ShadersTess();
     }
 }
