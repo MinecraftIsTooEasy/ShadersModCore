@@ -32,15 +32,24 @@
 - 配置读取在加载前清空属性集；文件不存在时先应用默认值再写盘；整数/浮点损坏值回退，布尔值保留 `Boolean.parseBoolean` 的兼容语义。未发现需要在本轮修复的明确异常路径。
 - 空粒子优化只在四层都明确为空时取消普通粒子渲染，未触碰粒子更新、生成、删除或 OpenGL 状态；非空和未知布局均回退原版。
 
-本次审查未发现明确 bug，因此没有新增失败测试、生产代码或代码提交。
+基线审查未发现明确 bug；后续切片及其实现记录如下。
+
+## 后续切片：动态光照最大亮度边界
+
+在上述审查后继续对照本地 OptiFine SRC，确认动态光照只会提高组合光照值低字节中的方块亮度。标准方块亮度 15 编码为 `0xF0`；在该边界上继续扫描动态光源或查询线程本地缓存不可能改变返回值。本轮新增 `DynamicLights.canSkipDynamicLightQuery`，在 `getCombinedLightCached` 的缓存读取前及共享的 `getCombinedLight(BlockPos, int)` 中对标准 `0xF0` 做早退。
+
+早退只接受非负且低字节恰为 `0xF0` 的编码，负值、低于最大值和非标准低字节均回退原路径；动态光照关闭时 Mixin 仍直接返回原版亮度。新增失败优先 fixture `DynamicLightBoundaryTest`，覆盖天空光高位、低值和异常输入。详细调查记录见 `docs/research/dynamic-light-boundary.md`。
+
+本轮后独立 fixture 共五个：`smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。
 
 ## 已验证证据
 
-使用 Java 17（`Zulu 17.0.20.1`）和已有的映射 Minecraft jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码类型编译和测试源码编译均成功。随后四个 fixture 全部通过：
+使用 Java 17（`Zulu 17.0.20.1`）和已有的映射 Minecraft jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码类型编译和测试源码编译均成功。随后五个 fixture 全部通过：
 
 ```text
 SmartAnimationsTest passed
 DynamicLightQueryCacheTest passed
+DynamicLightBoundaryTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed
 ```
@@ -49,8 +58,8 @@ ParticleRenderOptimizerTest passed
 
 项目 Gradle 任务也做了真实尝试，但受环境阻塞：
 
-- `./gradlew --no-daemon test` 和 `./gradlew --no-daemon build` 在默认 Java 25 下配置阶段报 `Unsupported class file major version 69`；wrapper 直接探测还遇到用户 Gradle 缓存锁 `Operation not permitted`。
-- 切换 Java 17 并使用工作区 `.gradle` 后，Gradle 8.5 daemon 因沙箱禁止绑定 socket 报 `java.net.SocketException: Operation not permitted`。
+- 默认 Java 25 执行 `./gradlew --no-daemon test` 在配置阶段报 `Unsupported class file major version 69`；wrapper 版本探测还遇到用户 Gradle 缓存锁 `Operation not permitted`。
+- `JAVA_HOME` 切换到 Zulu 17、`GRADLE_USER_HOME` 隔离到 `/private/tmp` 后，wrapper 需要从 `services.gradle.org` 下载发行包并因网络禁用报 `UnknownHostException`；直接使用本机已有 Gradle 8.5 发行包可绕过下载，但 `test` 和 `build` 的 daemon 随后都因沙箱禁止绑定 socket 报 `java.net.SocketException: Operation not permitted`。
 
 因此没有把 `build/` 中已有的 class/jar 当作本轮 Gradle 产物，也没有宣称 Gradle `test` 或 `build` 成功。
 

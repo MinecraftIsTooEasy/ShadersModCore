@@ -106,6 +106,10 @@ public class DynamicLights {
     }
 
     public static int getCombinedLight(BlockPos pos, int combinedLight) {
+        if (canSkipDynamicLightQuery(combinedLight)) {
+            return combinedLight;
+        }
+
         double d0 = getLightLevel(pos);
         combinedLight = getCombinedLight(d0, combinedLight);
         return combinedLight;
@@ -117,6 +121,10 @@ public class DynamicLights {
      * without sharing mutable cache entries between threads.
      */
     public static int getCombinedLightCached(int x, int y, int z, int combinedLight) {
+        if (canSkipDynamicLightQuery(combinedLight)) {
+            return combinedLight;
+        }
+
         long revision = lightRevision;
         DynamicLightQueryCache cache = QUERY_CACHE.get();
         int cached = cache.get(x, y, z, combinedLight, revision);
@@ -127,6 +135,15 @@ public class DynamicLights {
         int result = getCombinedLight(new BlockPos(x, y, z), combinedLight);
         cache.put(x, y, z, combinedLight, revision, result);
         return result;
+    }
+
+    /**
+     * Dynamic lights only raise the block-light byte (bits 4-7). Once it is
+     * at the maximum vanilla value, scanning the light list cannot change the
+     * result. Negative/unknown encodings keep the original query path.
+     */
+    static boolean canSkipDynamicLightQuery(int combinedLight) {
+        return combinedLight >= 0 && (combinedLight & 255) == 240;
     }
 
     public static int getCombinedLight(Entity entity, int combinedLight) {

@@ -93,6 +93,14 @@ tasks.register("dynamicLightQueryCacheTest", JavaExec) {
 	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightQueryCacheTest"
 }
 
+tasks.register("dynamicLightBoundaryTest", JavaExec) {
+	group = "verification"
+	description = "Runs the dynamic-light maximum-brightness boundary fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightBoundaryTest"
+}
+
 tasks.register("configParsingTest", JavaExec) {
 	group = "verification"
 	description = "Runs the configuration parsing fixture."
@@ -112,6 +120,7 @@ tasks.register("particleRenderOptimizerTest", JavaExec) {
 tasks.named("test") {
 	dependsOn "smartAnimationsTest"
 	dependsOn "dynamicLightQueryCacheTest"
+	dependsOn "dynamicLightBoundaryTest"
 	dependsOn "configParsingTest"
 	dependsOn "particleRenderOptimizerTest"
 }
