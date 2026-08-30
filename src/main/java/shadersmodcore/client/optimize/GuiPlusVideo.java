@@ -5,6 +5,7 @@ import net.minecraft.GuiButton;
 import net.minecraft.GuiScreen;
 import net.minecraft.I18n;
 import shadersmodcore.client.shader.GuiShaders;
+import shadersmodcore.client.shader.SmartAnimations;
 import shadersmodcore.config.OptimizeConfig;
 import shadersmodcore.util.Utils;
 
@@ -38,6 +39,8 @@ public class GuiPlusVideo extends GuiScreen {
         I18n.getString("options.render.rainsnow") + ": " + Utils.getTranslationBoolean(OptimizeConfig.renderRainSnow)));
         this.buttonList.add(new GuiButton(113, this.width / 2 + 5, this.height / 7 + 100, 150, 20,
         I18n.getString("options.render.shadow") + ": " + Utils.getTranslationBoolean(OptimizeConfig.renderShadow)));
+        this.buttonList.add(new GuiButton(114, this.width / 2 - 155, this.height / 7 + 125, 150, 20,
+        I18n.getString("options.smart.animations") + ": " + Utils.getTranslationBoolean(OptimizeConfig.smartAnimations)));
 
     }
 
@@ -65,6 +68,10 @@ public class GuiPlusVideo extends GuiScreen {
             } else if (par1GuiButton.id == 113) {
                 OptimizeConfig.renderShadow = !OptimizeConfig.renderShadow;
                 par1GuiButton.displayString = I18n.getString("options.render.shadow") + ": " + Utils.getTranslationBoolean(OptimizeConfig.renderShadow);
+            } else if (par1GuiButton.id == 114) {
+                OptimizeConfig.smartAnimations = !OptimizeConfig.smartAnimations;
+                SmartAnimations.setEnabled(OptimizeConfig.smartAnimations);
+                par1GuiButton.displayString = I18n.getString("options.smart.animations") + ": " + Utils.getTranslationBoolean(OptimizeConfig.smartAnimations);
 
             } else if (par1GuiButton.id == 200) {
                 this.mc.gameSettings.saveOptions();

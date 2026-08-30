@@ -1,6 +1,7 @@
 package shadersmodcore.config;
 
 import net.minecraft.Minecraft;
+import shadersmodcore.client.shader.SmartAnimations;
 
 import java.io.File;
 import java.io.FileReader;
@@ -20,6 +21,8 @@ public class OptimizeConfig {
     public static boolean dynamicLights;
     /** OptiFine-compatible light position polling throttle (500 ms). */
     public static boolean dynamicLightsFast;
+    /** OptiFine-style texture usage tracking; disabled until explicitly enabled. */
+    public static boolean smartAnimations;
     public static boolean drawSelectionBox;
     public static boolean renderRainSnow;
     public static boolean renderShadow;
@@ -50,6 +53,8 @@ public class OptimizeConfig {
 
         dynamicLights = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLights", "true"));
         dynamicLightsFast = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLightsFast", "false"));
+        smartAnimations = Boolean.parseBoolean(optimizeConfig.getProperty("smartAnimations", "false"));
+        SmartAnimations.setEnabled(smartAnimations);
         drawSelectionBox = Boolean.parseBoolean(optimizeConfig.getProperty("drawSelectionBox", "true"));
         renderRainSnow = Boolean.parseBoolean(optimizeConfig.getProperty("renderRainSnow", "true"));
         renderShadow = Boolean.parseBoolean(optimizeConfig.getProperty("renderShadow", "true"));
@@ -69,6 +74,7 @@ public class OptimizeConfig {
 
         optimizeConfig.setProperty("dynamicLights", Boolean.toString(dynamicLights));
         optimizeConfig.setProperty("dynamicLightsFast", Boolean.toString(dynamicLightsFast));
+        optimizeConfig.setProperty("smartAnimations", Boolean.toString(smartAnimations));
         optimizeConfig.setProperty("drawSelectionBox", Boolean.toString(drawSelectionBox));
         optimizeConfig.setProperty("renderRainSnow", Boolean.toString(renderRainSnow));
         optimizeConfig.setProperty("renderShadow", Boolean.toString(renderShadow));

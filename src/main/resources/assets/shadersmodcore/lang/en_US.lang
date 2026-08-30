@@ -24,6 +24,7 @@ options.dynamic.light=Dynamic light source
 options.drawing.selection.block=Drawing selection block
 options.render.rainsnow=Rain & Snow
 options.render.shadow=Shadow
+options.smart.animations=Smart animations
 
 options.block.destroy.effect=Destroying Blocks
 options.block.explode.effect=Explode

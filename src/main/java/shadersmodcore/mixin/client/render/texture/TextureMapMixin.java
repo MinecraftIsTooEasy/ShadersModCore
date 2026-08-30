@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import shadersmodcore.api.AbstractTextureAccessor;
 import shadersmodcore.api.TextureMapAccessor;
 import shadersmodcore.client.shader.ShadersTex;
+import shadersmodcore.client.shader.Shaders;
+import shadersmodcore.client.shader.SmartAnimations;
 import shadersmodcore.util.TextureUtilExtra;
 
 import java.io.IOException;
@@ -61,9 +63,13 @@ public abstract class TextureMapMixin extends AbstractTexture implements Texture
         ShadersTex.updateTextureMap(is, i, j, k, l, bl, bl2);
     }
 
-    @Inject(method = "updateAnimations", at = @At("HEAD"))
+    @Inject(method = "updateAnimations", at = @At("HEAD"), cancellable = true)
     public void updateAnimationsHead(CallbackInfo ci) {
         ShadersTex.updatingTex = ((AbstractTextureAccessor) this).getMultiTexID();
+        if (!SmartAnimations.shouldAnimateTexture(ShadersTex.updatingTex.base, Shaders.isShadowPass)) {
+            ShadersTex.updatingTex = null;
+            ci.cancel();
+        }
     }
 
     @Inject(method = "updateAnimations", at = @At("TAIL"))

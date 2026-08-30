@@ -77,6 +77,18 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
 
+tasks.register("smartAnimationsTest", JavaExec) {
+	group = "verification"
+	description = "Runs the Smart Animations state-machine fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.client.shader.SmartAnimationsTest"
+}
+
+tasks.named("test") {
+	dependsOn "smartAnimationsTest"
+}
+
 java {
 	withSourcesJar()
 

@@ -148,6 +148,7 @@ public class ShadersTex {
 
     public static void bindTextures(MultiTexID multiTex) {
         boundTex = multiTex;
+        SmartAnimations.textureRendered(multiTex.base, Shaders.isShadowPass);
         bindTextures(multiTex.base, multiTex.norm, multiTex.spec);
     }
 
@@ -484,31 +485,18 @@ public class ShadersTex {
 
     public static void updateAnimationTextureMap(TextureMap tex, List tasList) {
         MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID();
+        MultiTexID previousUpdatingTex = updatingTex;
+        updatingTex = multiTex;
         GL11.glBindTexture(3553, multiTex.base);
-        Iterator iterator = tasList.iterator();
-
-        TextureAtlasSprite tas;
-        while(iterator.hasNext()) {
-            tas = (TextureAtlasSprite)iterator.next();
-            tas.updateAnimation();
+        try {
+            Iterator iterator = tasList.iterator();
+            while(iterator.hasNext()) {
+                TextureAtlasSprite tas = (TextureAtlasSprite)iterator.next();
+                tas.updateAnimation();
+            }
+        } finally {
+            updatingTex = previousUpdatingTex;
         }
-
-        GL11.glBindTexture(3553, multiTex.norm);
-        iterator = tasList.iterator();
-
-        while(iterator.hasNext()) {
-            tas = (TextureAtlasSprite)iterator.next();
-            tas.updateAnimation();
-        }
-
-        GL11.glBindTexture(3553, multiTex.spec);
-        iterator = tasList.iterator();
-
-        while(iterator.hasNext()) {
-            tas = (TextureAtlasSprite)iterator.next();
-            tas.updateAnimation();
-        }
-
     }
 
     public static void setupTexture(MultiTexID multiTex, int[] src, int width, int height, boolean linear, boolean clamp) {
