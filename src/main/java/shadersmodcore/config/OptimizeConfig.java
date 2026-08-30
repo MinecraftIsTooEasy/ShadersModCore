@@ -18,6 +18,8 @@ public class OptimizeConfig {
     public static boolean potionEffects;
 
     public static boolean dynamicLights;
+    /** OptiFine-compatible light position polling throttle (500 ms). */
+    public static boolean dynamicLightsFast;
     public static boolean drawSelectionBox;
     public static boolean renderRainSnow;
     public static boolean renderShadow;
@@ -47,6 +49,7 @@ public class OptimizeConfig {
         potionEffects = Boolean.parseBoolean(optimizeConfig.getProperty("effectParticles", "true"));
 
         dynamicLights = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLights", "true"));
+        dynamicLightsFast = Boolean.parseBoolean(optimizeConfig.getProperty("dynamicLightsFast", "false"));
         drawSelectionBox = Boolean.parseBoolean(optimizeConfig.getProperty("drawSelectionBox", "true"));
         renderRainSnow = Boolean.parseBoolean(optimizeConfig.getProperty("renderRainSnow", "true"));
         renderShadow = Boolean.parseBoolean(optimizeConfig.getProperty("renderShadow", "true"));
@@ -65,6 +68,7 @@ public class OptimizeConfig {
         optimizeConfig.setProperty("effectParticles", Boolean.toString(potionEffects));
 
         optimizeConfig.setProperty("dynamicLights", Boolean.toString(dynamicLights));
+        optimizeConfig.setProperty("dynamicLightsFast", Boolean.toString(dynamicLightsFast));
         optimizeConfig.setProperty("drawSelectionBox", Boolean.toString(drawSelectionBox));
         optimizeConfig.setProperty("renderRainSnow", Boolean.toString(renderRainSnow));
         optimizeConfig.setProperty("renderShadow", Boolean.toString(renderShadow));

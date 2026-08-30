@@ -1,23 +1,30 @@
 package shadersmodcore.client.dynamicLight;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DynamicLightsMap {
-    private Map map = new HashMap();
-    private List list = new ArrayList();
-    private boolean dirty = false;
+    private final Map<Integer, DynamicLight> map = new HashMap<>();
+    /**
+     * Copy-on-write snapshot so block light queries do not contend with the
+     * entity update lock. The map itself remains guarded by the caller's lock.
+     */
+    private volatile List<DynamicLight> list = Collections.emptyList();
 
     public DynamicLight put(int id, DynamicLight dynamicLight) {
-        DynamicLight dynamiclight = (DynamicLight)this.map.put(id, dynamicLight);
-        this.setDirty();
+        boolean hadKey = this.map.containsKey(id);
+        DynamicLight dynamiclight = this.map.put(id, dynamicLight);
+        if (!hadKey || dynamiclight != dynamicLight) {
+            this.list = Collections.unmodifiableList(new ArrayList<>(this.map.values()));
+        }
         return dynamiclight;
     }
 
     public DynamicLight get(int id) {
-        return (DynamicLight)this.map.get(id);
+        return this.map.get(id);
     }
 
     public int size() {
@@ -25,9 +32,12 @@ public class DynamicLightsMap {
     }
 
     public DynamicLight remove(int id) {
-        DynamicLight dynamiclight = (DynamicLight)this.map.remove(id);
-        if (dynamiclight != null) {
-            this.setDirty();
+        boolean hadKey = this.map.containsKey(id);
+        DynamicLight dynamiclight = this.map.remove(id);
+        if (hadKey) {
+            this.list = this.map.isEmpty()
+                ? Collections.emptyList()
+                : Collections.unmodifiableList(new ArrayList<>(this.map.values()));
         }
 
         return dynamiclight;
@@ -35,21 +45,10 @@ public class DynamicLightsMap {
 
     public void clear() {
         this.map.clear();
-        this.list.clear();
-        this.setDirty();
+        this.list = Collections.emptyList();
     }
 
-    private void setDirty() {
-        this.dirty = true;
-    }
-
-    public List valueList() {
-        if (this.dirty) {
-            this.list.clear();
-            this.list.addAll(this.map.values());
-            this.dirty = false;
-        }
-
+    public List<DynamicLight> valueList() {
         return this.list;
     }
 }

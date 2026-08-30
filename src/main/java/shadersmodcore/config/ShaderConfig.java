@@ -20,7 +20,7 @@ public class ShaderConfig {
     }
 
     public static boolean isDynamicLightsFast() {
-        return false;
+        return OptimizeConfig.dynamicLightsFast;
     }
 
     public static boolean isDynamicHandLight() {

@@ -127,33 +127,27 @@ public class DynamicLights {
 
     public static double getLightLevel(BlockPos pos) {
         double d0 = 0.0D;
-        synchronized(mapDynamicLights) {
-            List list = mapDynamicLights.valueList();
-            int i = list.size();
+        for (DynamicLight dynamiclight : mapDynamicLights.valueList()) {
+            int k = dynamiclight.getLastLightLevel();
+            if (k > 0) {
+                double d1 = dynamiclight.getLastPosX();
+                double d2 = dynamiclight.getLastPosY();
+                double d3 = dynamiclight.getLastPosZ();
+                double d4 = (double) pos.x() - d1;
+                double d5 = (double) pos.y() - d2;
+                double d6 = (double) pos.z() - d3;
+                double d7 = d4 * d4 + d5 * d5 + d6 * d6;
+                if (dynamiclight.isUnderwater() && !ShaderConfig.isClearWater()) {
+                    k = ShaderConfig.limit(k - 2, 0, 15);
+                    d7 *= 2.0D;
+                }
 
-            for (Object o : list) {
-                DynamicLight dynamiclight = (DynamicLight) o;
-                int k = dynamiclight.getLastLightLevel();
-                if (k > 0) {
-                    double d1 = dynamiclight.getLastPosX();
-                    double d2 = dynamiclight.getLastPosY();
-                    double d3 = dynamiclight.getLastPosZ();
-                    double d4 = (double) pos.x() - d1;
-                    double d5 = (double) pos.y() - d2;
-                    double d6 = (double) pos.z() - d3;
-                    double d7 = d4 * d4 + d5 * d5 + d6 * d6;
-                    if (dynamiclight.isUnderwater() && !ShaderConfig.isClearWater()) {
-                        k = ShaderConfig.limit(k - 2, 0, 15);
-                        d7 *= 2.0D;
-                    }
-
-                    if (d7 <= 56.25D) {
-                        double d8 = Math.sqrt(d7);
-                        double d9 = 1.0D - d8 / 7.5D;
-                        double d10 = d9 * (double) k;
-                        if (d10 > d0) {
-                            d0 = d10;
-                        }
+                if (d7 <= 56.25D) {
+                    double d8 = Math.sqrt(d7);
+                    double d9 = 1.0D - d8 / 7.5D;
+                    double d10 = d9 * (double) k;
+                    if (d10 > d0) {
+                        d0 = d10;
                     }
                 }
             }
@@ -261,9 +255,7 @@ public class DynamicLights {
     }
 
     public static int getCount() {
-        synchronized(mapDynamicLights) {
-            return mapDynamicLights.size();
-        }
+        return mapDynamicLights.valueList().size();
     }
 
     public static ItemStack getItemStack(EntityItem entityItem) {

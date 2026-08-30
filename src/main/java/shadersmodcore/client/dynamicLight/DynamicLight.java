@@ -12,11 +12,11 @@ import java.util.concurrent.TimeUnit;
 public class DynamicLight {
     private Entity entity;
     private double offsetY;
-    private double lastPosX = -2.147483648E9D;
-    private double lastPosY = -2.147483648E9D;
-    private double lastPosZ = -2.147483648E9D;
-    private int lastLightLevel = 0;
-    private boolean underwater = false;
+    private volatile double lastPosX = -2.147483648E9D;
+    private volatile double lastPosY = -2.147483648E9D;
+    private volatile double lastPosZ = -2.147483648E9D;
+    private volatile int lastLightLevel = 0;
+    private volatile boolean underwater = false;
     private long timeCheckMs = 0L;
     private RenderGlobal renderGlobal;
     private boolean willFlash = false;

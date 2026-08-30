@@ -484,7 +484,7 @@ public class ShadersTex {
 
     public static void updateAnimationTextureMap(TextureMap tex, List tasList) {
         MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID();
-        GL11.glBindTexture(3553, multiTex.norm);
+        GL11.glBindTexture(3553, multiTex.base);
         Iterator iterator = tasList.iterator();
 
         TextureAtlasSprite tas;
@@ -501,7 +501,7 @@ public class ShadersTex {
             tas.updateAnimation();
         }
 
-        GL11.glBindTexture(3553, multiTex.norm);
+        GL11.glBindTexture(3553, multiTex.spec);
         iterator = tasList.iterator();
 
         while(iterator.hasNext()) {
