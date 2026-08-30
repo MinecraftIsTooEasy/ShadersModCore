@@ -487,8 +487,8 @@ public class ShadersTex {
         MultiTexID multiTex = ((AbstractTextureAccessor) tex).getMultiTexID();
         MultiTexID previousUpdatingTex = updatingTex;
         updatingTex = multiTex;
-        GL11.glBindTexture(3553, multiTex.base);
         try {
+            GL11.glBindTexture(3553, multiTex.base);
             Iterator iterator = tasList.iterator();
             while(iterator.hasNext()) {
                 TextureAtlasSprite tas = (TextureAtlasSprite)iterator.next();

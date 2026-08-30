@@ -7,13 +7,12 @@ import net.minecraft.*;
 import net.xiaoyu233.fml.util.ReflectHelper;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import shadersmodcore.api.AbstractTextureAccessor;
 import shadersmodcore.api.TextureMapAccessor;
-import shadersmodcore.client.shader.ShadersTex;
+import shadersmodcore.client.shader.MultiTexID;
 import shadersmodcore.client.shader.Shaders;
+import shadersmodcore.client.shader.ShadersTex;
 import shadersmodcore.client.shader.SmartAnimations;
 import shadersmodcore.util.TextureUtilExtra;
 
@@ -63,18 +62,21 @@ public abstract class TextureMapMixin extends AbstractTexture implements Texture
         ShadersTex.updateTextureMap(is, i, j, k, l, bl, bl2);
     }
 
-    @Inject(method = "updateAnimations", at = @At("HEAD"), cancellable = true)
-    public void updateAnimationsHead(CallbackInfo ci) {
-        ShadersTex.updatingTex = ((AbstractTextureAccessor) this).getMultiTexID();
-        if (!SmartAnimations.shouldAnimateTexture(ShadersTex.updatingTex.base, Shaders.isShadowPass)) {
-            ShadersTex.updatingTex = null;
-            ci.cancel();
+    // TextureManager reaches atlas animation through tick; the wrapper keeps the update context exception-safe.
+    @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureMap;updateAnimations()V"))
+    private void tickAnimations(TextureMap instance, Operation<Void> original) {
+        MultiTexID previousUpdatingTex = ShadersTex.updatingTex;
+        MultiTexID currentUpdatingTex = ((AbstractTextureAccessor) this).getMultiTexID();
+        if (!SmartAnimations.shouldAnimateTexture(currentUpdatingTex.base, Shaders.isShadowPass)) {
+            return;
         }
-    }
 
-    @Inject(method = "updateAnimations", at = @At("TAIL"))
-    public void updateAnimationsTail(CallbackInfo ci) {
-        ShadersTex.updatingTex = null;
+        ShadersTex.updatingTex = currentUpdatingTex;
+        try {
+            original.call(instance);
+        } finally {
+            ShadersTex.updatingTex = previousUpdatingTex;
+        }
     }
 
     @Redirect(method = "updateAnimations", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;bindTexture(I)V"))

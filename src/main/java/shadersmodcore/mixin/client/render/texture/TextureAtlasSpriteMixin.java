@@ -36,19 +36,9 @@ public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAcces
     @Shadow private float minV;
     @Shadow private float maxV;
 
-    @Inject(method = "updateAnimation", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;uploadTextureSub([IIIIIZZ)V"))
-    public void updateAnimation(CallbackInfo info) {
-        ++this.tickCounter;
-        if (this.tickCounter >= this.animationMetadata.getFrameTimeSingle(this.frameCounter)) {
-            int var1 = this.animationMetadata.getFrameIndex(this.frameCounter);
-            int var2 = this.animationMetadata.getFrameCount() == 0 ? this.framesTextureData.size() : this.animationMetadata.getFrameCount();
-            this.frameCounter = (this.frameCounter + 1) % var2;
-            this.tickCounter = 0;
-            int var3 = this.animationMetadata.getFrameIndex(this.frameCounter);
-            if (var1 != var3 && var3 >= 0 && var3 < this.framesTextureData.size()) {
-                ShadersTex.updateSubImage((int[]) this.framesTextureData.get(var3), this.width, this.height, this.originX, this.originY, false, false);
-            }
-        }
+    @Redirect(method = "updateAnimation", at = @At(value = "INVOKE", target = "Lnet/minecraft/TextureUtil;uploadTextureSub([IIIIIZZ)V"))
+    private void redirectUpdateAnimation(int[] pixels, int width, int height, int originX, int originY, boolean linear, boolean clamp) {
+        ShadersTex.updateSubImage(pixels, width, height, originX, originY, linear, clamp);
     }
 
     @Redirect(method = "loadSprite", at = @At(value = "FIELD", target = "Lnet/minecraft/TextureAtlasSprite;width:I", ordinal = 1))

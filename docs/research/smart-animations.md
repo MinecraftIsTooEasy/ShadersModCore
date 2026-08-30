@@ -9,7 +9,8 @@
 
 ## 当前管线映射
 
-- `TextureMapMixin.updateAnimations` 在 HEAD 设置 `ShadersTex.updatingTex`，把原版 atlas bind 重定向到 base 页；`TextureAtlasSpriteMixin.updateAnimation` 在原版上传点推进一次计数器，并通过 `ShadersTex.updateSubImage` 同步 base/norm/spec 三页。
+- `TextureMapMixin.tick` 包装目标 atlas 对 `updateAnimations` 的调用，在实际 tick 入口设置 `ShadersTex.updatingTex`，并以 `try/finally` 恢复嵌套状态；Smart Animations 跳过时直接不调用原版动画方法。atlas bind 仍重定向到 base 页。
+- `TextureAtlasSpriteMixin.updateAnimation` 只重定向原版上传调用到 `ShadersTex.updateSubImage`，不再重复推进计数器，因此每个 sprite 每 tick 只执行一次原版帧推进，并同步 base/norm/spec 三页。
 - `ShadersTex.updateAnimationTextureMap` 当前没有调用方。此前它对三个 shader 页各调用一次 `TextureAtlasSprite.updateAnimation`，会把同一个 sprite 的 `tickCounter/frameCounter` 推进三次；本轮改为只在 base 页执行一次，避免跨页 frame boundary 漂移。
 - `TextureManagerMixin.bindTexture` 是当前统一的纹理对象绑定入口，`ShadersTex.bindTextures` 绑定 base/norm/spec；本轮在此记录 base texture ID。TextureManager 的 `tick` 依次驱动 `TextureMap.tick`，其 TAIL 是快照清空边界；资源重载 HEAD 也清空，避免旧 GL ID 泄漏到新 atlas。
 

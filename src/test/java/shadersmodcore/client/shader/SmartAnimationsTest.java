@@ -30,6 +30,14 @@ public final class SmartAnimationsTest {
         check(!SmartAnimations.shouldAnimateTexture(8, false), "tick boundary keeps known texture tracking");
         SmartAnimations.reset();
         check(SmartAnimations.shouldAnimateTexture(8, false), "resource reset forgets texture IDs");
+
+        SmartAnimations.textureRendered(10, false);
+        SmartAnimations.setEnabled(false);
+        SmartAnimations.setEnabled(true);
+        check(SmartAnimations.shouldAnimateTexture(10, false), "re-enabling starts with an empty snapshot");
+
+        SmartAnimations.textureRendered(-1, false);
+        check(SmartAnimations.shouldAnimateTexture(-1, false), "invalid texture IDs keep vanilla path");
         SmartAnimations.setEnabled(false);
         System.out.println("SmartAnimationsTest passed");
     }
