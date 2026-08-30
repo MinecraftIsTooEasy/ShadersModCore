@@ -1,7 +1,7 @@
 import java.text.SimpleDateFormat
 
 plugins {
-	id 'fml-loom' version '0.1.local'
+	id 'fml-loom' version '0.1'
 	id 'maven-publish'
 }
 
@@ -25,32 +25,45 @@ repositories {
 		name = "Spongepowered"
 		url = "https://repo.spongepowered.org/repository/maven-public/"
 	}
+	maven {
+        name = "ModdedMITE"
+        url = uri("https://maven.limingzxc.top/repository/maven-public/")
+    }
 }
+
+configurations {
+	fml
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    fml "com.github.MinecraftIsTooEasy:FishModLoader:3.4.2"
+    implementation "com.github.MinecraftIsTooEasy:FishModLoader:3.4.2"
+
+}
+
+def fmlResolvedFile = configurations.fml.files.iterator().next()
+
 
 loom {
 	accessWidenerPath = file("src/main/resources/shadersmodcore.accesswidener")
 	mergedMinecraftJar()
-	setFML(new File("D:\\Projects\\IDEA\\Minecraft\\MITE\\FishModLoader-v3.4.2.jar"))
 	mods {
 		"ShadersModCore" {
 			sourceSet sourceSets.main
 		}
 	}
-
+    runs {
+        client {
+            programArgs "--userProperties", "{}", "--username", "Dev", "--session", "a.a.a.a", "--width", "1920", "--height", "1080"
+        }
+    }
 }
 
-//runClient{
-//	args("--username", "Dev", "--session", "a.a.a.a", "--width", 854, "--height", 480)
-//}
-
-dependencies {
-
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.fmlMCPMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	implementation files(loom.getFML().toPath())
-}
+loom.setFML(fmlResolvedFile)
+dependencies.add("mappings", loom.fmlMCPMappings())
 
 processResources {
 	inputs.property "version", project.version
@@ -85,5 +98,13 @@ publishing {
 	}
 
 	repositories {
+	    maven {
+            name = "ModdedMITE"
+            url = uri("https://maven.limingzxc.top/repository/maven-releases/")
+            credentials {
+                username = project.findProperty("nexusUsername")
+                password = project.findProperty("nexusPassword")
+            }
+        }
 	}
 }
