@@ -101,10 +101,19 @@ tasks.register("configParsingTest", JavaExec) {
 	mainClass = "shadersmodcore.config.ConfigParsingTest"
 }
 
+tasks.register("particleRenderOptimizerTest", JavaExec) {
+	group = "verification"
+	description = "Runs the empty regular-particle render fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.client.optimize.ParticleRenderOptimizerTest"
+}
+
 tasks.named("test") {
 	dependsOn "smartAnimationsTest"
 	dependsOn "dynamicLightQueryCacheTest"
 	dependsOn "configParsingTest"
+	dependsOn "particleRenderOptimizerTest"
 }
 
 java {

@@ -29,6 +29,7 @@ options.smart.animations=Smart animations
 options.block.destroy.effect=Destroying Blocks
 options.block.explode.effect=Explode
 options.potion.particle.effect=Potion
+options.particle.empty.render=Skip empty particle render
 
 options.quality.grass=Grass
 options.quality.leaves=Leaves

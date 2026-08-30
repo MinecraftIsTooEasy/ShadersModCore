@@ -17,6 +17,8 @@ public class OptimizeConfig {
     public static boolean blockDestroyEffects;
     public static boolean explodeEffects;
     public static boolean potionEffects;
+    /** Skips the regular particle renderer only when every particle layer is empty. */
+    public static boolean skipEmptyParticleRender;
 
     public static boolean dynamicLights;
     /** OptiFine-compatible light position polling throttle (500 ms). */
@@ -57,6 +59,7 @@ public class OptimizeConfig {
         blockDestroyEffects = ConfigUtils.parseBoolean(optimizeConfig.getProperty("blockDestroyParticles"), true);
         explodeEffects = ConfigUtils.parseBoolean(optimizeConfig.getProperty("explodeParticles"), true);
         potionEffects = ConfigUtils.parseBoolean(optimizeConfig.getProperty("effectParticles"), true);
+        skipEmptyParticleRender = ConfigUtils.parseBoolean(optimizeConfig.getProperty("skipEmptyParticleRender"), true);
 
         dynamicLights = ConfigUtils.parseBoolean(optimizeConfig.getProperty("dynamicLights"), true);
         dynamicLightsFast = ConfigUtils.parseBoolean(optimizeConfig.getProperty("dynamicLightsFast"), false);
@@ -78,6 +81,7 @@ public class OptimizeConfig {
         optimizeConfig.setProperty("blockDestroyParticles", Boolean.toString(blockDestroyEffects));
         optimizeConfig.setProperty("explodeParticles", Boolean.toString(explodeEffects));
         optimizeConfig.setProperty("effectParticles", Boolean.toString(potionEffects));
+        optimizeConfig.setProperty("skipEmptyParticleRender", Boolean.toString(skipEmptyParticleRender));
 
         optimizeConfig.setProperty("dynamicLights", Boolean.toString(dynamicLights));
         optimizeConfig.setProperty("dynamicLightsFast", Boolean.toString(dynamicLightsFast));
