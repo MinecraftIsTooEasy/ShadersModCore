@@ -42,14 +42,21 @@
 
 本轮后独立 fixture 共五个：`smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。
 
+## 后续修复：法线/高光纹理资源路径
+
+继续检查纹理更新路径时发现 `ShadersTex.getNSMapLocation` 的 `split(".png")` 正则通配符会错误截断包含 `png` 片段的合法文件名，例如 `pngstone.png`。本轮新增 `ShadersTexResourcePathTest` 先确认旧实现失败，再改为字面后缀移除；资源域、无后缀路径及 `_n.png`/`_s.png` 规则保持不变。详细记录见 `docs/research/texture-resource-path.md`。
+
+本轮后独立 fixture 共六个，新增 `shadersTexResourcePathTest`。
+
 ## 已验证证据
 
-使用 Java 17（`Zulu 17.0.20.1`）和已有的映射 Minecraft jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码类型编译和测试源码编译均成功。随后五个 fixture 全部通过：
+使用 Java 17（`Zulu 17.0.20.1`）和已有的映射 Minecraft jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码类型编译和测试源码编译均成功。随后六个 fixture 全部通过：
 
 ```text
 SmartAnimationsTest passed
 DynamicLightQueryCacheTest passed
 DynamicLightBoundaryTest passed
+ShadersTexResourcePathTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed
 ```

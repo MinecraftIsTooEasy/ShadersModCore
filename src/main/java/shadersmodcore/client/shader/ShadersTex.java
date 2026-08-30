@@ -570,8 +570,9 @@ public class ShadersTex {
 
     public static ResourceLocation getNSMapLocation(ResourceLocation location, String mapName) {
         String basename = location.getResourcePath();
-        String[] basenameParts = basename.split(".png");
-        String basenameNoFileType = basenameParts[0];
+        String basenameNoFileType = basename.endsWith(".png")
+            ? basename.substring(0, basename.length() - 4)
+            : basename;
         return new ResourceLocation(location.getResourceDomain(), basenameNoFileType + "_" + mapName + ".png");
     }
 
