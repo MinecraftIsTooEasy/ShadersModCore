@@ -82,7 +82,8 @@ ParticleRenderOptimizerTest passed
 项目 Gradle 任务也做了真实尝试，但受环境阻塞：
 
 - 默认 Java 25 执行 `./gradlew --no-daemon test` 在配置阶段报 `Unsupported class file major version 69`。
-- 使用本机 Gradle 8.5、Java 17 和工作区 `.gradle` 执行 `test` 与 `build` 时，daemon 均因沙箱禁止绑定 socket 报 `java.net.SocketException: Operation not permitted`；改用全局 Gradle 缓存还会在 native service 初始化时报 `Failed to load native library 'libnative-platform.dylib'`。
+- Java 17 执行 `./gradlew --no-daemon test` 时 wrapper 无法打开全局 `gradle-8.5-bin.zip.lck`，报 `FileNotFoundException (Operation not permitted)`；将 `GRADLE_USER_HOME` 隔离到工作区后，wrapper 下载又因网络限制报 `UnknownHostException: services.gradle.org`。
+- 直接调用本机缓存的 Gradle 8.5、Java 17 并使用工作区 `.gradle` 执行 `test` 与 `build` 时，daemon 均因沙箱禁止绑定 socket 报 `java.net.SocketException: Operation not permitted`；改用全局 Gradle 缓存还会在 native service 初始化时报 `Failed to load native library 'libnative-platform.dylib'`。
 
 因此没有把 `build/` 中已有的 class/jar 当作本轮 Gradle 产物，也没有宣称 Gradle `test` 或 `build` 成功。
 
