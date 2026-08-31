@@ -149,7 +149,8 @@ public class DynamicLights {
             return cached;
         }
 
-        int result = getCombinedLight(new BlockPos(x, y, z), combinedLight);
+        double lightLevel = getLightLevel(mapDynamicLights.valueList(), x, y, z);
+        int result = getCombinedLight(lightLevel, combinedLight);
         cache.put(x, y, z, combinedLight, revision, result);
         return result;
     }
@@ -191,10 +192,14 @@ public class DynamicLights {
     }
 
     public static double getLightLevel(BlockPos pos) {
-        return getLightLevel(mapDynamicLights.valueList(), pos);
+        return getLightLevel(mapDynamicLights.valueList(), pos.x(), pos.y(), pos.z());
     }
 
     static double getLightLevel(List<DynamicLight> lights, BlockPos pos) {
+        return getLightLevel(lights, pos.x(), pos.y(), pos.z());
+    }
+
+    static double getLightLevel(List<DynamicLight> lights, int x, int y, int z) {
         double d0 = 0.0D;
         int lightCount = lights.size();
         // DynamicLightsMap exposes an immutable snapshot, so indexed access avoids
@@ -206,9 +211,9 @@ public class DynamicLights {
                 double d1 = dynamiclight.getLastPosX();
                 double d2 = dynamiclight.getLastPosY();
                 double d3 = dynamiclight.getLastPosZ();
-                double d4 = (double) pos.x() - d1;
-                double d5 = (double) pos.y() - d2;
-                double d6 = (double) pos.z() - d3;
+                double d4 = (double) x - d1;
+                double d5 = (double) y - d2;
+                double d6 = (double) z - d3;
                 double d7 = d4 * d4 + d5 * d5 + d6 * d6;
                 if (dynamiclight.isUnderwater() && !ShaderConfig.isClearWater()) {
                     k = ShaderConfig.limit(k - 2, 0, 15);

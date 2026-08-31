@@ -30,6 +30,8 @@ public final class DynamicLightScanTest {
 
         check(DynamicLights.getLightLevel(snapshot, new BlockPos(0, 0, 0)) == 0.0D,
             "an empty light snapshot should return zero without iterator traversal");
+        check(DynamicLights.getLightLevel(snapshot, 0, 0, 0) == 0.0D,
+            "primitive coordinate scans should preserve the empty snapshot boundary");
 
         System.out.println("DynamicLightScanTest passed");
     }

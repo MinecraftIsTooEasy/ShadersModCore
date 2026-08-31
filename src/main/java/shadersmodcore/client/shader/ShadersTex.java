@@ -95,19 +95,39 @@ public class ShadersTex {
         return multiTex;
     }
 
-    public static void deleteTextures(AbstractTexture atex) {
-        int texid = atex.getGlTextureId();
-        GL11.glDeleteTextures(texid);
-        ((AbstractTextureAccessor) atex).setGlTextureId(0);
-        MultiTexID multiTex = ((AbstractTextureAccessor) atex).getMultiTexID();
+    static MultiTexID detachTextureState(AbstractTextureAccessor texture) {
+        if (texture == null) {
+            return null;
+        }
+
+        MultiTexID multiTex = texture.getMultiTexID0();
         if (multiTex != null) {
-            ((AbstractTextureAccessor) atex).setMultiTexID(null);
             multiTexMap.remove(multiTex.base);
-            GL11.glDeleteTextures(multiTex.norm);
-            GL11.glDeleteTextures(multiTex.spec);
+            texture.setMultiTexID(null);
+        }
+        texture.setGlTextureId(-1);
+        return multiTex;
+    }
+
+    public static void deleteTextures(AbstractTexture atex) {
+        AbstractTextureAccessor texture = (AbstractTextureAccessor) atex;
+        int texid = texture.getGlTextureId();
+        MultiTexID multiTex = detachTextureState(texture);
+        if (texid > 0) {
+            GL11.glDeleteTextures(texid);
+        }
+        if (multiTex != null) {
+            if (multiTex.norm > 0) {
+                GL11.glDeleteTextures(multiTex.norm);
+            }
+            if (multiTex.spec > 0) {
+                GL11.glDeleteTextures(multiTex.spec);
+            }
             if (multiTex.base != texid) {
                 System.err.println("Error : MultiTexID.base mismatch.");
-                GL11.glDeleteTextures(multiTex.base);
+                if (multiTex.base > 0) {
+                    GL11.glDeleteTextures(multiTex.base);
+                }
             }
         }
 
