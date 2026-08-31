@@ -141,6 +141,14 @@ tasks.register("shadersTexResourceFallbackTest", JavaExec) {
 	mainClass = "shadersmodcore.client.shader.ShadersTexResourceFallbackTest"
 }
 
+tasks.register("shadersTexLayeredResourceTest", JavaExec) {
+	group = "verification"
+	description = "Runs the shader layered-texture resource fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.client.shader.ShadersTexLayeredResourceTest"
+}
+
 tasks.register("configParsingTest", JavaExec) {
 	group = "verification"
 	description = "Runs the configuration parsing fixture."
@@ -174,6 +182,7 @@ tasks.named("test") {
 	dependsOn "dynamicLightEntityFallbackTest"
 	dependsOn "shadersTexResourcePathTest"
 	dependsOn "shadersTexResourceFallbackTest"
+	dependsOn "shadersTexLayeredResourceTest"
 	dependsOn "configParsingTest"
 	dependsOn "particleRenderOptimizerTest"
 	dependsOn "tessellatorBufferGrowthTest"

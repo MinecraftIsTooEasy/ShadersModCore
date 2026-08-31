@@ -656,8 +656,10 @@ public class ShadersTex {
             String s;
             do {
                 if (!iterator.hasNext()) {
-                    setupTexture(((AbstractTextureAccessor) tex).getMultiTexID(),
-                    image, width, height, false, false);
+                    if (image != null) {
+                        setupTexture(((AbstractTextureAccessor) tex).getMultiTexID(),
+                        image, width, height, false, false);
+                    }
                     return;
                 }
 
@@ -666,8 +668,10 @@ public class ShadersTex {
 
             try {
                 ResourceLocation location = new ResourceLocation(s);
-                InputStream inputstream = manager.getResource(location).getInputStream();
-                BufferedImage bufimg = ImageIO.read(inputstream);
+                BufferedImage bufimg = loadLayeredImage(manager, location);
+                if (bufimg == null) {
+                    continue;
+                }
                 if (size == 0) {
                     width = bufimg.getWidth();
                     height = bufimg.getHeight();
@@ -688,6 +692,26 @@ public class ShadersTex {
             } catch (IOException var15) {
                 var15.printStackTrace();
             }
+        }
+    }
+
+    static BufferedImage loadLayeredImage(ResourceManager manager, ResourceLocation location) throws IOException {
+        if (manager == null || location == null) {
+            return null;
+        }
+
+        Resource resource = manager.getResource(location);
+        if (resource == null) {
+            return null;
+        }
+
+        InputStream input = resource.getInputStream();
+        if (input == null) {
+            return null;
+        }
+
+        try (InputStream stream = input) {
+            return ImageIO.read(stream);
         }
     }
 
