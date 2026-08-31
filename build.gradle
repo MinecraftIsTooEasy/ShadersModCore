@@ -109,6 +109,14 @@ tasks.register("dynamicLightRevisionTest", JavaExec) {
 	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightRevisionTest"
 }
 
+tasks.register("dynamicLightScanTest", JavaExec) {
+	group = "verification"
+	description = "Runs the allocation-free dynamic-light scan fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightScanTest"
+}
+
 tasks.register("shadersTexResourcePathTest", JavaExec) {
 	group = "verification"
 	description = "Runs the shader texture resource-path fixture."
@@ -138,6 +146,7 @@ tasks.named("test") {
 	dependsOn "dynamicLightQueryCacheTest"
 	dependsOn "dynamicLightBoundaryTest"
 	dependsOn "dynamicLightRevisionTest"
+	dependsOn "dynamicLightScanTest"
 	dependsOn "shadersTexResourcePathTest"
 	dependsOn "configParsingTest"
 	dependsOn "particleRenderOptimizerTest"

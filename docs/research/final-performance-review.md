@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：七个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：八个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：七个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：八个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-七个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`shadersTexResourcePathTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这七个任务，没有发现重复注册或循环依赖。
+八个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`shadersTexResourcePathTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这八个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -40,7 +40,7 @@
 
 早退只接受非负且低字节恰为 `0xF0` 的编码，负值、低于最大值和非标准低字节均回退原路径；动态光照关闭时 Mixin 仍直接返回原版亮度。新增失败优先 fixture `DynamicLightBoundaryTest`，覆盖天空光高位、低值和异常输入。详细调查记录见 `docs/research/dynamic-light-boundary.md`。
 
-动态光照切片后独立 fixture 共六个：`smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。
+动态光照切片后独立 fixture 共七个：`smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。
 
 ## 后续切片：动态光照 revision 惰性失效
 
@@ -50,21 +50,28 @@
 
 新增失败优先 fixture `DynamicLightRevisionTest`，覆盖稳定 revision、变化递增和无变化边界；动态光照查询缓存、亮度边界和其它既有 fixture 保持不变。
 
+## 后续切片：动态光照扫描无 Iterator 分配
+
+继续检查缓存未命中路径时发现，`DynamicLights.getLightLevel(BlockPos)` 对不可变光源快照使用增强 `for`，每次查询都会创建 Iterator。对照 OptiFine 的索引循环，本轮新增同包列表重载并按 `size/get` 扫描，消除该分配；光照计算和快照发布语义不变。详细调查记录见 `docs/research/dynamic-light-scan.md`。
+
+新增失败优先 fixture `DynamicLightScanTest`，用拒绝 `iterator()` 的列表验证扫描只使用索引访问。
+
 ## 后续修复：法线/高光纹理资源路径
 
 继续检查纹理更新路径时发现 `ShadersTex.getNSMapLocation` 的 `split(".png")` 正则通配符会错误截断包含 `png` 片段的合法文件名，例如 `pngstone.png`。本轮新增 `ShadersTexResourcePathTest` 先确认旧实现失败，再改为字面后缀移除；资源域、无后缀路径及已有 `_n.png`/`_s.png` 命名规则保持不变。审查另发现字面后缀修复遗漏了 OptiFine 的空位置回退，已补回 `null` 保护并以失败优先断言覆盖。详细记录见 `docs/research/texture-resource-path.md`。
 
-本轮后独立 fixture 共七个，新增 `shadersTexResourcePathTest`。
+本轮后独立 fixture 共八个，新增 `shadersTexResourcePathTest`。
 
 ## 已验证证据
 
-使用 Java 17（`Zulu 17.0.20.1`）、本地映射 Minecraft merged jar 和 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码和测试源码均成功。随后七个 fixture 全部通过：
+使用 Java 17（`Zulu 17.0.20.1`）、本地映射 Minecraft merged jar 和 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码和测试源码均成功。随后八个 fixture 全部通过：
 
 ```text
 SmartAnimationsTest passed
 DynamicLightQueryCacheTest passed
 DynamicLightBoundaryTest passed
 DynamicLightRevisionTest passed
+DynamicLightScanTest passed
 ShadersTexResourcePathTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed

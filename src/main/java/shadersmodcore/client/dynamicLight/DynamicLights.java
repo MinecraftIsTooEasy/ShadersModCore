@@ -178,8 +178,16 @@ public class DynamicLights {
     }
 
     public static double getLightLevel(BlockPos pos) {
+        return getLightLevel(mapDynamicLights.valueList(), pos);
+    }
+
+    static double getLightLevel(List<DynamicLight> lights, BlockPos pos) {
         double d0 = 0.0D;
-        for (DynamicLight dynamiclight : mapDynamicLights.valueList()) {
+        int lightCount = lights.size();
+        // DynamicLightsMap exposes an immutable snapshot, so indexed access avoids
+        // allocating an Iterator for every cache-miss block query.
+        for (int index = 0; index < lightCount; ++index) {
+            DynamicLight dynamiclight = lights.get(index);
             int k = dynamiclight.getLastLightLevel();
             if (k > 0) {
                 double d1 = dynamiclight.getLastPosX();
