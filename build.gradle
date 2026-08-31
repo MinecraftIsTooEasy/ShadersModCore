@@ -141,6 +141,14 @@ tasks.register("particleRenderOptimizerTest", JavaExec) {
 	mainClass = "shadersmodcore.client.optimize.ParticleRenderOptimizerTest"
 }
 
+tasks.register("tessellatorBufferGrowthTest", JavaExec) {
+	group = "verification"
+	description = "Runs the per-instance tessellator buffer growth fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.util.TessellatorBufferGrowthTest"
+}
+
 tasks.named("test") {
 	dependsOn "smartAnimationsTest"
 	dependsOn "dynamicLightQueryCacheTest"
@@ -150,6 +158,7 @@ tasks.named("test") {
 	dependsOn "shadersTexResourcePathTest"
 	dependsOn "configParsingTest"
 	dependsOn "particleRenderOptimizerTest"
+	dependsOn "tessellatorBufferGrowthTest"
 }
 
 java {

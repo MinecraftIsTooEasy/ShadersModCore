@@ -5,7 +5,7 @@ import net.minecraft.Tessellator;
 import shadersmodcore.api.IShaderTessellator;
 import shadersmodcore.mixin.accessor.TessellatorAccessor;
 import shadersmodcore.util.Common;
-import shadersmodcore.util.TessellatorExtra;
+import shadersmodcore.util.TessellatorBufferGrowth;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.ARBVertexShader;
 import org.lwjgl.opengl.GL11;
@@ -193,28 +193,29 @@ public class ShadersTess {
     public static void addVertex(Tessellator tess, double parx, double pary, double parz) {
         int[] rawBuffer = tess.rawBuffer;
         int rbi = tess.rawBufferIndex;
+        IShaderTessellator shaderTess = (IShaderTessellator) tess;
         float fx = (float)(parx + tess.xOffset);
         float fy = (float)(pary + tess.yOffset);
         float fz = (float)(parz + tess.zOffset);
-        if (rbi >= TessellatorExtra.bufferSize - 64) {
-            if (TessellatorExtra.bufferSize >= 16777216) {
+        if (TessellatorBufferGrowth.needsGrowth(rbi, rawBuffer.length)) {
+            if (rawBuffer.length >= TessellatorBufferGrowth.MAX_CAPACITY) {
                 if (tess.addedVertices % 4 == 0) {
                     tess.draw();
+                    tess.reset();
                     tess.isDrawing = true;
+                    rawBuffer = tess.rawBuffer;
+                    rbi = tess.rawBufferIndex;
                 }
-            } else if (TessellatorExtra.bufferSize > 0) {
-                TessellatorExtra.bufferSize *= 2;
-                tess.rawBuffer = rawBuffer = Arrays.copyOf(tess.rawBuffer, TessellatorExtra.bufferSize);
-                System.out.format("Expand tesselator buffer %d\n", TessellatorExtra.bufferSize);
             } else {
-                TessellatorExtra.bufferSize = 65536;
-                tess.rawBuffer = rawBuffer = new int[TessellatorExtra.bufferSize];
+                int newCapacity = TessellatorBufferGrowth.nextCapacity(rawBuffer.length);
+                tess.rawBuffer = rawBuffer = Arrays.copyOf(rawBuffer, newCapacity);
+                System.out.format("Expand tesselator buffer %d\n", newCapacity);
             }
         }
 
         if (tess.drawMode == 7) {
             int i = tess.addedVertices % 4;
-            float[] vertexPos = ((IShaderTessellator) tess).getVertexPos();
+            float[] vertexPos = shaderTess.getVertexPos();
             vertexPos[i * 4] = fx;
             vertexPos[i * 4 + 1] = fy;
             vertexPos[i * 4 + 2] = fz;
@@ -230,23 +231,26 @@ public class ShadersTess {
                 float vnz = x1 * y2 - x2 * y1;
                 float lensq = vnx * vnx + vny * vny + vnz * vnz;
                 float mult = (double)lensq != 0.0D ? (float)(1.0D / Math.sqrt((double)lensq)) : 1.0F;
-                rawBuffer[rbi + -40] = rawBuffer[rbi + -24] = rawBuffer[rbi + -8] = Float.floatToRawIntBits(
-                ((IShaderTessellator) tess).setNormalX(vnx * mult));
-                rawBuffer[rbi + -39] = rawBuffer[rbi + -23] = rawBuffer[rbi + -7] = Float.floatToRawIntBits(
-                ((IShaderTessellator) tess).setNormalY(vny * mult));
-                rawBuffer[rbi + -38] = rawBuffer[rbi + -22] = rawBuffer[rbi + -6] = Float.floatToRawIntBits(
-                ((IShaderTessellator) tess).setNormalZ(vnz * mult));
+                float normalX = shaderTess.setNormalX(vnx * mult);
+                float normalY = shaderTess.setNormalY(vny * mult);
+                float normalZ = shaderTess.setNormalZ(vnz * mult);
+                int packedNormalX = Float.floatToRawIntBits(normalX);
+                int packedNormalY = Float.floatToRawIntBits(normalY);
+                int packedNormalZ = Float.floatToRawIntBits(normalZ);
+                rawBuffer[rbi + -40] = rawBuffer[rbi + -24] = rawBuffer[rbi + -8] = packedNormalX;
+                rawBuffer[rbi + -39] = rawBuffer[rbi + -23] = rawBuffer[rbi + -7] = packedNormalY;
+                rawBuffer[rbi + -38] = rawBuffer[rbi + -22] = rawBuffer[rbi + -6] = packedNormalZ;
                 tess.hasNormals = true;
-                ((IShaderTessellator) tess).setMidTextureU
-                ((Float.intBitsToFloat(rawBuffer[rbi + -45]) + Float.intBitsToFloat(rawBuffer[rbi + -29]) +
+                float midTextureU = ((Float.intBitsToFloat(rawBuffer[rbi + -45]) + Float.intBitsToFloat(rawBuffer[rbi + -29]) +
                 Float.intBitsToFloat(rawBuffer[rbi + -13]) + (float)tess.textureU) / 4.0F);
-                ((IShaderTessellator) tess).setMidTextureV
-                ((Float.intBitsToFloat(rawBuffer[rbi + -44]) + Float.intBitsToFloat(rawBuffer[rbi + -28]) +
+                float midTextureV = ((Float.intBitsToFloat(rawBuffer[rbi + -44]) + Float.intBitsToFloat(rawBuffer[rbi + -28]) +
                 Float.intBitsToFloat(rawBuffer[rbi + -12]) + (float)tess.textureV) / 4.0F);
-                rawBuffer[rbi + -37] = rawBuffer[rbi + -21] = rawBuffer[rbi + -5] = Float.floatToRawIntBits(
-                ((IShaderTessellator) tess).getMidTextureU());
-                rawBuffer[rbi + -36] = rawBuffer[rbi + -20] = rawBuffer[rbi + -4] = Float.floatToRawIntBits(
-                ((IShaderTessellator) tess).getMidTextureV());
+                shaderTess.setMidTextureU(midTextureU);
+                shaderTess.setMidTextureV(midTextureV);
+                int packedMidTextureU = Float.floatToRawIntBits(midTextureU);
+                int packedMidTextureV = Float.floatToRawIntBits(midTextureV);
+                rawBuffer[rbi + -37] = rawBuffer[rbi + -21] = rawBuffer[rbi + -5] = packedMidTextureU;
+                rawBuffer[rbi + -36] = rawBuffer[rbi + -20] = rawBuffer[rbi + -4] = packedMidTextureV;
                 if (Tessellator.convertQuadsToTriangles) {
                     System.arraycopy(rawBuffer, rbi - 48, rawBuffer, rbi, 16);
                     System.arraycopy(rawBuffer, rbi - 16, rawBuffer, rbi + 16, 16);
@@ -266,16 +270,11 @@ public class ShadersTess {
         rawBuffer[rbi + 5] = tess.color;
         rawBuffer[rbi + 6] = Shaders.getEntityData();
         rawBuffer[rbi + 7] = tess.brightness;
-        rawBuffer[rbi + 8] = Float.floatToRawIntBits(
-        ((IShaderTessellator) tess).getNormalX());
-        rawBuffer[rbi + 9] = Float.floatToRawIntBits(
-        ((IShaderTessellator) tess).getNormalY());
-        rawBuffer[rbi + 10] = Float.floatToRawIntBits(
-        ((IShaderTessellator) tess).getNormalZ());
-        rawBuffer[rbi + 11] = Float.floatToRawIntBits(
-        ((IShaderTessellator) tess).getMidTextureU());
-        rawBuffer[rbi + 12] = Float.floatToRawIntBits(
-        ((IShaderTessellator) tess).getMidTextureV());
+        rawBuffer[rbi + 8] = Float.floatToRawIntBits(shaderTess.getNormalX());
+        rawBuffer[rbi + 9] = Float.floatToRawIntBits(shaderTess.getNormalY());
+        rawBuffer[rbi + 10] = Float.floatToRawIntBits(shaderTess.getNormalZ());
+        rawBuffer[rbi + 11] = Float.floatToRawIntBits(shaderTess.getMidTextureU());
+        rawBuffer[rbi + 12] = Float.floatToRawIntBits(shaderTess.getMidTextureV());
         rbi += 16;
         tess.rawBufferIndex = rbi;
         ++tess.vertexCount;

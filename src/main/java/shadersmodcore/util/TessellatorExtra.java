@@ -9,7 +9,6 @@ import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GLContext;
 
 public class TessellatorExtra extends Tessellator {
-    public static int bufferSize = 2097152;
     public boolean defaultTexture;
     public int rawBufferSize;
     public int textureID;
@@ -31,7 +30,8 @@ public class TessellatorExtra extends Tessellator {
             ARBVertexBufferObject.glGenBuffersARB(Common.vertexBuffers);
         }
 
-        ((IShaderTessellator) this).setVertexPos(new float[par1]);
+        // Quad normal generation only needs four positions with three coordinates each.
+        ((IShaderTessellator) this).setVertexPos(new float[TessellatorBufferGrowth.VERTEX_SCRATCH_SIZE]);
         this.shadersTess = new ShadersTess();
     }
 }

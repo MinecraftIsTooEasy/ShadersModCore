@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：八个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：九个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：八个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：九个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-八个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`shadersTexResourcePathTest`、`configParsingTest` 和 `particleRenderOptimizerTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这八个任务，没有发现重复注册或循环依赖。
+九个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`shadersTexResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这九个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -64,7 +64,7 @@
 
 ## 已验证证据
 
-使用 Java 17（`Zulu 17.0.20.1`）、本地映射 Minecraft merged jar 和 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`；主源码和测试源码均成功。随后八个 fixture 全部通过：
+既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。当前工作树使用可见的本地 merged jar 直接复跑 `javac --release 17 -proc:none` 时，被尚未应用 access widener 的 classpath 阻塞：`Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段仍是私有/受保护；这些错误均来自既有源码访问边界，本轮没有新增。随后使用同一 Java 17 和本地依赖对可独立分层编译的源码运行九个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -75,6 +75,7 @@ DynamicLightScanTest passed
 ShadersTexResourcePathTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed
+TessellatorBufferGrowthTest passed
 ```
 
 `git diff --check` 通过。
@@ -96,3 +97,7 @@ ParticleRenderOptimizerTest passed
 3. 四层粒子为空、仅有第 3 层粒子以及混合层时的渲染状态和位置；
 4. 首次启动、重复加载和损坏配置文件的默认值与落盘权限；
 5. 动态光照实体静止与移动场景的 revision 稳定性、缓存命中率和区块编译帧时间。
+
+## 后续切片：Tessellator 顶点缓冲容量与 scratch
+
+继续对照本地 OptiFine `SVertexBuilder` 和目标 `ShadersTess` 时发现，目标用共享静态容量判断每个实例的 `rawBuffer`，实例扩容后可能使新实例在数组尾部越界；四顶点法线计算还为只使用的 16 个坐标槽位分配了完整构造容量的 float 数组。本轮新增 `TessellatorBufferGrowth`，按实例 `rawBuffer.length` 扩容、达到上限 flush 后 reset，并固定 16-float scratch，同时把法线/中间 UV 打包值缓存到局部变量。顶点步长、颜色编码、法线计算和 OpenGL 布局没有改变。失败优先 fixture 为 `TessellatorBufferGrowthTest`，对应研究记录见 `docs/research/tessellator-buffer-growth.md`。
