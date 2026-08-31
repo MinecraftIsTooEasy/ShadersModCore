@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：十七个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：十八个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：十七个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：十八个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-十七个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`dynamicLightChunkUpdateTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`shadersTexTextureLifecycleTest`、`textureManagerTextureReplacementTest`、`shaderPackResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十七个任务，没有发现重复注册或循环依赖。
+十八个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`dynamicLightChunkUpdateTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`textureAtlasSpriteResourceLifecycleTest`、`shadersTexTextureLifecycleTest`、`textureManagerTextureReplacementTest`、`shaderPackResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十八个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -83,7 +83,7 @@
 
 ## 已验证证据
 
-Java 17（`Zulu 17.0.20.1`）使用本地 Loom merged Minecraft jar、FishModLoader classpath 和 `javac --release 17 -proc:none` 已完成全部 `src/main/java` 与 `src/test/java` 独立编译；随后以同一 classpath 运行十七个 fixture，全部通过：
+Java 17（`Zulu 17.0.20.1`）使用本地 Loom merged Minecraft jar、FishModLoader classpath 和 `javac --release 17 -proc:none` 已完成全部 `src/main/java` 与 `src/test/java` 独立编译；随后以同一 classpath 运行十八个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -97,6 +97,7 @@ DynamicLightChunkUpdateTest passed
 ShadersTexResourcePathTest passed
 ShadersTexResourceFallbackTest passed
 ShadersTexLayeredResourceTest passed
+TextureAtlasSpriteResourceLifecycleTest passed
 ShadersTexTextureLifecycleTest passed
 TextureManagerTextureReplacementTest passed
 ShaderPackResourcePathTest passed
@@ -291,3 +292,44 @@ legacy classpath，对全部 `src/main/java` 与 `src/test/java` 执行
 
 未启动游戏或服务，未执行真实 Mixin 织入、资源重载、OpenGL 删除调用、渲染视觉、动态
 光照命中率、帧时间或 FPS 测量；这些仍需可运行 Java 17 客户端和 profiler 验证。
+
+## 后续修复：TextureAtlasSprite 资源流生命周期（2026-08-31）
+
+### 调查
+
+继续复核 atlas 纹理资源路径时，`javap -c -p` 确认本地 MITE merged jar 的
+`TextureAtlasSprite.loadSprite(Resource)` 取得 `Resource.getInputStream()` 后调用
+`ImageIO.read`，正常返回与异常路径均没有 `close()`。`TextureMap.loadTextureAtlas` 对每个
+注册 sprite 调用该方法，资源重载会因此累积未关闭的输入流。这个缺口与前述分层纹理、
+辅助 normal/specular 资源流不同，原有 fixture 未覆盖。
+
+### 修改
+
+`TextureAtlasSpriteMixin` 仅包装 `ImageIO.read(InputStream)`，以 try-with-resources 关闭
+atlas 图像输入流；图像解码结果、动画帧拆分、normal/specular 页填充和 GL 上传顺序不变。
+新增 `TextureAtlasSpriteResourceLifecycleTest`，并将其接入 `build.gradle` 的 `test` 依赖。
+详细证据见 `docs/research/texture-atlas-sprite-resource-lifecycle.md`。
+
+### 测试
+
+失败优先阶段在 helper 尚不存在时按预期编译失败；实现后 Java 17 独立 fixture 通过，覆盖
+成功解码和异常退出两条关闭路径。使用一次性 access-widener 转换后的本地 MITE 类路径，
+`javac --release 17 -proc:none` 全量编译主/测试源码通过；全部十八个 fixture 和
+`git diff --check` 通过。
+
+### Gradle
+
+Java 17 wrapper 执行 `./gradlew --no-daemon test` 受全局 `gradle-8.5-bin.zip.lck`
+权限阻塞；隔离 `GRADLE_USER_HOME` 后因网络限制无法解析 `services.gradle.org`。直接使用
+本机缓存 Gradle 8.9 时，全局缓存无法加载 `libnative-platform.dylib`，工作区 `.gradle`
+执行 `test build` 又因沙箱禁止 daemon 绑定 socket（`Operation not permitted`）失败。因此
+不宣称 Gradle `test` 或 `build` 成功，也未把已有 `build/` 产物计入证据。
+
+### 提交与未验证范围
+
+本轮目标提交应只包含 atlas 生命周期源码、fixture、研究报告和 `build.gradle`；不会包含
+`gradlew`、参考目录或生成目录。当前沙箱将 `.git` 目录设为只读，`git add` 因无法创建
+`.git/index.lock`（`Operation not permitted`）失败，因此本轮未创建 Conventional Commit，
+目标文件保持未暂存；拟用中文 Conventional Commit `fix: 修复图集精灵资源流泄漏`，待可写
+Git 元数据环境中提交。未启动游戏、未执行真实 Mixin 织入、未建立
+OpenGL 上下文，未测量资源句柄、渲染视觉、帧时间或 FPS；这些仍需可运行 Java 17 客户端验证。

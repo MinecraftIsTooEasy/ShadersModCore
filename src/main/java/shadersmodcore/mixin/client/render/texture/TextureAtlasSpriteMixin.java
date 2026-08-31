@@ -41,6 +41,20 @@ public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAcces
         ShadersTex.updateSubImage(pixels, width, height, originX, originY, linear, clamp);
     }
 
+    @WrapOperation(method = "loadSprite", at = @At(value = "INVOKE",
+        target = "Ljavax/imageio/ImageIO;read(Ljava/io/InputStream;)Ljava/awt/image/BufferedImage;"))
+    private BufferedImage closeSpriteResource(InputStream input, Operation<BufferedImage> original)
+        throws IOException {
+        return readImageAndClose(input, original);
+    }
+
+    static BufferedImage readImageAndClose(InputStream input, Operation<BufferedImage> original)
+        throws IOException {
+        try (InputStream stream = input) {
+            return original.call(stream);
+        }
+    }
+
     @Redirect(method = "loadSprite", at = @At(value = "FIELD", target = "Lnet/minecraft/TextureAtlasSprite;width:I", ordinal = 1))
     private int redirectWidth(TextureAtlasSprite instance) {
         return this.width * 3;
