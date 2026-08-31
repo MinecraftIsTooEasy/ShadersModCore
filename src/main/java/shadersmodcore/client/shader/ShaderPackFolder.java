@@ -24,8 +24,12 @@ public class ShaderPackFolder implements IShaderPack {
         int start = resName.startsWith("/") ? 1 : 0;
         int end = resName.endsWith("/") ? resName.length() - 1 : resName.length();
         String path = resName.substring(start, Math.max(start, end));
-        File resFile = new File(this.packFile, path);
         try {
+            File packRoot = this.packFile.getCanonicalFile();
+            File resFile = new File(packRoot, path).getCanonicalFile();
+            if (resFile.equals(packRoot) || !resFile.toPath().startsWith(packRoot.toPath())) {
+                return null;
+            }
             if (!resFile.isFile()) {
                 return null;
             }

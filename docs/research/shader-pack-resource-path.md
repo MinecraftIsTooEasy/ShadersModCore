@@ -18,9 +18,9 @@ zip 还只查找根目录：无前导 `/` 的合法路径会丢失首字符，�
 
 `ShaderPackResourcePathTest` 在临时目录创建 folder、根目录 zip 和单一顶层目录 zip 三种
 shader pack，验证两者的首个 `/` 可选、缺失资源返回 `null`、folder/zip 目录、非法 zip、
-close 后重开和空参数异常边界。另以两个顶层 shader 目录构造歧义 zip；旧实现首先在
-folder/zip 的无前导 `/` 读取断言失败，修复该边界后目录流和歧义选择断言继续失败，证明
-fixture 覆盖本轮实际缺陷。
+close 后重开和空参数异常边界；folder 另以 pack 外同级文件验证父目录逃逸回退。另以两个顶层
+shader 目录构造歧义 zip；旧实现首先在 folder/zip 的无前导 `/` 读取断言失败，修复该边界后
+目录流、歧义选择和 folder 逃逸断言继续失败，证明 fixture 覆盖本轮实际缺陷。
 
 ## 最小实现
 
@@ -41,6 +41,16 @@ zip 的惰性打开和 `close()` 生命周期不变；没有改变 shader 源码
 
 失败优先 fixture 在压缩包中验证带父目录段的成功读取及越过根目录的安全回退；实现后
 `ShaderPackResourcePathTest` 通过。
+
+## 后续安全修复：folder 路径根边界
+
+复核 folder 与 zip 的路径规范化时发现，folder 仅去除可选首尾 `/` 后直接构造 `File`；`..`
+或多重首 `/` 可以把读取目标带出 shader pack 根目录。扩展同一 fixture 在 pack 外创建同级
+文件，基线会错误返回该文件的流。
+
+`ShaderPackFolder` 现在将 pack 根和资源路径解析为 canonical file，并要求资源路径严格位于
+pack 根下且不是根本身；越界、绝对逃逸、缺失和目录均回退为 `null`。有效资源仍返回原有
+`BufferedInputStream`，首尾 `/` 兼容及调用方关闭责任不变。
 
 ## 验证边界
 

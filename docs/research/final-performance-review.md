@@ -392,3 +392,21 @@ Java 17（Zulu 17.0.20.1）使用本地 Loom merged Minecraft jar、FishModLoade
 18 个 fixture（含本轮 atlas fixture）全部通过，`git diff --check` 通过。Gradle `test/build`
 仍按前述记录受 wrapper 锁、网络或沙箱 daemon socket 限制，未宣称成功；未启动客户端、未执行
 真实 Mixin 织入、未建立 OpenGL 上下文，也未测量资源句柄、渲染视觉、帧时间或 FPS。
+
+## 后续安全修复：ShaderPackFolder 路径根边界（2026-08-31）
+
+### 调查与失败优先
+
+继续复核 `ShaderPackFolder` 与 `ShaderPackZip` 的路径规范化时发现，folder 只去除可选首尾
+`/` 后直接调用 `new File(packFile, path)`；`..` 和多重首 `/` 可解析到 shader pack 根目录之外。
+这与 zip 已有的父目录归一化形成不一致，也会让 shader 资源读取越过 pack 边界。扩展既有
+`ShaderPackResourcePathTest`，在 pack 外创建同级文件并先在基线复现错误读取。
+
+### 修改与验证
+
+`ShaderPackFolder.getResourceAsStream` 现在将 pack 根与目标解析为 canonical file，要求目标
+严格位于根目录下且不等于根本身；越界、绝对逃逸、缺失和目录统一返回 `null`。有效文件仍
+返回 `BufferedInputStream`，首尾 `/` 语义、调用方关闭责任及 zip 行为不变。实现后该 fixture
+通过；Java 17 全量编译和 18 个 fixture（含 folder 逃逸断言）再次全部通过，`git diff --check`
+通过。Gradle `test/build` 仍受 wrapper 锁、网络或沙箱 daemon socket 限制，未宣称成功；未启动
+客户端、未执行 Mixin/OpenGL/FPS 验证。

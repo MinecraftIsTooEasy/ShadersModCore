@@ -15,6 +15,7 @@ public final class ShaderPackResourcePathTest {
 
     public static void main(String[] args) throws Exception {
         Path root = Files.createTempDirectory("shadersmodcore-pack");
+        Path outside = root.getParent().resolve(root.getFileName().toString() + "-outside.vsh");
         ShaderPackZip zipPack = null;
         try {
             Path shader = root.resolve("shaders/test.vsh");
@@ -36,6 +37,11 @@ public final class ShaderPackResourcePathTest {
                 "a folder root must not be opened as a resource stream");
             check(pack.getResourceAsStream(null) == null,
                 "a null shader resource path must return null");
+            Files.writeString(outside, "outside", StandardCharsets.UTF_8);
+            check(pack.getResourceAsStream("/../" + outside.getFileName()) == null,
+                "a folder shader path that escapes the pack root must return null");
+            check(pack.getResourceAsStream("/" + outside.toAbsolutePath()) == null,
+                "an absolute folder shader path must not escape the pack root");
 
             Path unreadable = root.resolve("shaders/unreadable.vsh");
             Files.writeString(unreadable, "void main() {}", StandardCharsets.UTF_8);
@@ -150,6 +156,7 @@ public final class ShaderPackResourcePathTest {
             Files.deleteIfExists(root.resolve("ambiguous-pack.zip"));
             Files.deleteIfExists(root.resolve("invalid-pack.zip"));
             Files.deleteIfExists(root);
+            Files.deleteIfExists(outside);
         }
 
         System.out.println("ShaderPackResourcePathTest passed");
