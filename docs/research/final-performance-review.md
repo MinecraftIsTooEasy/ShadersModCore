@@ -152,8 +152,9 @@ TessellatorBufferGrowthTest passed
 ## 本轮修复：Shader Pack 资源路径
 
 对照本地 OptiFine `ShaderPackFolder` 与 `ShaderPackZip` 时发现两个实现都固定
-`substring(1)`，无前导 `/` 的合法 shader 路径会丢失首字符；缺失资源还会打印异常。先
-扩展 `ShaderPackResourcePathTest` 覆盖 folder/zip 失败边界，再让 folder 去除可选首尾 `/`、
-zip 去除可选首 `/`，并对空/缺失/目录/不可访问资源返回 `null`。有效文件的
+`substring(1)`，无前导 `/` 的合法 shader 路径会丢失首字符；zip 还只查找根目录，带有单一
+顶层目录的常见压缩包无法读取；缺失资源还会打印异常。先扩展 `ShaderPackResourcePathTest`
+覆盖 folder/zip 失败边界，再让 folder 去除可选首尾 `/`、zip 去除可选首 `/` 并探测根目录或
+单一顶层目录下的 `shaders/`，同时对空/缺失/目录/不可访问资源返回 `null`。有效文件的
 `BufferedInputStream`、zip 的惰性 `ZipFile` 和调用方关闭责任保持不变；详细记录见
 `docs/research/shader-pack-resource-path.md`。

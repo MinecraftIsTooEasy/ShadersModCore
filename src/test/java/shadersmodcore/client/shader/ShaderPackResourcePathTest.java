@@ -47,6 +47,25 @@ public final class ShaderPackResourcePathTest {
                 "a missing zip shader resource must return null");
             check(zipPack.getResourceAsStream(null) == null,
                 "a null zip shader resource path must return null");
+
+            Path nestedZip = root.resolve("nested-pack.zip");
+            try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(nestedZip))) {
+                output.putNextEntry(new ZipEntry("ExamplePack/"));
+                output.closeEntry();
+                output.putNextEntry(new ZipEntry("ExamplePack/shaders/"));
+                output.closeEntry();
+                output.putNextEntry(new ZipEntry("ExamplePack/shaders/test.vsh"));
+                output.write("void main() {}".getBytes(StandardCharsets.UTF_8));
+                output.closeEntry();
+            }
+
+            ShaderPackZip nestedPack = new ShaderPackZip("nested-pack.zip", nestedZip.toFile());
+            try {
+                check(read(nestedPack.getResourceAsStream("/shaders/test.vsh")).equals("void main() {}"),
+                    "a zip shader path under a single top-level folder must load");
+            } finally {
+                nestedPack.close();
+            }
         } finally {
             if (zipPack != null) {
                 zipPack.close();
@@ -54,6 +73,7 @@ public final class ShaderPackResourcePathTest {
             Files.deleteIfExists(root.resolve("shaders/test.vsh"));
             Files.deleteIfExists(root.resolve("shaders"));
             Files.deleteIfExists(root.resolve("pack.zip"));
+            Files.deleteIfExists(root.resolve("nested-pack.zip"));
             Files.deleteIfExists(root);
         }
 

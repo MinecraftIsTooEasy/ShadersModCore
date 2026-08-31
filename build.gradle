@@ -167,7 +167,7 @@ tasks.register("shadersTexLayeredResourceTest", JavaExec) {
 
 tasks.register("shaderPackResourcePathTest", JavaExec) {
 	group = "verification"
-	description = "Runs the folder shader-pack resource-path fixture."
+	description = "Runs the shader-pack resource-path fixture."
 	dependsOn testClasses
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = "shadersmodcore.client.shader.ShaderPackResourcePathTest"
