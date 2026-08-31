@@ -333,3 +333,28 @@ Java 17 wrapper 执行 `./gradlew --no-daemon test` 受全局 `gradle-8.5-bin.zi
 目标文件保持未暂存；拟用中文 Conventional Commit `fix: 修复图集精灵资源流泄漏`，待可写
 Git 元数据环境中提交。未启动游戏、未执行真实 Mixin 织入、未建立
 OpenGL 上下文，未测量资源句柄、渲染视觉、帧时间或 FPS；这些仍需可运行 Java 17 客户端验证。
+
+## 后续兼容性修复：ShaderPackZip 父目录段（2026-08-31）
+
+### 调查
+
+继续对照本地 OptiFine `ShaderPackZip` 时发现，目标实现虽然已恢复可选首 `/`、顶层目录
+探测和目录 entry 回退，但遗漏了 OptiFine 的 `resolveRelative`。包含 `..` 的合法 shader
+路径（例如 `/shaders/program/../test.vsh`）因此直接查找错误的 zip entry，表现为资源缺失。
+
+### 修改
+
+`ShaderPackZip.getResourceAsStream` 现在仅对包含 `..` 的路径执行分段归一化，普通段保持
+顺序，父目录段移除上一段；尝试越过 pack 根目录时返回 `null`。没有改变不含父目录段的
+路径、顶层目录判定、目录 entry 拒绝、惰性 `ZipFile` 打开或调用方关闭流的责任。
+
+### 测试
+
+先扩展现有 `ShaderPackResourcePathTest` 并在基线上复现父目录段读取失败；实现后使用 Java 17
+独立编译运行通过，同时覆盖越过根目录的安全回退。该改动复用既有第十八个 fixture 任务，
+没有增加任务数量；`git diff --check` 在最终验证时执行。
+
+### 未验证范围
+
+本轮未启动客户端、未加载真实 shader pack、未执行 Mixin 运行时织入或 OpenGL/FPS 测量；
+实际 shader include 使用父目录段的客户端行为仍需在可运行 Java 17 环境中验证。

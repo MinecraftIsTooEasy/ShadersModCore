@@ -3,7 +3,10 @@ package shadersmodcore.client.shader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Enumeration;
+import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -45,6 +48,12 @@ public class ShaderPackZip implements IShaderPack {
 
             int start = resName.startsWith("/") ? 1 : 0;
             String path = resName.substring(start);
+            if (path.contains("..")) {
+                path = resolveRelative(path);
+                if (path == null) {
+                    return null;
+                }
+            }
             if (this.baseFolder == null) {
                 return null;
             }
@@ -57,6 +66,23 @@ public class ShaderPackZip implements IShaderPack {
         }
 
         return null;
+    }
+
+    private static String resolveRelative(String name) {
+        Deque<String> segments = new ArrayDeque<>();
+        StringTokenizer tokenizer = new StringTokenizer(name, "/");
+        while (tokenizer.hasMoreTokens()) {
+            String segment = tokenizer.nextToken();
+            if ("..".equals(segment)) {
+                if (segments.isEmpty()) {
+                    return null;
+                }
+                segments.removeLast();
+            } else {
+                segments.addLast(segment);
+            }
+        }
+        return String.join("/", segments);
     }
 
     private String detectBaseFolder(ZipFile zip) {

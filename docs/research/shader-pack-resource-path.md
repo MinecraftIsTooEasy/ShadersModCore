@@ -31,6 +31,17 @@ fixture 覆盖本轮实际缺陷。
 继续暴露。有效资源仍分别通过原有缓冲流或 `ZipFile` 流返回。输入流仍由调用方负责关闭，
 zip 的惰性打开和 `close()` 生命周期不变；没有改变 shader 源码读取、GL 状态或线程行为。
 
+## 后续兼容性修复：zip 父目录段
+
+对照 OptiFine 的 `ShaderPackZip.resolveRelative` 复核 shader include 和程序路径时发现，目标
+实现只去除首个 `/`，没有处理路径中的 `..`。因此 `/shaders/program/../test.vsh` 会直接查找
+不存在的 zip entry，合法资源被误判为缺失。补回基于 `StringTokenizer` 的分段归一化：普通段按
+顺序保留，`..` 移除上一段；试图越过 pack 根目录的路径返回 `null`。不含 `..` 的路径保持原
+字面语义，目录 entry、歧义顶层目录和异常回退规则不变。
+
+失败优先 fixture 在压缩包中验证带父目录段的成功读取及越过根目录的安全回退；实现后
+`ShaderPackResourcePathTest` 通过。
+
 ## 验证边界
 
 使用 Java 17 独立编译并运行 fixture 通过；完整主/测试源码编译、全部 fixture、Gradle

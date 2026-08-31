@@ -68,6 +68,10 @@ public final class ShaderPackResourcePathTest {
                 "a slash-prefixed zip shader path must load");
             check(read(zipPack.getResourceAsStream("shaders/test.vsh")).equals("void main() {}"),
                 "a zip shader path without a leading slash must load");
+            check(read(zipPack.getResourceAsStream("/shaders/program/../test.vsh")).equals("void main() {}"),
+                "a zip shader path with a parent segment must resolve within the pack");
+            check(zipPack.getResourceAsStream("/../shaders/test.vsh") == null,
+                "a zip shader path that escapes the pack root must return null");
             check(zipPack.getResourceAsStream("/shaders/missing.fsh") == null,
                 "a missing zip shader resource must return null");
             check(zipPack.getResourceAsStream("/shaders/") == null,
