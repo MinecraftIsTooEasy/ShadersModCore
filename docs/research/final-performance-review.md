@@ -79,7 +79,7 @@
 
 ## 已验证证据
 
-既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮先以 `javac --release 17 -proc:none` 对全部 `src/main/java` 与 `src/test/java` 做独立全量尝试；当前可用的 FishModLoader MITE classpath 未应用 access widener，复现了 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段的 7 个私有访问错误，无法将该次尝试计为全量编译成功。随后将本轮修改的动态光照类、ShadersTex 与无 GL fixture 类编入独立临时输出，以同一 Java 17 运行十一个 fixture，全部通过：
+既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮先以 `javac --release 17 -proc:none` 对全部 `src/main/java` 与 `src/test/java` 做独立全量尝试；当前可用的 FishModLoader MITE classpath 未应用 access widener，复现了 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段的 7 个私有访问错误，无法将该次尝试计为全量编译成功。随后将本轮修改的动态光照类、ShadersTex 与无 GL fixture 类编入独立临时输出，以同一 Java 17 运行十四个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
