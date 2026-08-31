@@ -242,3 +242,52 @@ Java 17 对本轮相关源码和上述 fixture 的独立编译/执行通过；`g
 未启动游戏、未执行 Mixin 运行时织入、未建立 OpenGL 上下文或加载真实资源；GL 删除调用、
 资源重载视觉结果、dynamic-light 命中率、帧时间和 FPS 均未测量。需要在可运行 Java 17
 客户端中继续验证真实纹理替换/重载、异常回退及渲染性能。
+
+## b086d02 最终纹理生命周期专项审查（2026-08-31）
+
+### 审查
+
+未发现新的明确 bug，未改动 `src/main`、未新增失败 fixture。未映射 Loom merged jar 的
+`javap` 类名是 `bim`；`bim.a(bjo, bio):Z` 在 IOException catch 内和方法尾部各有一次
+`Map.put`（ordinal 0/1），LVT slot 3 为 `var3:boolean`。映射 jar 将同一方法显示为
+`net.minecraft.TextureManager.loadTexture(ResourceLocation, TextureObject): boolean`，
+`mapTextureObjects`/`listTickables` 字段与 Mixin 声明一致。FishModLoader 的
+MixinExtras 版本枚举包含 `0.3.5`；`Operation<Object>` 的接收者、两个 Map 参数和尾随
+`Operation` 签名符合 MixinExtras 0.3.5，Java 17 注解处理器编译 `TextureManagerMixin`
+通过。真实 Mixin 织入仍未执行。
+
+失败回退、成功替换、同一对象、shared `missingTexture`、资源位置身份别名、重复
+`listTickables` 及 `equals` 相等但非同一对象均按身份和成功标志检查，map/list/GL 清理
+时序正确。`ShadersTex.deleteTextures`/`deleteMultiTex` 对 `-1`、`0` 只做状态解绑或
+跳过 GL 删除，对正 ID 才调用删除；`MultiTexID.base` 不一致会报告并仅删除正的异常 ID，
+非 `AbstractTexture` 分支同样有正 ID 守卫。primitive dynamic-light cache miss 与
+`BlockPos` 路径的坐标、距离、水下衰减、合并公式和 revision 语义一致。
+
+### 修改
+
+本轮仅更新本报告和 `texture-lifecycle.md` 的事实记录；没有代码修复，因此没有失败优先
+fixture 或新的修复提交。
+
+### 测试
+
+Java 17（Zulu 17.0.20.1）使用映射 Loom merged jar、FishModLoader 3.4.4-all 和
+legacy classpath，对全部 `src/main/java` 与 `src/test/java` 执行
+`javac --release 17 -proc:none`，通过；按 `build.gradle` 接线运行全部 17 个 fixture，
+全部通过；`git diff --check` 通过。fixture 未创建 Minecraft/OpenGL 上下文。
+
+### Gradle
+
+`JAVA_HOME=.../zulu-17 ./gradlew --no-daemon test` 与 `build` 均因全局
+`gradle-8.5-bin.zip.lck` 权限失败；本地缓存 Gradle 8.9、隔离 `.gradle`、Java 17、
+`--offline` 的 `test`/`build` 又因沙箱禁止 daemon 绑定 socket 失败。故不宣称 Gradle
+`test` 或 `build` 成功，也未把现有 `build/` 产物计入证据。
+
+### 提交
+
+无代码 bug，未创建代码修复提交；本轮只提交报告事实更新，使用中文 Conventional Commit
+`docs: 更新纹理生命周期最终审查报告`。未 push。
+
+### 未验证的运行时/Mixin/OpenGL/FPS
+
+未启动游戏或服务，未执行真实 Mixin 织入、资源重载、OpenGL 删除调用、渲染视觉、动态
+光照命中率、帧时间或 FPS 测量；这些仍需可运行 Java 17 客户端和 profiler 验证。

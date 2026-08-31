@@ -19,13 +19,16 @@ IOException 会先破坏旧纹理，再把同一位置改成 missing texture，�
 tick 清理按 `==` 身份比较，避免自定义 `equals` 误判。该实现不依赖不存在的 `THROW`
 injection point。
 
-`javap` 对 Loom merged jar 确认目标签名为
-`loadTexture(ResourceLocation, TextureObject): boolean`，`mappings.tiny` 中
-两次目标 `Map.put` 的调用顺序、`var3` 局部变量和 `mapTextureObjects`/`listTickables`
-字段名与 Mixin 声明一致；FishModLoader 内置 MixinExtras 版本为 `0.3.5`，支持当前
-`WrapOperation`/`@Local` 签名；`AbstractTextureMixin`
-提供的 `getMultiTexID0`、`setMultiTexID` 和 `setGlTextureId` 也与 accessor 接口匹配。
-独立编译不能替代真实 Mixin 织入验证，故仍需客户端启动检查注入日志。
+未映射的 Loom merged jar 中类名仍是 `bim`，对应 `mappings.tiny` 的
+`net/minecraft/TextureManager`；其 `bim.a(bjo, bio):Z` 字节码在异常 catch 内偏移
+53 写入一次 `Map.put`，方法尾部偏移 124 再写入一次，`var3` 是 LVT slot 3 的
+`boolean`，IOException/Throwable 异常表与 Mixin 目标一致。映射后的 Loom jar 才能用
+`javap net.minecraft.TextureManager` 查看 `loadTexture(ResourceLocation, TextureObject):
+boolean`。因此两个 `Map.put` 的 ordinal 0/1、`mapTextureObjects`/`listTickables` 字段和
+`@Local(index = 3)` 均有字节码依据。FishModLoader 的 `MixinExtrasVersion` 枚举包含
+`0.3.5`，其 `Operation<R>.call(Object...)` 与当前 `WrapOperation` handler 签名匹配；
+Java 17 注解处理器编译 `TextureManagerMixin` 也通过。独立编译和注解处理不能替代真实
+Mixin 织入验证，仍需客户端启动检查注入日志。
 
 MITE 的 `AbstractTexture` 构造函数把 `glTextureId` 初始化为 `-1`，`getGlTextureId`
 只在值为 `-1` 时调用 `TextureUtil.glGenTextures`。因此解绑必须恢复 `-1`；写入 `0`
@@ -51,8 +54,8 @@ MITE 的 `AbstractTexture` 构造函数把 `glTextureId` 初始化为 `-1`，`ge
 
 ## 验证范围
 
-使用本地 Loom merged Minecraft jar、FishModLoader classpath 和 Java 17 对全部主/测试
-源码做 `javac --release 17 -proc:none` 编译，并运行十七个独立 fixture（含 primitive
-动态光照等价性），均通过；`git diff --check` 通过。Gradle 任务和运行时边界记录在最终
-报告中。未启动客户端、Mixin 织入、资源重载或 OpenGL 上下文，实际驱动删除调用和
-渲染/FPS 结果仍需运行时验证。
+使用映射后的 Loom merged Minecraft jar、FishModLoader 3.4.4-all 和 legacy classpath，
+以 Java 17 执行 `javac --release 17 -proc:none` 编译全部主/测试源码，并运行十七个独立
+fixture（含 primitive 动态光照等价性），均通过；`git diff --check` 通过。Gradle 任务和
+运行时边界记录在最终报告中。未启动客户端、Mixin 织入、资源重载或 OpenGL 上下文，
+实际驱动删除调用和渲染/FPS 结果仍需运行时验证。
