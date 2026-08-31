@@ -199,7 +199,7 @@ public class ShadersTess {
         float fz = (float)(parz + tess.zOffset);
         if (TessellatorBufferGrowth.needsGrowth(rbi, rawBuffer.length)) {
             if (rawBuffer.length >= TessellatorBufferGrowth.MAX_CAPACITY) {
-                if (tess.addedVertices % 4 == 0) {
+                if (TessellatorBufferGrowth.needsFlushAfterGrowth(rbi, tess.addedVertices, rawBuffer.length)) {
                     tess.draw();
                     tess.reset();
                     tess.isDrawing = true;
@@ -210,6 +210,13 @@ public class ShadersTess {
                 int newCapacity = TessellatorBufferGrowth.nextCapacity(rawBuffer.length);
                 tess.rawBuffer = rawBuffer = Arrays.copyOf(rawBuffer, newCapacity);
                 System.out.format("Expand tesselator buffer %d\n", newCapacity);
+                if (TessellatorBufferGrowth.needsFlushAfterGrowth(rbi, tess.addedVertices, newCapacity)) {
+                    tess.draw();
+                    tess.reset();
+                    tess.isDrawing = true;
+                    rawBuffer = tess.rawBuffer;
+                    rbi = tess.rawBufferIndex;
+                }
             }
         }
 

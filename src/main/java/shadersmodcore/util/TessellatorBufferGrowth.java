@@ -17,6 +17,10 @@ public final class TessellatorBufferGrowth {
         return rawBufferIndex >= capacity - RESERVED_WORDS;
     }
 
+    public static boolean needsFlushAfterGrowth(int rawBufferIndex, int addedVertices, int capacity) {
+        return capacity >= MAX_CAPACITY && addedVertices % 4 == 0 && needsGrowth(rawBufferIndex, capacity);
+    }
+
     public static int nextCapacity(int capacity) {
         if (capacity < INITIAL_CAPACITY) {
             return INITIAL_CAPACITY;

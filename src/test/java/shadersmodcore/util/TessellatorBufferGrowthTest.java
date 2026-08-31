@@ -21,6 +21,10 @@ public final class TessellatorBufferGrowthTest {
             "the reserved tail must trigger growth before a vertex write");
         check(!TessellatorBufferGrowth.needsGrowth(2097024, 2097152),
             "capacity checks must use the instance array length");
+        check(TessellatorBufferGrowth.needsFlushAfterGrowth(16777152, 0, 16777216),
+            "growth into the maximum tail must flush at a quad boundary");
+        check(!TessellatorBufferGrowth.needsFlushAfterGrowth(16777152, 1, 16777216),
+            "partial quads must remain in the buffer while the reserved tail is safe");
 
         System.out.println("TessellatorBufferGrowthTest passed");
     }
