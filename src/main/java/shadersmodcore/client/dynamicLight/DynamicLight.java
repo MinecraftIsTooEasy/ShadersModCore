@@ -23,6 +23,7 @@ public class DynamicLight {
     private int lightValue;
     private World world;
     private boolean changed;
+    private final int[] chunkUpdateCoordinates = new int[24];
 
     public DynamicLight(Entity entity) {
         this.entity = entity;
@@ -78,10 +79,6 @@ public class DynamicLight {
         return this.changed;
     }
 
-    private BlockPos getChunkPos(BlockPos pos, EnumFacing facing) {
-        return pos.offset(facing, 16);
-    }
-
     private void updateChunkLight(BlockPos pos) {
         int d6 = pos.x();
         int d0 = pos.y();
@@ -92,25 +89,48 @@ public class DynamicLight {
             EnumFacing enumfacing1 = (MathHelper.floor_double((double)d1) & 15) >= 8 ? EnumFacing.SOUTH : EnumFacing.NORTH;
 
             for(int i = 0; i <= 16; ++i) {
-                BlockPos blockpos = new BlockPos(d6 + i, d0, d1 + i);
-                BlockPos blockpos1 = this.getChunkPos(blockpos, enumfacing2);
-                BlockPos blockpos2 = this.getChunkPos(blockpos, enumfacing1);
-                BlockPos blockpos3 = this.getChunkPos(blockpos1, enumfacing1);
-                BlockPos blockpos4 = this.getChunkPos(blockpos, enumfacing);
-                BlockPos blockpos5 = this.getChunkPos(blockpos4, enumfacing2);
-                BlockPos blockpos6 = this.getChunkPos(blockpos4, enumfacing1);
-                BlockPos blockpos7 = this.getChunkPos(blockpos5, enumfacing1);
-                this.renderGlobal.markBlockForRenderUpdate(blockpos.x(), blockpos.y(), blockpos.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos1.x(), blockpos1.y(), blockpos1.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos2.x(), blockpos2.y(), blockpos2.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos3.x(), blockpos3.y(), blockpos3.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos4.x(), blockpos4.y(), blockpos4.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos5.x(), blockpos5.y(), blockpos5.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos6.x(), blockpos6.y(), blockpos6.z());
-                this.renderGlobal.markBlockForRenderUpdate(blockpos7.x(), blockpos7.y(), blockpos7.z());
+                fillChunkUpdateCoordinates(this.chunkUpdateCoordinates, d6 + i, d0, d1 + i,
+                    enumfacing2, enumfacing, enumfacing1);
+                for (int index = 0; index < this.chunkUpdateCoordinates.length; index += 3) {
+                    this.renderGlobal.markBlockForRenderUpdate(
+                        this.chunkUpdateCoordinates[index],
+                        this.chunkUpdateCoordinates[index + 1],
+                        this.chunkUpdateCoordinates[index + 2]);
+                }
             }
         }
 
+    }
+
+    static void fillChunkUpdateCoordinates(int[] coordinates, int x, int y, int z,
+                                            EnumFacing xFacing, EnumFacing yFacing, EnumFacing zFacing) {
+        int xOffset = xFacing.getFrontOffsetX() * 16;
+        int yOffset = yFacing.getFrontOffsetY() * 16;
+        int zOffset = zFacing.getFrontOffsetZ() * 16;
+        coordinates[0] = x;
+        coordinates[1] = y;
+        coordinates[2] = z;
+        coordinates[3] = x + xOffset;
+        coordinates[4] = y;
+        coordinates[5] = z;
+        coordinates[6] = x;
+        coordinates[7] = y;
+        coordinates[8] = z + zOffset;
+        coordinates[9] = x + xOffset;
+        coordinates[10] = y;
+        coordinates[11] = z + zOffset;
+        coordinates[12] = x;
+        coordinates[13] = y + yOffset;
+        coordinates[14] = z;
+        coordinates[15] = x + xOffset;
+        coordinates[16] = y + yOffset;
+        coordinates[17] = z;
+        coordinates[18] = x;
+        coordinates[19] = y + yOffset;
+        coordinates[20] = z + zOffset;
+        coordinates[21] = x + xOffset;
+        coordinates[22] = y + yOffset;
+        coordinates[23] = z + zOffset;
     }
 
     public void updateLitChunks(RenderGlobal renderGlobal) {
