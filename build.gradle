@@ -173,6 +173,14 @@ tasks.register("shadersTexTextureLifecycleTest", JavaExec) {
 	mainClass = "shadersmodcore.client.shader.ShadersTexTextureLifecycleTest"
 }
 
+tasks.register("textureManagerTextureReplacementTest", JavaExec) {
+	group = "verification"
+	description = "Runs the texture-manager replacement fallback fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.mixin.client.render.texture.TextureManagerTextureReplacementTest"
+}
+
 tasks.register("shaderPackResourcePathTest", JavaExec) {
 	group = "verification"
 	description = "Runs the shader-pack resource-path fixture."
@@ -218,6 +226,7 @@ tasks.named("test") {
 	dependsOn "shadersTexResourceFallbackTest"
 	dependsOn "shadersTexLayeredResourceTest"
 	dependsOn "shadersTexTextureLifecycleTest"
+	dependsOn "textureManagerTextureReplacementTest"
 	dependsOn "shaderPackResourcePathTest"
 	dependsOn "configParsingTest"
 	dependsOn "particleRenderOptimizerTest"

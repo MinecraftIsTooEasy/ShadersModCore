@@ -2,6 +2,7 @@ package shadersmodcore.client.shader;
 
 import net.minecraft.AbstractTexture;
 import net.minecraft.ResourceManager;
+import net.minecraft.TextureObject;
 import shadersmodcore.api.AbstractTextureAccessor;
 
 public final class ShadersTexTextureLifecycleTest {
@@ -38,6 +39,20 @@ public final class ShadersTexTextureLifecycleTest {
         ShadersTex.deleteTextures(noStateTexture);
         check(noStateTexture.getGlTextureId() == -1,
             "deleting an unallocated texture must keep the vanilla sentinel");
+
+        NoGlTexture invalidIdsTexture = new NoGlTexture();
+        invalidIdsTexture.setGlTextureId(0);
+        MultiTexID invalidIds = new MultiTexID(0, 0, -2);
+        invalidIdsTexture.setMultiTexID(invalidIds);
+        ShadersTex.multiTexMap.put(invalidIds.base, invalidIds);
+        ShadersTex.deleteTextures(invalidIdsTexture);
+        check(invalidIdsTexture.getGlTextureId() == -1 && invalidIdsTexture.getMultiTexID0() == null,
+            "deleting invalid IDs must still detach texture state");
+        check(!ShadersTex.multiTexMap.containsKey(0),
+            "detaching invalid IDs must remove their cache entry");
+
+        check(ShadersTex.deleteMultiTex(new UnallocatedTextureObject()) == 0,
+            "deleting an unallocated non-AbstractTexture must not call OpenGL");
 
         System.out.println("ShadersTexTextureLifecycleTest passed");
     }
@@ -107,6 +122,17 @@ public final class ShadersTexTextureLifecycleTest {
         @Override
         public void setMultiTexID(MultiTexID id) {
             this.multiTex = id;
+        }
+    }
+
+    private static final class UnallocatedTextureObject implements TextureObject {
+        @Override
+        public void loadTexture(ResourceManager resourceManager) {
+        }
+
+        @Override
+        public int getGlTextureId() {
+            return -1;
         }
     }
 

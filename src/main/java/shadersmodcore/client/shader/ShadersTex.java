@@ -137,7 +137,10 @@ public class ShadersTex {
         if (tex instanceof AbstractTexture) {
             deleteTextures((AbstractTexture)tex);
         } else {
-            GL11.glDeleteTextures(tex.getGlTextureId());
+            int texid = tex.getGlTextureId();
+            if (texid > 0) {
+                GL11.glDeleteTextures(texid);
+            }
         }
 
         return 0;

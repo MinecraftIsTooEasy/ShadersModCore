@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：十五个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：十七个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：十五个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：十七个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-十五个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`dynamicLightChunkUpdateTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`shaderPackResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十五个任务，没有发现重复注册或循环依赖。
+十七个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`dynamicLightChunkUpdateTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`shadersTexTextureLifecycleTest`、`textureManagerTextureReplacementTest`、`shaderPackResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十七个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -35,6 +35,7 @@
 - 动态光照实体 overload 对空实体保留原始亮度；世界坐标查询复用线程本地缓存，区块标记使用实例级 24-int scratch，均不改变亮度公式、revision 或标记顺序。
 - 分层纹理读取使用 try-with-resources；空/非图像层安全跳过，全部无效时不触发空数组上传；有效层的三页合成保持原路径。
 - shader pack 的 folder/zip 资源路径接受可选首 `/`（folder 另接受尾 `/`）；缺失、目录和空路径安静回退为 `null`，zip 仅接受根 `shaders/` 或唯一顶层目录，歧义候选不会按顺序误选；有效资源流仍交给调用方关闭。
+- 纹理替换生命周期按 `ordinal = 0/1`、各 `require = 1`/`expect = 1` 包装 MITE `loadTexture` 内的两次 `Map.put`；尾部通过 `@Local(index = 3)` 的加载标志确认成功后才清理。IOException 仍返回 `false`；已有旧对象时两次 missing 写入均保留旧 map/list 纹理，避免新加载失败破坏可用回退，首次失败仍保留原版 missing 回退。旧对象存在其它资源位置的身份别名、是同一对象或为共享 `missingTexture` 时不释放，map/list 清理均按对象身份比较；`ShadersTex.deleteTextures` 只对正的运行时 GL ID 发出删除调用。
 
 早期性能切片未发现明确正确性回归；本次目标提交的额外审查发现并修复了纹理资源路径的空值兼容回归，后续切片及其实现记录如下。
 
@@ -82,7 +83,7 @@
 
 ## 已验证证据
 
-既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮先以 `javac --release 17 -proc:none` 对全部 `src/main/java` 与 `src/test/java` 做独立全量尝试；当前可用的 FishModLoader MITE classpath 未应用 access widener，复现了 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段的 7 个私有访问错误，无法将该次尝试计为全量编译成功。随后将本轮涉及的动态光照、ShadersTex、配置、粒子、Tessellator helper 和 shader pack 资源类编入独立临时输出，以同一 Java 17 运行十五个 fixture，全部通过：
+Java 17（`Zulu 17.0.20.1`）使用本地 Loom merged Minecraft jar、FishModLoader classpath 和 `javac --release 17 -proc:none` 已完成全部 `src/main/java` 与 `src/test/java` 独立编译；随后以同一 classpath 运行十七个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -96,6 +97,8 @@ DynamicLightChunkUpdateTest passed
 ShadersTexResourcePathTest passed
 ShadersTexResourceFallbackTest passed
 ShadersTexLayeredResourceTest passed
+ShadersTexTextureLifecycleTest passed
+TextureManagerTextureReplacementTest passed
 ShaderPackResourcePathTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed
@@ -174,7 +177,7 @@ TessellatorBufferGrowthTest passed
 拒绝目录 entry，并要求顶层 shader 目录候选唯一；`ShaderPackResourcePathTest.java` 覆盖
 目录、歧义顶层目录、非法 zip、close 后惰性重开和异常传播。`shader-pack-resource-path.md`
 与本报告同步调查证据；`build.gradle` 的 `shaderPackResourcePathTest` 任务及 `test` 依赖
-保持现有 15-fixture 接线不变。
+保持现有 fixture 接线，并新增纹理替换回退任务。
 
 ### 提交
 
@@ -185,3 +188,57 @@ TessellatorBufferGrowthTest passed
 未启动游戏、加载真实 shader pack 或建立 OpenGL 上下文；未测量资源句柄、帧时间或 FPS。
 folder/zip 的真实客户端加载、shader 编译失败回退和运行时视觉结果仍需在可运行 Java 17
 客户端中验证。
+
+## b210da9 纹理生命周期专项复核
+
+### 审查结论
+
+MITE `TextureManager.loadTexture` 的 map 写入发生在新对象加载之后：成功路径在方法尾部
+写入，IOException 路径先写共享 `TextureUtil.missingTexture`、随后仍执行方法尾部写入，
+其它异常包装为 `ReportedException` 抛出。Loom merged jar 的 `javap` 显示这两个调用分别
+是 ordinal 0/1，`var3` 在尾部表示加载是否成功。b210da9 原实现从 HEAD 移除并释放旧对象，因而
+新对象 IOException 时旧纹理已不可回退，属于明确生命周期 bug。`multiTexMap`、身份别名、
+`listTickables` 和 `missingTexture` 的释放边界也需要在成功结果之后
+判断。primitive dynamic-light cache miss 与 `BlockPos` 路径逐项复核，坐标转换、距离、
+水下衰减、亮度合并和 revision 键完全等价，未发现 dynamic-light 数学回归。
+Loom merged jar 的 `loadTexture(ResourceLocation, TextureObject): boolean`、
+`mappings.tiny` 字段名和 `AbstractTextureAccessor` 方法签名均与 Mixin 声明一致；真实
+织入仍未在客户端执行。
+
+### 修改
+
+`TextureManagerMixin` 现在分别以 ordinal 0/1 包装两次 map put（各 `expect = 1`），并由
+尾部 `@Local(index = 3)` 的 `var3` 区分 IOException 与成功。missing 回退时跳过覆盖已有
+旧对象，成功替换后才移除未被其它资源位置身份别名引用的旧 tick 项并调用
+`ShadersTex.deleteTextures`。首次加载仍保留原版 missing 回退；同一对象重载、资源位置
+别名和 shared missing 均不会误释放，也不依赖不存在的 `THROW` injection point。
+FishModLoader 内置 MixinExtras 为 0.3.5，与当前 `WrapOperation` 和 `@Local` 签名匹配。
+`ShadersTex.deleteMultiTex` 的非 `AbstractTexture` 分支也增加正 ID 守卫；`ShadersTexTextureLifecycleTest` 新增 0/负 GL ID 边界，`TextureManagerTextureReplacementTest`
+覆盖失败回退、失败后恢复、成功替换、同一对象、shared missing、别名、重复 tick 项和身份
+比较边界，`DynamicLightCoordinateQueryTest` 增加
+真实动态光源下的对象/primitive 结果等价断言。`build.gradle` 接入第十七个 fixture 任务。
+
+### 测试
+
+Java 17 对本轮相关源码和上述 fixture 的独立编译/执行通过；`git diff --check` 通过。
+全量编译使用 `-proc:none`，未执行 Mixin 织入或 access widener 处理；它证明源码和 fixture
+在 Java 17 classpath 下可编译，不等同于运行时注入验证。
+
+### Gradle
+
+已真实尝试 `./gradlew --no-daemon test` 和 `build`。默认 Java 25 在配置阶段报
+`Unsupported class file major version 69`；Java 17 wrapper 受全局锁文件权限、隔离缓存
+网络不可用（`UnknownHostException: services.gradle.org`）阻塞。使用本机 Gradle 缓存时，
+全局缓存报 native platform 动态库加载失败，工作区缓存的 daemon 又因沙箱禁止绑定 socket
+失败。因此本轮不宣称 Gradle `test` 或 `build` 成功，也未把现有 `build/` 产物计入证据。
+
+### 提交
+
+提交：`fix: 修复纹理替换失败回退`（中文 Conventional Commit）。提交仅包含
+本轮 8 个目标文件；用户已有的 `gradlew`、参考目录和生成目录均未纳入。
+
+### 运行时/OpenGL/FPS 验证
+
+未启动游戏、未执行 Mixin 运行时织入、未建立 OpenGL 上下文或加载真实资源；GL 删除调用、
+资源重载视觉结果、dynamic-light 命中率、帧时间和 FPS 均未测量。需要在可运行 Java 17
+客户端中继续验证真实纹理替换/重载、异常回退及渲染性能。
