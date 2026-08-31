@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：九个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：十个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：九个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：十个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-九个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`shadersTexResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这九个任务，没有发现重复注册或循环依赖。
+十个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -31,6 +31,7 @@
 - 动态光照查询缓存使用线程本地直映射表，键包含坐标、原始合并亮度和光照 revision；碰撞只导致 miss，实体移动/亮度变化/移除和世界清空会推进 revision，稳定检查周期不再无条件失效。关闭动态光照时缓存入口不会执行。
 - 配置读取在加载前清空属性集；文件不存在时先应用默认值再写盘；整数/浮点损坏值回退，布尔值保留 `Boolean.parseBoolean` 的兼容语义。未发现需要在本轮修复的明确异常路径。
 - 空粒子优化只在四层都明确为空时取消普通粒子渲染，未触碰粒子更新、生成、删除或 OpenGL 状态；非空和未知布局均回退原版。
+- 辅助纹理资源加载对空位置、缺失资源、非图像流和不可读输入均回退默认页，并关闭输入流；尺寸匹配的有效图像仍按原偏移复制，像素数组边界错误不被吞掉。
 
 早期性能切片未发现明确正确性回归；本次目标提交的额外审查发现并修复了纹理资源路径的空值兼容回归，后续切片及其实现记录如下。
 
@@ -62,9 +63,15 @@
 
 本轮后独立 fixture 共八个，新增 `shadersTexResourcePathTest`。
 
+## 后续修复：辅助纹理资源回退
+
+继续检查法线/高光辅助图的 CPU 资源路径时发现，目标 `ShadersTex.loadNSMap1` 对 `ResourceManager.getResource` 的运行时缺失异常和 `ImageIO.read` 返回的空图像没有保护；空位置也会在默认填充前中止。对照 OptiFine 的 `loadNSMapFile`，本轮先加入失败优先 `ShadersTexResourceFallbackTest`，再让查找/解码失败回退原有默认颜色，并以 try-with-resources 关闭输入流。详细记录见 `docs/research/texture-resource-fallback.md`。
+
+本轮后独立 fixture 共十个，新增 `shadersTexResourceFallbackTest`。
+
 ## 已验证证据
 
-既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮使用本地 merged jar 与 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`，主源码和测试源码均成功；此前仅使用未应用 access widener 的 merged jar 的尝试仍会报告 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段访问错误，这些是 classpath 限制而非本轮新增。随后使用同一 Java 17 和本地依赖运行九个 fixture，全部通过：
+既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮使用本地 merged jar 与 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`，主源码和测试源码均成功；此前仅使用未应用 access widener 的 merged jar 的尝试仍会报告 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段访问错误，这些是 classpath 限制而非本轮新增。随后使用同一 Java 17 和本地依赖运行十个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -73,6 +80,7 @@ DynamicLightBoundaryTest passed
 DynamicLightRevisionTest passed
 DynamicLightScanTest passed
 ShadersTexResourcePathTest passed
+ShadersTexResourceFallbackTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed
 TessellatorBufferGrowthTest passed

@@ -588,14 +588,29 @@ public class ShadersTex {
     public static void loadNSMap1(ResourceManager manager, ResourceLocation location, int width, int height, int[] aint, int offset, int defaultColor) {
         boolean good = false;
 
-        try {
-            Resource res = manager.getResource(location);
-            BufferedImage bufferedimage = ImageIO.read(res.getInputStream());
-            if (bufferedimage.getWidth() == width && bufferedimage.getHeight() == height) {
-                bufferedimage.getRGB(0, 0, width, height, aint, offset, width);
-                good = true;
+        if (manager != null && location != null) {
+            Resource res = null;
+            try {
+                res = manager.getResource(location);
+            } catch (RuntimeException ignored) {
+                // Missing resource managers report a runtime resource-not-found error.
             }
-        } catch (IOException ignored) {
+
+            if (res != null) {
+                BufferedImage bufferedimage = null;
+                try (InputStream input = res.getInputStream()) {
+                    bufferedimage = ImageIO.read(input);
+                } catch (IOException | RuntimeException ignored) {
+                    // Invalid or unreadable auxiliary maps use the default page.
+                }
+
+                if (bufferedimage != null
+                    && bufferedimage.getWidth() == width
+                    && bufferedimage.getHeight() == height) {
+                    bufferedimage.getRGB(0, 0, width, height, aint, offset, width);
+                    good = true;
+                }
+            }
         }
 
         if (!good) {
