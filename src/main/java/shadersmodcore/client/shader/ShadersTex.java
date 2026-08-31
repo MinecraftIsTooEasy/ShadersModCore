@@ -591,17 +591,20 @@ public class ShadersTex {
         if (manager != null && location != null) {
             Resource res = null;
             try {
-                res = manager.getResource(location);
-            } catch (RuntimeException ignored) {
-                // Missing resource managers report a runtime resource-not-found error.
+                res = getResource(manager, location);
+            } catch (IOException ignored) {
+                // Resource managers signal a missing auxiliary map with IOException.
             }
 
             if (res != null) {
                 BufferedImage bufferedimage = null;
-                try (InputStream input = res.getInputStream()) {
-                    bufferedimage = ImageIO.read(input);
-                } catch (IOException | RuntimeException ignored) {
-                    // Invalid or unreadable auxiliary maps use the default page.
+                InputStream input = res.getInputStream();
+                if (input != null) {
+                    try (InputStream stream = input) {
+                        bufferedimage = ImageIO.read(stream);
+                    } catch (IOException ignored) {
+                        // Invalid or unreadable auxiliary maps use the default page.
+                    }
                 }
 
                 if (bufferedimage != null
@@ -617,6 +620,10 @@ public class ShadersTex {
             Arrays.fill(aint, offset, offset + width * height, defaultColor);
         }
 
+    }
+
+    private static Resource getResource(ResourceManager manager, ResourceLocation location) throws IOException {
+        return manager.getResource(location);
     }
 
     public static int loadSimpleTexture(int textureID, BufferedImage bufferedimage, boolean linear, boolean clamp, ResourceManager resourceManager, ResourceLocation location, MultiTexID multiTex) {

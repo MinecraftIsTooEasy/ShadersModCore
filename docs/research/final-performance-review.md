@@ -31,7 +31,7 @@
 - 动态光照查询缓存使用线程本地直映射表，键包含坐标、原始合并亮度和光照 revision；碰撞只导致 miss，实体移动/亮度变化/移除和世界清空会推进 revision，稳定检查周期不再无条件失效。关闭动态光照时缓存入口不会执行。
 - 配置读取在加载前清空属性集；文件不存在时先应用默认值再写盘；整数/浮点损坏值回退，布尔值保留 `Boolean.parseBoolean` 的兼容语义。未发现需要在本轮修复的明确异常路径。
 - 空粒子优化只在四层都明确为空时取消普通粒子渲染，未触碰粒子更新、生成、删除或 OpenGL 状态；非空和未知布局均回退原版。
-- 辅助纹理资源加载对空位置、缺失资源、非图像流和不可读输入均回退默认页，并关闭输入流；尺寸匹配的有效图像仍按原偏移复制，像素数组边界错误不被吞掉。
+- 辅助纹理资源加载对空位置、实际 `FileNotFoundException`、空资源/空流、非图像流和不可读输入均回退默认页，并关闭输入流；资源查找/读取仅捕获 `IOException`，manager/stream 编程异常和像素数组边界错误不被吞掉。尺寸匹配的有效图像仍按原偏移复制。
 
 早期性能切片未发现明确正确性回归；本次目标提交的额外审查发现并修复了纹理资源路径的空值兼容回归，后续切片及其实现记录如下。
 
@@ -63,11 +63,11 @@
 
 本轮后独立 fixture 共八个，新增 `shadersTexResourcePathTest`。
 
-## 后续修复：辅助纹理资源回退
+## 复核 1cba805：辅助纹理资源回退
 
-继续检查法线/高光辅助图的 CPU 资源路径时发现，目标 `ShadersTex.loadNSMap1` 对 `ResourceManager.getResource` 的运行时缺失异常和 `ImageIO.read` 返回的空图像没有保护；空位置也会在默认填充前中止。对照 OptiFine 的 `loadNSMapFile`，本轮先加入失败优先 `ShadersTexResourceFallbackTest`，再让查找/解码失败回退原有默认颜色，并以 try-with-resources 关闭输入流。详细记录见 `docs/research/texture-resource-fallback.md`。
+对照 OptiFine 的 `loadNSMapFile` 复核 `1cba805` 时确认：该提交虽处理了空位置、空图像和部分运行时异常，但实际 MITE `FallbackResourceManager` 抛出的 `FileNotFoundException` 不是 `RuntimeException`，真实缺失资源仍会中断；宽泛 `RuntimeException` 捕获还会吞掉 manager/stream 的编程错误。先扩展失败优先 `ShadersTexResourceFallbackTest` 并在目标提交上确认真实缺失失败，再以声明 `throws IOException` 的 helper 捕获资源查找/读取异常、显式处理空输入流，并保留 try-with-resources。`getRGB` 和默认 `Arrays.fill` 在捕获范围外，数组边界错误继续抛出；原有偏移、三页布局和 OpenGL 路径未改变。详细调查记录见 `docs/research/texture-resource-fallback.md`。
 
-本轮后独立 fixture 共十个，新增 `shadersTexResourceFallbackTest`。
+本轮后独立 fixture 共九个，新增 `shadersTexResourceFallbackTest`；随后顶点缓冲 fixture 使当前总数达到十个。
 
 ## 已验证证据
 
@@ -92,7 +92,7 @@ TessellatorBufferGrowthTest passed
 
 - 默认 Java 25 执行 `./gradlew --no-daemon test` 在配置阶段报 `Unsupported class file major version 69`。
 - Java 17 执行 `./gradlew --no-daemon test` 时 wrapper 无法打开全局 `gradle-8.5-bin.zip.lck`，报 `FileNotFoundException (Operation not permitted)`；将 `GRADLE_USER_HOME` 隔离到工作区后，wrapper 下载又因网络限制报 `UnknownHostException: services.gradle.org`。
-- 直接调用本机缓存的 Gradle 8.5、Java 17 并使用工作区 `.gradle` 执行 `test` 与 `build` 时，daemon 均因沙箱禁止绑定 socket 报 `java.net.SocketException: Operation not permitted`；改用全局 Gradle 缓存还会在 native service 初始化时报 `Failed to load native library 'libnative-platform.dylib'`。
+- 直接调用本机缓存的 Gradle 8.9、Java 17 并使用全局缓存时，初始化 native service 报 `Failed to load native library 'libnative-platform.dylib'`；改用工作区 `.gradle` 执行 `test` 与 `build` 时，daemon 均因沙箱禁止绑定 socket 报 `java.net.SocketException: Operation not permitted`。
 
 因此没有把 `build/` 中已有的 class/jar 当作本轮 Gradle 产物，也没有宣称 Gradle `test` 或 `build` 成功。
 
