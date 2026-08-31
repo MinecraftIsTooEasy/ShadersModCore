@@ -22,6 +22,7 @@ public class DynamicLight {
     private boolean willFlash = false;
     private int lightValue;
     private World world;
+    private boolean changed;
 
     public DynamicLight(Entity entity) {
         this.entity = entity;
@@ -29,6 +30,7 @@ public class DynamicLight {
     }
 
     public void update(RenderGlobal renderGlobal) {
+        this.changed = false;
         this.renderGlobal = renderGlobal;
         if (ShaderConfig.isDynamicLightsFast()) {
             long i = System.currentTimeMillis();
@@ -66,8 +68,14 @@ public class DynamicLight {
             }
 
             this.updateLitChunks(renderGlobal);
+            this.changed = true;
         }
 
+    }
+
+    boolean updateAndReport(RenderGlobal renderGlobal) {
+        this.update(renderGlobal);
+        return this.changed;
     }
 
     private BlockPos getChunkPos(BlockPos pos, EnumFacing facing) {

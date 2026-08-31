@@ -31,7 +31,7 @@ public class DynamicLights {
             if (dynamiclight != null) {
                 dynamiclight.setLightLevel(0);
                 dynamiclight.updateLitChunks(renderGlobal);
-                ++lightRevision;
+                lightRevision = advanceLightRevision(lightRevision, true);
             }
 
         }
@@ -46,17 +46,17 @@ public class DynamicLights {
             }
 
             synchronized(mapDynamicLights) {
-                updateMapDynamicLights(renderGlobal);
+                boolean changed = updateMapDynamicLights(renderGlobal);
                 if (mapDynamicLights.size() > 0) {
                     List list = mapDynamicLights.valueList();
 
                     for (Object o : list) {
                         DynamicLight dynamiclight = (DynamicLight) o;
-                        dynamiclight.update(renderGlobal);
+                        changed |= dynamiclight.updateAndReport(renderGlobal);
                     }
                 }
+                lightRevision = advanceLightRevision(lightRevision, changed);
             }
-            ++lightRevision;
         }
 
     }
@@ -75,7 +75,8 @@ public class DynamicLights {
 
     }
 
-    private static void updateMapDynamicLights(RenderGlobal renderGlobal) {
+    private static boolean updateMapDynamicLights(RenderGlobal renderGlobal) {
+        boolean changed = false;
         World world = ((RenderGlobalAccessor) ReflectHelper.dyCast(renderGlobal)).getClientWorld();
         if (world != null) {
 
@@ -90,6 +91,7 @@ public class DynamicLights {
                         if (dynamiclight == null) {
                             dynamiclight = new DynamicLight(entity);
                             mapDynamicLights.put(j, dynamiclight);
+                            changed = true;
                         }
                     } else {
                         j = entity.entityId;
@@ -97,12 +99,18 @@ public class DynamicLights {
                         if (dynamiclight != null) {
                             dynamiclight.setLightLevel(0);
                             dynamiclight.updateLitChunks(renderGlobal);
+                            changed = true;
                         }
                     }
                 }
             }
         }
 
+        return changed;
+    }
+
+    static long advanceLightRevision(long revision, boolean changed) {
+        return changed ? revision + 1L : revision;
     }
 
     public static int getCombinedLight(BlockPos pos, int combinedLight) {
@@ -296,7 +304,7 @@ public class DynamicLights {
         synchronized(mapDynamicLights) {
             mapDynamicLights.clear();
         }
-        ++lightRevision;
+        lightRevision = advanceLightRevision(lightRevision, true);
     }
 
     public static int getCount() {
