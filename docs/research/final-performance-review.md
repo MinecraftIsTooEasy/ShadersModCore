@@ -2,7 +2,7 @@
 
 ## 审查基线
 
-本次审查重点覆盖 `7e553b3`、`cb013e8`、`e98eb2d` 和 `e8507b9`，并创建了独立的中文 Conventional Commit 修复空值回归；累计性能基线仍包含：
+累计审查重点覆盖 `7e553b3`、`cb013e8`、`e98eb2d` 和 `e8507b9`；本轮追加复核 `1cba805`，发现辅助纹理缺失异常回退缺口并创建中文 Conventional Commit `8a46189`。累计性能基线仍包含：
 
 `a35a80c`、`e38b621`、`40f6a7f`、`4689e91`、`c9777c7`、`f3fddb4`。
 
@@ -68,6 +68,14 @@
 对照 OptiFine 的 `loadNSMapFile` 复核 `1cba805` 时确认：该提交虽处理了空位置、空图像和部分运行时异常，但实际 MITE `FallbackResourceManager` 抛出的 `FileNotFoundException` 不是 `RuntimeException`，真实缺失资源仍会中断；宽泛 `RuntimeException` 捕获还会吞掉 manager/stream 的编程错误。先扩展失败优先 `ShadersTexResourceFallbackTest` 并在目标提交上确认真实缺失失败，再以声明 `throws IOException` 的 helper 捕获资源查找/读取异常、显式处理空输入流，并保留 try-with-resources。`getRGB` 和默认 `Arrays.fill` 在捕获范围外，数组边界错误继续抛出；原有偏移、三页布局和 OpenGL 路径未改变。详细调查记录见 `docs/research/texture-resource-fallback.md`。
 
 本轮后独立 fixture 共九个，新增 `shadersTexResourceFallbackTest`；随后顶点缓冲 fixture 使当前总数达到十个。
+
+## 本轮交付
+
+审查结论：`1cba805` 未覆盖实际 `FileNotFoundException`，且宽泛 `RuntimeException` 捕获会吞掉 manager/stream 编程错误，属于明确缺陷。
+
+实际修改：`ShadersTex.loadNSMap1` 仅捕获资源查找/读取 `IOException`，显式处理空输入流并保留 try-with-resources；新增失败优先边界 fixture；未改变 OpenGL 调用、纹理页偏移或布局。研究记录同步更新。
+
+提交：`8a46189`（`fix: 修复辅助纹理资源缺失异常回退`）。
 
 ## 已验证证据
 
