@@ -28,23 +28,23 @@ public class ShaderPackZip implements IShaderPack {
     }
 
     public InputStream getResourceAsStream(String resName) {
-        if (this.packZipFile == null) {
-            try {
-                this.packZipFile = new ZipFile(this.packFile);
-            } catch (Exception var4) {
-                var4.printStackTrace();
+        try {
+            if (resName == null) {
+                return null;
             }
-        }
 
-        if (this.packZipFile != null) {
-            try {
-                ZipEntry entry = this.packZipFile.getEntry(resName.substring(1));
-                if (entry != null) {
-                    return this.packZipFile.getInputStream(entry);
-                }
-            } catch (Exception var3) {
-                var3.printStackTrace();
+            if (this.packZipFile == null) {
+                this.packZipFile = new ZipFile(this.packFile);
             }
+
+            int start = resName.startsWith("/") ? 1 : 0;
+            String path = resName.substring(start);
+            ZipEntry entry = this.packZipFile.getEntry(path);
+            if (entry != null) {
+                return this.packZipFile.getInputStream(entry);
+            }
+        } catch (Exception ignored) {
+            // Missing or inaccessible shader resources use the normal fallback path.
         }
 
         return null;
