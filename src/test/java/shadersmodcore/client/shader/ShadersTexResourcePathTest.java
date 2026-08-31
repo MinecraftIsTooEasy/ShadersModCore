@@ -7,6 +7,9 @@ public final class ShadersTexResourcePathTest {
     }
 
     public static void main(String[] args) {
+        check(ShadersTex.getNSMapLocation(null, "n") == null,
+            "null texture locations must preserve the OptiFine fallback");
+
         ResourceLocation texture = new ResourceLocation("minecraft", "textures/block/pngstone.png");
         check("minecraft:textures/block/pngstone_n.png".equals(
             ShadersTex.getNSMapLocation(texture, "n").toString()),
@@ -19,6 +22,15 @@ public final class ShadersTexResourcePathTest {
         check("mod:textures/custom/atlas_n.png".equals(
             ShadersTex.getNSMapLocation(nonPng, "n").toString()),
             "paths without a PNG suffix must remain unchanged");
+
+        ResourceLocation existingNormal = new ResourceLocation("mod", "textures/custom/atlas_n.png");
+        check("mod:textures/custom/atlas_n_n.png".equals(
+            ShadersTex.getNSMapLocation(existingNormal, "n").toString()),
+            "existing normal-map suffixes must retain the original naming rule");
+        ResourceLocation existingSpecular = new ResourceLocation("mod", "textures/custom/atlas_s.png");
+        check("mod:textures/custom/atlas_s_s.png".equals(
+            ShadersTex.getNSMapLocation(existingSpecular, "s").toString()),
+            "existing specular-map suffixes must retain the original naming rule");
 
         System.out.println("ShadersTexResourcePathTest passed");
     }
