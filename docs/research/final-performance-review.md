@@ -365,3 +365,30 @@ Gradle 任务成功。本轮提交为 `3a4fadb`（`fix: 修复压缩着色器父
 
 本轮未启动客户端、未加载真实 shader pack、未执行 Mixin 运行时织入或 OpenGL/FPS 测量；
 实际 shader include 使用父目录段的客户端行为仍需在可运行 Java 17 环境中验证。
+
+## 后续修复：TextureAtlasSprite 元数据异常关闭输入流（2026-08-31）
+
+### 调查
+
+继续复核 atlas 纹理 Mixin 边界时，对照 MITE merged jar 的 `TextureAtlasSprite.loadSprite(Resource)`
+字节码确认方法先取得 `Resource.getInputStream()`，再读取 `Resource.getMetadata("animation")`，
+最后才调用 `ImageIO.read`。已有图像读取包装只覆盖最后一步；元数据读取抛出运行时异常时，
+输入流不会进入图像包装，因而仍会泄漏。正常元数据路径仍由图像包装负责关闭，失败路径需要
+在同一局部输入流上补充关闭。
+
+### 失败优先与修改
+
+扩展既有 `TextureAtlasSpriteResourceLifecycleTest`：元数据成功时断言不提前关闭，元数据操作
+抛出运行时异常时先在基线确认缺少 helper 编译失败，再断言输入流关闭且异常继续传播。
+`TextureAtlasSpriteMixin` 新增 `@WrapOperation` 包装 `Resource.getMetadata(String)`，通过
+`@Local(index = 2)` 取得 MITE 的输入流局部变量；成功时保持原调用，运行时异常或 `Error` 时
+关闭该流并将关闭 `IOException` 作为 suppressed，随后原样抛出。现有 `ImageIO.read` 的
+try-with-resources、normal/specular 页、帧拆分和 GL 上传均未改变。
+
+### 验证边界
+
+Java 17（Zulu 17.0.20.1）使用本地 Loom merged Minecraft jar、FishModLoader classpath 和
+`javac --release 17 -proc:none` 在临时目录完成全部 `src/main/java` 与 `src/test/java` 编译；
+18 个 fixture（含本轮 atlas fixture）全部通过，`git diff --check` 通过。Gradle `test/build`
+仍按前述记录受 wrapper 锁、网络或沙箱 daemon socket 限制，未宣称成功；未启动客户端、未执行
+真实 Mixin 织入、未建立 OpenGL 上下文，也未测量资源句柄、渲染视觉、帧时间或 FPS。

@@ -1,6 +1,7 @@
 package shadersmodcore.mixin.client.render.texture;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import net.minecraft.MetadataSection;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -34,6 +35,33 @@ public final class TextureAtlasSpriteResourceLifecycleTest {
             check(failedClosed[0], "a failed atlas image decode must close its input stream");
         }
 
+        boolean[] metadataSuccessClosed = {false};
+        FakeResource metadataSuccessResource = new FakeResource(
+            trackedInput(new byte[] {7, 8, 9}, metadataSuccessClosed));
+        TextureAtlasSpriteMixin.readMetadataAndCloseOnFailure(
+            metadataSuccessResource,
+            "animation",
+            metadataSuccessResource.getInputStream(),
+            values -> null);
+        check(!metadataSuccessClosed[0], "a successful atlas metadata read must leave decoding ownership unchanged");
+        metadataSuccessResource.getInputStream().close();
+
+        boolean[] metadataClosed = {false};
+        FakeResource metadataResource = new FakeResource(
+            trackedInput(new byte[] {4, 5, 6}, metadataClosed));
+        try {
+            TextureAtlasSpriteMixin.readMetadataAndCloseOnFailure(
+                metadataResource,
+                "animation",
+                metadataResource.getInputStream(),
+                values -> {
+                    throw new IllegalStateException("metadata failed");
+                });
+            throw new AssertionError("a failed atlas metadata read must propagate the failure");
+        } catch (IllegalStateException expected) {
+            check(metadataClosed[0], "a failed atlas metadata read must close its input stream");
+        }
+
         System.out.println("TextureAtlasSpriteResourceLifecycleTest passed");
     }
 
@@ -64,6 +92,29 @@ public final class TextureAtlasSpriteResourceLifecycleTest {
                 input.close();
             }
         };
+    }
+
+    private static final class FakeResource implements net.minecraft.Resource {
+        private final InputStream input;
+
+        private FakeResource(InputStream input) {
+            this.input = input;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return this.input;
+        }
+
+        @Override
+        public boolean hasMetadata() {
+            return true;
+        }
+
+        @Override
+        public MetadataSection getMetadata(String section) {
+            return null;
+        }
     }
 
     private static byte[] png() throws IOException {

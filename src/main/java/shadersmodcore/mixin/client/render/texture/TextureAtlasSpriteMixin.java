@@ -2,6 +2,7 @@ package shadersmodcore.mixin.client.render.texture;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.*;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -52,6 +53,30 @@ public abstract class TextureAtlasSpriteMixin implements TextureAtlasSpriteAcces
         throws IOException {
         try (InputStream stream = input) {
             return original.call(stream);
+        }
+    }
+
+    @WrapOperation(method = "loadSprite", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/Resource;getMetadata(Ljava/lang/String;)Lnet/minecraft/MetadataSection;"))
+    private MetadataSection closeSpriteResourceOnMetadataFailure(Resource resource, String section,
+                                                                  Operation<MetadataSection> original,
+                                                                  @Local(index = 2) InputStream input) {
+        return readMetadataAndCloseOnFailure(resource, section, input, original);
+    }
+
+    static MetadataSection readMetadataAndCloseOnFailure(Resource resource, String section, InputStream input,
+                                                         Operation<MetadataSection> original) {
+        try {
+            return original.call(resource, section);
+        } catch (RuntimeException | Error failure) {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (Throwable closeFailure) {
+                    failure.addSuppressed(closeFailure);
+                }
+            }
+            throw failure;
         }
     }
 
