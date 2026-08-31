@@ -354,6 +354,13 @@ OpenGL 上下文，未测量资源句柄、渲染视觉、帧时间或 FPS；这
 独立编译运行通过，同时覆盖越过根目录的安全回退。该改动复用既有第十八个 fixture 任务，
 没有增加任务数量；`git diff --check` 在最终验证时执行。
 
+### Gradle 与提交
+
+Java 17 下实际执行 `./gradlew --no-daemon test` 与 `./gradlew --no-daemon build` 均在 wrapper
+启动阶段因全局 `gradle-8.5-bin.zip.lck` 权限被拒绝；隔离 `GRADLE_USER_HOME` 重试时因网络
+限制无法解析 `services.gradle.org`。因此没有把已有 `build/` 产物计作本轮结果，也不宣称
+Gradle 任务成功。本轮提交为 `3a4fadb`（`fix: 修复压缩着色器父目录路径`），未 push。
+
 ### 未验证范围
 
 本轮未启动客户端、未加载真实 shader pack、未执行 Mixin 运行时织入或 OpenGL/FPS 测量；
