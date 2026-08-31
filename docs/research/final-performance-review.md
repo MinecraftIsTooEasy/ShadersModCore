@@ -34,7 +34,7 @@
 - 辅助纹理资源加载对空位置、实际 `FileNotFoundException`、空资源/空流、非图像流和不可读输入均回退默认页，并关闭输入流；资源查找/读取仅捕获 `IOException`，manager/stream 编程异常和像素数组边界错误不被吞掉。尺寸匹配的有效图像仍按原偏移复制。
 - 动态光照实体 overload 对空实体保留原始亮度；世界坐标查询复用线程本地缓存，区块标记使用实例级 24-int scratch，均不改变亮度公式、revision 或标记顺序。
 - 分层纹理读取使用 try-with-resources；空/非图像层安全跳过，全部无效时不触发空数组上传；有效层的三页合成保持原路径。
-- shader pack 的 folder/zip 资源路径接受可选首 `/`（folder 另接受尾 `/`）；缺失、目录和空路径安静回退为 `null`，有效资源流仍交给调用方关闭。
+- shader pack 的 folder/zip 资源路径接受可选首 `/`（folder 另接受尾 `/`）；缺失、目录和空路径安静回退为 `null`，zip 仅接受根 `shaders/` 或唯一顶层目录，歧义候选不会按顺序误选；有效资源流仍交给调用方关闭。
 
 早期性能切片未发现明确正确性回归；本次目标提交的额外审查发现并修复了纹理资源路径的空值兼容回归，后续切片及其实现记录如下。
 
@@ -158,3 +158,30 @@ TessellatorBufferGrowthTest passed
 单一顶层目录下的 `shaders/`，同时对空/缺失/目录/不可访问资源返回 `null`。有效文件的
 `BufferedInputStream`、zip 的惰性 `ZipFile` 和调用方关闭责任保持不变；详细记录见
 `docs/research/shader-pack-resource-path.md`。
+
+## Shader Pack 专项复核：f463c11 / 57c60f5 / e6dfeb0
+
+### 审查结论
+
+复核确认 folder 的可选首尾 `/`、zip 的可选首 `/`、缺失/非法 zip 回退和流关闭责任均
+符合现有 OptiFine 兼容语义。新增失败优先边界发现：zip 目录 entry 原实现可被当作资源
+流返回；`detectBaseFolder` 对多个顶层 `*/shaders/` 按 entry 顺序取第一个，可能选错资源；
+`catch (Exception)` 会把空 zip 文件参数等编程错误吞成资源缺失。
+
+### 文件修改
+
+`ShaderPackFolder.java` 与 `ShaderPackZip.java` 仅捕获 `IOException`/`SecurityException`，
+拒绝目录 entry，并要求顶层 shader 目录候选唯一；`ShaderPackResourcePathTest.java` 覆盖
+目录、歧义顶层目录、非法 zip、close 后惰性重开和异常传播。`shader-pack-resource-path.md`
+与本报告同步调查证据；`build.gradle` 的 `shaderPackResourcePathTest` 任务及 `test` 依赖
+保持现有 15-fixture 接线不变。
+
+### 提交
+
+本轮创建中文 Conventional Commit：`fix: 收紧着色器资源路径回退边界`。
+
+### 运行时/OpenGL/FPS 验证
+
+未启动游戏、加载真实 shader pack 或建立 OpenGL 上下文；未测量资源句柄、帧时间或 FPS。
+folder/zip 的真实客户端加载、shader 编译失败回退和运行时视觉结果仍需在可运行 Java 17
+客户端中验证。
