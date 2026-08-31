@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：十二个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：十三个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：十二个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：十三个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-十二个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十二个任务，没有发现重复注册或循环依赖。
+十三个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十三个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -88,6 +88,7 @@ DynamicLightBoundaryTest passed
 DynamicLightRevisionTest passed
 DynamicLightScanTest passed
 DynamicLightEntityFallbackTest passed
+DynamicLightCoordinateQueryTest passed
 ShadersTexResourcePathTest passed
 ShadersTexResourceFallbackTest passed
 ShadersTexLayeredResourceTest passed
@@ -132,3 +133,11 @@ TessellatorBufferGrowthTest passed
 ## 后续修复：分层纹理资源流
 
 继续复核纹理资源生命周期时发现，`ShadersTex.loadLayeredTexture` 每层读取后没有关闭输入流，且空/非图像资源会在读取尺寸时抛出 `NullPointerException`。新增 `ShadersTexLayeredResourceTest` 先确认缺少 helper 时编译失败，再以 try-with-resources 实现分层图像读取；空层跳过、全部无效时不上传空数组，有效图像的三页合成和 OpenGL 上传顺序保持不变。详细记录见 `docs/research/texture-layered-resource.md`。
+
+## 后续切片：动态光照世界坐标查询
+
+继续复核动态光照查询入口时发现，`WorldMixin` 尚未复用区块缓存路径，每次动态光照
+查询都会新建 `BlockPos` 并扫描快照。本轮新增四整数坐标 overload，直接委托已有
+线程本地查询缓存，并让 `WorldMixin` 传入原始坐标；`DynamicLightCoordinateQueryTest`
+先覆盖缺少 overload 的编译失败，再验证无光源和最大亮度边界原样返回。缓存键、revision、
+动态光照开关和亮度合并公式未改变。详细记录见 `docs/research/dynamic-light-coordinate-query.md`。

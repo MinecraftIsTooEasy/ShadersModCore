@@ -124,6 +124,15 @@ public class DynamicLights {
     }
 
     /**
+     * Merges dynamic light for a primitive coordinate query without allocating
+     * a temporary BlockPos. The world Mixin uses this overload so repeated
+     * lookups share the same thread-local cache as chunk compilation.
+     */
+    public static int getCombinedLight(int x, int y, int z, int combinedLight) {
+        return getCombinedLightCached(x, y, z, combinedLight);
+    }
+
+    /**
      * Reuses dynamic-light results for repeated coordinates in one render
      * worker. The revision makes movement, removal, and world changes visible
      * without sharing mutable cache entries between threads.

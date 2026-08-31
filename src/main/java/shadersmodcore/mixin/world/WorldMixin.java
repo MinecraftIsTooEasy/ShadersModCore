@@ -13,14 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import shadersmodcore.client.dynamicLight.DynamicLights;
 import shadersmodcore.config.ShaderConfig;
-import shadersmodcore.util.BlockPos;
 
 @Mixin(World.class)
 public abstract class WorldMixin {
     @ModifyReturnValue(method = "getLightBrightnessForSkyBlocks", at = @At("TAIL"))
     private int modifyCout(int original, @Local(argsOnly = true, ordinal = 0) int par1, @Local(argsOnly = true, ordinal = 1) int par2, @Local(argsOnly = true, ordinal = 2) int par3) {
         if (ShaderConfig.isDynamicLights() && DynamicLights.getCount() > 0) {
-            return DynamicLights.getCombinedLight(new BlockPos(par1, par2, par3), original);
+            return DynamicLights.getCombinedLight(par1, par2, par3, original);
         }
         return original;
     }

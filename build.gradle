@@ -125,6 +125,14 @@ tasks.register("dynamicLightEntityFallbackTest", JavaExec) {
 	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightEntityFallbackTest"
 }
 
+tasks.register("dynamicLightCoordinateQueryTest", JavaExec) {
+	group = "verification"
+	description = "Runs the primitive-coordinate dynamic-light query fixture."
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = "shadersmodcore.client.dynamicLight.DynamicLightCoordinateQueryTest"
+}
+
 tasks.register("shadersTexResourcePathTest", JavaExec) {
 	group = "verification"
 	description = "Runs the shader texture resource-path fixture."
@@ -180,6 +188,7 @@ tasks.named("test") {
 	dependsOn "dynamicLightRevisionTest"
 	dependsOn "dynamicLightScanTest"
 	dependsOn "dynamicLightEntityFallbackTest"
+	dependsOn "dynamicLightCoordinateQueryTest"
 	dependsOn "shadersTexResourcePathTest"
 	dependsOn "shadersTexResourceFallbackTest"
 	dependsOn "shadersTexLayeredResourceTest"
