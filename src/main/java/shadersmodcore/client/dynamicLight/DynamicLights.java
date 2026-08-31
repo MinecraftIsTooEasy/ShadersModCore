@@ -155,7 +155,11 @@ public class DynamicLights {
     }
 
     public static int getCombinedLight(Entity entity, int combinedLight) {
-        if (entity != null && canSkipDynamicLightQuery(combinedLight)) {
+        if (entity == null) {
+            return combinedLight;
+        }
+
+        if (canSkipDynamicLightQuery(combinedLight)) {
             return combinedLight;
         }
 

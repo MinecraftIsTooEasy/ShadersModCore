@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：十个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：十一个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：十个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：十一个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-十个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十个任务，没有发现重复注册或循环依赖。
+十一个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十一个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -79,7 +79,7 @@
 
 ## 已验证证据
 
-既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮使用本地 merged jar 与 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`，主源码和测试源码均成功；此前仅使用未应用 access widener 的 merged jar 的尝试仍会报告 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段访问错误，这些是 classpath 限制而非本轮新增。随后使用同一 Java 17 和本地依赖运行十个 fixture，全部通过：
+既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮先以 `javac --release 17 -proc:none` 对全部 `src/main/java` 与 `src/test/java` 做独立全量尝试；当前可用的 FishModLoader MITE classpath 未应用 access widener，复现了 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段的 7 个私有访问错误，无法将该次尝试计为全量编译成功。随后将本轮修改的动态光照类、ShadersTex 与无 GL fixture 类编入独立临时输出，以同一 Java 17 运行十一个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -87,6 +87,7 @@ DynamicLightQueryCacheTest passed
 DynamicLightBoundaryTest passed
 DynamicLightRevisionTest passed
 DynamicLightScanTest passed
+DynamicLightEntityFallbackTest passed
 ShadersTexResourcePathTest passed
 ShadersTexResourceFallbackTest passed
 ConfigParsingTest passed
@@ -122,3 +123,7 @@ TessellatorBufferGrowthTest passed
 ## 复核修复：最大容量扩容边界
 
 对 `e8507b9` 的最大容量路径做完整顶点序列复核时，发现非标准初始容量可能在扩容到 `MAX_CAPACITY` 后留下 `rawBufferIndex == MAX_CAPACITY - 64` 的四边形起点。原路径在同一次 `addVertex` 中直接写入，第四个顶点的 quad-to-triangle 第二次复制会越过数组尾部；该状态不由已有 helper fixture 覆盖。新增失败优先断言后，`ShadersTess.addVertex` 在扩容到最大容量后重新使用保留区和四边形边界判定，必要时先 `draw()`、`reset()` 并恢复 `isDrawing`，再继续写入。部分四边形不在边界时仍留在 64-word 保留区中。修复提交为 `398a18f`（`fix: 修复顶点缓冲扩容至上限时的四边形越界`）。详细记录见 `docs/research/tessellator-buffer-growth.md`。
+
+## 后续修复：动态光照实体空值回退
+
+继续复核实体光照 Mixin 边界时发现，`DynamicLights.getCombinedLight(Entity, int)` 对空实体只绕过最大亮度早退，随后仍调用 `getLightLevel(null)`；在 Minecraft 单例尚未初始化或调用方没有实体时会抛出 `NullPointerException`，而不是保留原版亮度。新增 `DynamicLightEntityFallbackTest` 先复现该失败，再让实体 overload 对 `null` 直接返回输入亮度；非空实体和动态光照合并公式未改变。详细记录见 `docs/research/dynamic-light-entity-fallback.md`。
