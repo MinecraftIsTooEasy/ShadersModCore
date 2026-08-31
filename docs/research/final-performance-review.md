@@ -9,9 +9,9 @@
 逐个检查目标提交的 `git diff-tree --name-status` 后，变更均位于以下范围：
 
 - `src/main/java`、`src/main/resources`：性能切片及其配置/UI/Mixin 接入；
-- `src/test/java`：十四个无 OpenGL 上下文依赖的独立 fixture；
+- `src/test/java`：十五个无 OpenGL 上下文依赖的独立 fixture；
 - `docs/research`：切片研究记录；
-- `build.gradle`：十四个 fixture 的 `JavaExec` 任务及 `test` 依赖。
+- `build.gradle`：十五个 fixture 的 `JavaExec` 任务及 `test` 依赖。
 
 目标提交和本轮修复没有包含 `FishModLoader/`、`Optifine SRC Version [1.8.9 HD U M6 pre2]/`、`build/`、`logs/`、`.gradle/`，也没有把 `.class`、`.jar` 等生成物纳入提交。上述目录在当前工作树中的未提交状态按要求保留。
 
@@ -23,7 +23,7 @@
 | `smartAnimations` | `OptimizeConfig` 读取并持久化，默认 `false`；配置加载和 GUI 切换都调用 `SmartAnimations.setEnabled` | 未启用、shadow pass、尚无追踪快照、未知 texture ID 均保留动画原版路径；已追踪但本帧未绑定的 atlas 才跳过；tick 和资源重载会清理对应状态 |
 | `skipEmptyParticleRender` | `OptimizeConfig` 读取并持久化，默认 `true`；粒子设置页可切换 | 关闭开关、`entity == null`、层数组不是四层、任一层为 `null` 或非空时均保留原版；第 3 层参与判定，避免发光粒子依赖的插值状态回归 |
 
-十四个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`dynamicLightChunkUpdateTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十四个任务，没有发现重复注册或循环依赖。
+十五个独立任务分别为 `smartAnimationsTest`、`dynamicLightQueryCacheTest`、`dynamicLightBoundaryTest`、`dynamicLightRevisionTest`、`dynamicLightScanTest`、`dynamicLightEntityFallbackTest`、`dynamicLightCoordinateQueryTest`、`dynamicLightChunkUpdateTest`、`shadersTexResourcePathTest`、`shadersTexResourceFallbackTest`、`shadersTexLayeredResourceTest`、`shaderPackResourcePathTest`、`configParsingTest`、`particleRenderOptimizerTest` 和 `tessellatorBufferGrowthTest`。每个任务只依赖共享的 `testClasses`；`test` 依赖这十五个任务，没有发现重复注册或循环依赖。
 
 ## 语义审查结论
 
@@ -34,6 +34,7 @@
 - 辅助纹理资源加载对空位置、实际 `FileNotFoundException`、空资源/空流、非图像流和不可读输入均回退默认页，并关闭输入流；资源查找/读取仅捕获 `IOException`，manager/stream 编程异常和像素数组边界错误不被吞掉。尺寸匹配的有效图像仍按原偏移复制。
 - 动态光照实体 overload 对空实体保留原始亮度；世界坐标查询复用线程本地缓存，区块标记使用实例级 24-int scratch，均不改变亮度公式、revision 或标记顺序。
 - 分层纹理读取使用 try-with-resources；空/非图像层安全跳过，全部无效时不触发空数组上传；有效层的三页合成保持原路径。
+- 文件型 shader pack 资源路径接受可选首尾 `/`；缺失、目录和空路径安静回退为 `null`，有效资源流仍交给调用方关闭。
 
 早期性能切片未发现明确正确性回归；本次目标提交的额外审查发现并修复了纹理资源路径的空值兼容回归，后续切片及其实现记录如下。
 
@@ -81,7 +82,7 @@
 
 ## 已验证证据
 
-既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮先以 `javac --release 17 -proc:none` 对全部 `src/main/java` 与 `src/test/java` 做独立全量尝试；当前可用的 FishModLoader MITE classpath 未应用 access widener，复现了 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段的 7 个私有访问错误，无法将该次尝试计为全量编译成功。随后将本轮修改的动态光照类、ShadersTex 与无 GL fixture 类编入独立临时输出，以同一 Java 17 运行十四个 fixture，全部通过：
+既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮先以 `javac --release 17 -proc:none` 对全部 `src/main/java` 与 `src/test/java` 做独立全量尝试；当前可用的 FishModLoader MITE classpath 未应用 access widener，复现了 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段的 7 个私有访问错误，无法将该次尝试计为全量编译成功。随后将本轮涉及的动态光照、ShadersTex、配置、粒子、Tessellator helper 和 shader pack 资源类编入独立临时输出，以同一 Java 17 运行十五个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -95,6 +96,7 @@ DynamicLightChunkUpdateTest passed
 ShadersTexResourcePathTest passed
 ShadersTexResourceFallbackTest passed
 ShadersTexLayeredResourceTest passed
+ShaderPackResourcePathTest passed
 ConfigParsingTest passed
 ParticleRenderOptimizerTest passed
 TessellatorBufferGrowthTest passed
@@ -146,3 +148,11 @@ TessellatorBufferGrowthTest passed
 线程本地查询缓存，并让 `WorldMixin` 传入原始坐标；`DynamicLightCoordinateQueryTest`
 先覆盖缺少 overload 的编译失败，再验证无光源和最大亮度边界原样返回。缓存键、revision、
 动态光照开关和亮度合并公式未改变。详细记录见 `docs/research/dynamic-light-coordinate-query.md`。
+
+## 本轮修复：文件型 Shader Pack 资源路径
+
+对照本地 OptiFine `ShaderPackFolder` 时发现当前实现固定 `substring(1)`，无前导 `/` 的
+合法 shader 路径会丢失首字符；缺失文件还会打印 `FileNotFoundException`。先加入
+`ShaderPackResourcePathTest` 验证该失败，再让资源入口去除可选首尾 `/`、检查 `isFile()`，
+并对空/缺失/目录/不可访问资源返回 `null`。有效文件的 `BufferedInputStream` 和调用方
+关闭责任保持不变；详细记录见 `docs/research/shader-pack-resource-path.md`。

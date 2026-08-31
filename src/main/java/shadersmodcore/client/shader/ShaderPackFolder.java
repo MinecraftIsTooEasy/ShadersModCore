@@ -17,14 +17,21 @@ public class ShaderPackFolder implements IShaderPack {
 
     public InputStream getResourceAsStream(String resName) {
         try {
-            File resFile = new File(this.packFile, resName.substring(1));
-            if (resFile != null) {
-                return new BufferedInputStream(new FileInputStream(resFile));
+            if (resName == null) {
+                return null;
             }
-        } catch (Exception var3) {
-            var3.printStackTrace();
-        }
 
-        return null;
+            int start = resName.startsWith("/") ? 1 : 0;
+            int end = resName.endsWith("/") ? resName.length() - 1 : resName.length();
+            String path = resName.substring(start, Math.max(start, end));
+            File resFile = new File(this.packFile, path);
+            if (!resFile.isFile()) {
+                return null;
+            }
+            return new BufferedInputStream(new FileInputStream(resFile));
+        } catch (Exception ignored) {
+            // Missing or inaccessible shader resources use the normal fallback path.
+            return null;
+        }
     }
 }
