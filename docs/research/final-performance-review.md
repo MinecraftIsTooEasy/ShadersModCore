@@ -2,7 +2,7 @@
 
 ## 审查基线
 
-本次审查重点覆盖 `7e553b3`、`cb013e8` 和 `e98eb2d`，并创建了独立的中文 Conventional Commit 修复空值回归；累计性能基线仍包含：
+本次审查重点覆盖 `7e553b3`、`cb013e8`、`e98eb2d` 和 `e8507b9`，并创建了独立的中文 Conventional Commit 修复空值回归；累计性能基线仍包含：
 
 `a35a80c`、`e38b621`、`40f6a7f`、`4689e91`、`c9777c7`、`f3fddb4`。
 
@@ -64,7 +64,7 @@
 
 ## 已验证证据
 
-既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。当前工作树使用可见的本地 merged jar 直接复跑 `javac --release 17 -proc:none` 时，被尚未应用 access widener 的 classpath 阻塞：`Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段仍是私有/受保护；这些错误均来自既有源码访问边界，本轮没有新增。随后使用同一 Java 17 和本地依赖对可独立分层编译的源码运行九个 fixture，全部通过：
+既有环境记录中，Java 17（`Zulu 17.0.20.1`）配合 Loom 映射 classpath 曾完成全部主/测试源码编译。本轮使用本地 merged jar 与 FishModLoader all-in jar，以 `javac --release 17 -proc:none` 编译全部 `src/main/java` 与 `src/test/java`，主源码和测试源码均成功；此前仅使用未应用 access widener 的 merged jar 的尝试仍会报告 `Tessellator.convertQuadsToTriangles`、`RenderManager.entityRenderMap`、`RendererLivingEntity` 模型字段和 `ModelRenderer` 字段访问错误，这些是 classpath 限制而非本轮新增。随后使用同一 Java 17 和本地依赖运行九个 fixture，全部通过：
 
 ```text
 SmartAnimationsTest passed
@@ -96,8 +96,13 @@ TessellatorBufferGrowthTest passed
 2. 动态光照实体移动/熄灭时的更新延迟及查询缓存命中率；
 3. 四层粒子为空、仅有第 3 层粒子以及混合层时的渲染状态和位置；
 4. 首次启动、重复加载和损坏配置文件的默认值与落盘权限；
-5. 动态光照实体静止与移动场景的 revision 稳定性、缓存命中率和区块编译帧时间。
+5. 动态光照实体静止与移动场景的 revision 稳定性、缓存命中率和区块编译帧时间；
+6. Tessellator 非标准初始容量、quad-to-triangle 转换及最大容量 flush 后的顶点连续性和颜色/法线/UV 视觉一致性。
 
 ## 后续切片：Tessellator 顶点缓冲容量与 scratch
 
 继续对照本地 OptiFine `SVertexBuilder` 和目标 `ShadersTess` 时发现，目标用共享静态容量判断每个实例的 `rawBuffer`，实例扩容后可能使新实例在数组尾部越界；四顶点法线计算还为只使用的 16 个坐标槽位分配了完整构造容量的 float 数组。本轮新增 `TessellatorBufferGrowth`，按实例 `rawBuffer.length` 扩容、达到上限 flush 后 reset，并固定 16-float scratch，同时把法线/中间 UV 打包值缓存到局部变量。顶点步长、颜色编码、法线计算和 OpenGL 布局没有改变。失败优先 fixture 为 `TessellatorBufferGrowthTest`，对应研究记录见 `docs/research/tessellator-buffer-growth.md`。
+
+## 复核修复：最大容量扩容边界
+
+对 `e8507b9` 的最大容量路径做完整顶点序列复核时，发现非标准初始容量可能在扩容到 `MAX_CAPACITY` 后留下 `rawBufferIndex == MAX_CAPACITY - 64` 的四边形起点。原路径在同一次 `addVertex` 中直接写入，第四个顶点的 quad-to-triangle 第二次复制会越过数组尾部；该状态不由已有 helper fixture 覆盖。新增失败优先断言后，`ShadersTess.addVertex` 在扩容到最大容量后重新使用保留区和四边形边界判定，必要时先 `draw()`、`reset()` 并恢复 `isDrawing`，再继续写入。部分四边形不在边界时仍留在 64-word 保留区中。修复提交为 `398a18f`（`fix: 修复顶点缓冲扩容至上限时的四边形越界`）。详细记录见 `docs/research/tessellator-buffer-growth.md`。

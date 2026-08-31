@@ -22,6 +22,12 @@
 
 `TessellatorBufferGrowthTest` 先在 helper 不存在时以编译失败，随后覆盖初始容量、按实例容量翻倍、最大值钳制、末尾保留区和 16-float scratch 常量。该 fixture 不创建 Minecraft 或 OpenGL 对象。
 
+## 复核修复
+
+对提交 `e8507b9` 继续做最大容量边界复核时，发现一个只在非标准初始容量下出现的明确越界：例如实例容量为 `MAX_CAPACITY - 47` 时，扩容触发点可能正好是 `rawBufferIndex == MAX_CAPACITY - 64` 且位于四边形起点。旧路径把数组扩到 `MAX_CAPACITY` 后没有重新检查，就写入该起点；完成第四个顶点的 quad-to-triangle 复制时，第二次复制的目标区间会越过数组末尾。默认 2,097,152 words 的幂次扩容序列不会落入该状态，但 `Tessellator` 构造器允许其它容量，不能依赖默认值。
+
+本轮先把该状态加入 `TessellatorBufferGrowthTest`，确认 helper 缺失时编译失败；随后在 `TessellatorBufferGrowth` 增加 `needsFlushAfterGrowth`，并让 `ShadersTess.addVertex` 在扩容到最大容量后复用同一保留区/四边形边界判定，立即执行现有 `draw()`、`reset()`、恢复 `isDrawing` 的流程，再写入新顶点。部分四边形仍保留在 64-word 尾部安全区，不会被提前丢弃。修复提交为 `398a18f`（`fix: 修复顶点缓冲扩容至上限时的四边形越界`）。
+
 ## 验证边界
 
-已单独使用 Java 17 编译并运行该 fixture；全量源码编译仍需使用 Loom 应用 access widener 的映射 classpath。没有启动客户端、shader pack 或 OpenGL，也没有声称已测得帧时间/FPS；真实运行时需观察大批量区块编译、达到最大缓冲区时的 flush 行为及顶点颜色/法线视觉一致性。
+已先验证失败优先编译错误，再使用 Java 17 编译并运行通过该 fixture；全量源码编译使用本地 merged jar 和 FishModLoader all-in jar 也通过。Gradle wrapper 仍受网络/权限限制，未把其结果当作成功。没有启动客户端、shader pack 或 OpenGL，也没有声称已测得帧时间/FPS；真实运行时需观察大批量区块编译、达到最大缓冲区时的 flush 行为及顶点颜色/法线视觉一致性。
